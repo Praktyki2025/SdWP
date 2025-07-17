@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SdWP.Frontend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f6e6802da434e1c79607bcd67e78c22f578b98c7")]
 [assembly: System.Reflection.AssemblyProductAttribute("SdWP.Frontend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SdWP.Frontend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

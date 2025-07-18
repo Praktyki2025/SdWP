@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SdWP.DTO\SdWP.DTO.csproj" />
     <ProjectReference Include="..\SdWP.Service\SdWP.Service.csproj" />
   </ItemGroup>
 

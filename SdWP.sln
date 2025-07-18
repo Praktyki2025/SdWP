@@ -1,17 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36301.6 d17.14
+VisualStudioVersion = 17.14.36301.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdWP.Frontend", "SdWP.Frontend\SdWP.Frontend.csproj", "{6C510354-6465-42E5-916A-E07A6F885876}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdWP.Model", "SdWP.Model\SdWP.Model.csproj", "{6A0EAF63-2A33-4EBD-AB66-4E349F526BD9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdWP.DTO", "SdWP.DTO\SdWP.DTO.csproj", "{FE99343C-28CE-45B0-90E2-882E04AFC623}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdWP.Data", "SdWP.Data\SdWP.Data.csproj", "{562D42E5-EA5B-4548-AA0C-FC97AD081B7C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdWP.Service", "SdWP.Service\SdWP.Service.csproj", "{1FDECC5E-745A-4536-8FE0-3D59898C8EDE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdWP.API", "SdWP.API\SdWP.API.csproj", "{F3C4565A-2F69-4826-AFB0-C20634AE252A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,6 @@ Global
 		{6C510354-6465-42E5-916A-E07A6F885876}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C510354-6465-42E5-916A-E07A6F885876}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C510354-6465-42E5-916A-E07A6F885876}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6A0EAF63-2A33-4EBD-AB66-4E349F526BD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6A0EAF63-2A33-4EBD-AB66-4E349F526BD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6A0EAF63-2A33-4EBD-AB66-4E349F526BD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6A0EAF63-2A33-4EBD-AB66-4E349F526BD9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FE99343C-28CE-45B0-90E2-882E04AFC623}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FE99343C-28CE-45B0-90E2-882E04AFC623}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE99343C-28CE-45B0-90E2-882E04AFC623}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -39,6 +35,10 @@ Global
 		{1FDECC5E-745A-4536-8FE0-3D59898C8EDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FDECC5E-745A-4536-8FE0-3D59898C8EDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FDECC5E-745A-4536-8FE0-3D59898C8EDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3C4565A-2F69-4826-AFB0-C20634AE252A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3C4565A-2F69-4826-AFB0-C20634AE252A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3C4565A-2F69-4826-AFB0-C20634AE252A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3C4565A-2F69-4826-AFB0-C20634AE252A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

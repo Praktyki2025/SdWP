@@ -7,8 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="9.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SdWP.DTO\SdWP.DTO.csproj" />
-    <ProjectReference Include="..\SdWP.Model\SdWP.Model.csproj" />
   </ItemGroup>
 
 </Project>

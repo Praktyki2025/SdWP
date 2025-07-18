@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SdWP.Data\SdWP.Data.csproj" />
+    <ProjectReference Include="..\SdWP.DTO\SdWP.DTO.csproj" />
   </ItemGroup>
 
 </Project>

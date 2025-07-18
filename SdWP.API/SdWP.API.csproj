@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SdWP.Service\SdWP.Service.csproj" />
+  </ItemGroup>
+
 </Project>

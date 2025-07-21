@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdWP.Service", "SdWP.Servic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdWP.API", "SdWP.API\SdWP.API.csproj", "{F3C4565A-2F69-4826-AFB0-C20634AE252A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdWP.Test", "SdWP.Test\SdWP.Test.csproj", "{D9285343-470F-4189-8C9D-0CA4FE8BC027}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{F3C4565A-2F69-4826-AFB0-C20634AE252A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3C4565A-2F69-4826-AFB0-C20634AE252A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3C4565A-2F69-4826-AFB0-C20634AE252A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9285343-470F-4189-8C9D-0CA4FE8BC027}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9285343-470F-4189-8C9D-0CA4FE8BC027}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9285343-470F-4189-8C9D-0CA4FE8BC027}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9285343-470F-4189-8C9D-0CA4FE8BC027}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

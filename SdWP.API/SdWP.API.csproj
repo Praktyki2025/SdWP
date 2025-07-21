@@ -11,4 +11,8 @@
     <ProjectReference Include="..\SdWP.Service\SdWP.Service.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>

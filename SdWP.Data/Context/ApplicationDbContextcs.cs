@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SdWP.Data
+namespace SdWP.Data.Context
 {
     public class ApplicationDbContextcs : IdentityDbContext<IdentityUser>
     {

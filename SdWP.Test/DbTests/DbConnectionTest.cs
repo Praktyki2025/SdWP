@@ -1,5 +1,5 @@
 namespace SdWP.Test;
-using SdWP.Data;
+using SdWP.Data.Context;
 
 [TestClass]
 public class DbConnectionTest

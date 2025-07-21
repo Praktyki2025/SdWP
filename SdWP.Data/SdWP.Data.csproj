@@ -37,4 +37,12 @@
     <ProjectReference Include="..\SdWP.DTO\SdWP.DTO.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <Folder Include="Migrations\" />
+    <Folder Include="IData\" />
+    <Folder Include="Seeds\" />
+    <Folder Include="Repositories\" />
+  </ItemGroup>
+
 </Project>

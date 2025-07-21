@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 
-namespace SdWP.Data
+namespace SdWP.Data.Context
 {
     public class DbContextInitializer
     {

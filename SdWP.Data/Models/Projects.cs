@@ -20,6 +20,7 @@ namespace SdWP.Data.Models
         public DateTime LastModified { get; set; }
         public string Description { get; set; }
 
+        public virtual ICollection<Valuation> Valuations { get; set; }
         public virtual ICollection<ValuationItem> ValuationItems { get; set; }
         public virtual ICollection<Link> Links { get; set; }
     }

@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdWP.API", "SdWP.API\SdWP.A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdWP.Test", "SdWP.Test\SdWP.Test.csproj", "{D9285343-470F-4189-8C9D-0CA4FE8BC027}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdWP.Data.Migrations", "SdWP.Data.Migrations\SdWP.Data.Migrations.csproj", "{D758E5E2-F583-017B-5B79-6433D9FAF057}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{D9285343-470F-4189-8C9D-0CA4FE8BC027}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9285343-470F-4189-8C9D-0CA4FE8BC027}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9285343-470F-4189-8C9D-0CA4FE8BC027}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D758E5E2-F583-017B-5B79-6433D9FAF057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D758E5E2-F583-017B-5B79-6433D9FAF057}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D758E5E2-F583-017B-5B79-6433D9FAF057}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D758E5E2-F583-017B-5B79-6433D9FAF057}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

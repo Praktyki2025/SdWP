@@ -5,7 +5,7 @@ namespace SdWP.Data.Context
 {
     public class DbContextInitializer
     {
-        public static ApplicationDbContextcs Create()
+        public static ApplicationDbContext Create()
         {
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -14,11 +14,11 @@ namespace SdWP.Data.Context
 
             var connectionString = config.GetConnectionString("DefaultConnection");
 
-            var options = new DbContextOptionsBuilder<ApplicationDbContextcs>()
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseSqlServer(connectionString)
                 .Options;
 
-            return new ApplicationDbContextcs(options);
+            return new ApplicationDbContext(options);
         }
     }
 }

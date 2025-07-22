@@ -1,0 +1,46 @@
+﻿@page "/addproject"
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+
+<PageTitle>Add Project</PageTitle>
+
+<EditForm Model="project" OnValidSubmit="AddProjectToDbAsync" FormName="AddProjectForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="alert alert-danger" />
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="titleInput" class="form-label">Nazwa</label>
+            <input id="titleInput" class="form-control" @bind="project.Title" placeholder="Wpisz nazwę projektu" />
+            <ValidationMessage For="@(() => project.Title)" class="text-danger" />
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="descriptionInput" class="form-label">Opis</label>
+            <InputText id="descriptionInput" class="form-control" @bind-Value="project.Description" placeholder="Wpisz opis projektu" />
+            <ValidationMessage For="@(() => project.Description)" class="text-danger" />
+        </div>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Dodaj projekt</button>
+</EditForm>
+
+@code {
+    public class ProjectModel
+    {
+        // [Required(ErrorMessage = "Nazwa jest wymagana.")]
+        public string? Title { get; set; }
+
+        // [Required(ErrorMessage = "Opis jest wymagany.")]
+        public string? Description { get; set; }
+    }
+
+    private ProjectModel project = new ProjectModel();
+
+    private async Task AddProjectToDbAsync()
+    {
+        Console.WriteLine($"Title: {project.Title}, Description: {project.Description}");
+    }
+}

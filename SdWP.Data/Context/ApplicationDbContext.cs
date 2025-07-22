@@ -5,7 +5,6 @@ using SdWP.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,27 +15,23 @@ namespace SdWP.Data.Context
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
-
         }
 
         public DbSet<CostCategory> CostCategories { get; set; }
         public DbSet<CostType> CostTypes { get; set; }
-        public DbSet<ErrorLog> ErrorLog{ get; set; }
+        public DbSet<ErrorLog> ErrorLog { get; set; }
         public DbSet<Link> Link { get; set; }
         public DbSet<Projects> Projects { get; set; }
-       
         public DbSet<UserGroupType> UserGroupTypes { get; set; }
         public DbSet<Valuation> Valuation { get; set; }
-        public DbSet<ValuationItem> ValuationItem { get; set; }
+        public DbSet<ValuationItem> ValuationItems { get; set; }
+
+        public DbSet<User>users { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-
-            builder.Entity<Projects>()
-             .HasOne(p => p.CreatorUser)
-             .WithMany(u => u.CreatedProjects)
-             .HasForeignKey(p => p.CreatorUserId);
 
             builder.Entity<Valuation>()
                 .HasOne(v => v.Projects)
@@ -45,7 +40,7 @@ namespace SdWP.Data.Context
 
             builder.Entity<Valuation>()
                 .HasOne(v => v.CreatorUser)
-                .WithMany(u => u.Valuation)
+                .WithMany(u => u.Valuations)
                 .HasForeignKey(v => v.CreatorUserId);
 
             builder.Entity<ValuationItem>()
@@ -53,26 +48,41 @@ namespace SdWP.Data.Context
                 .WithMany(v => v.ValuationItems)
                 .HasForeignKey(vi => vi.ValuationId);
 
-            builder.Entity<ValuationItem>()
-                .HasOne(vi => vi.CostType)
-                .WithMany(ct => ct.ValuationItem)
-                .HasForeignKey(vi => vi.CostTypeId);
+            builder.Entity<Link>()
+                .HasOne(l => l.Projects)
+                .WithMany(p => p.Links)
+                .HasForeignKey(l => l.ProjectId);
 
-            builder.Entity<ValuationItem>()
-                .HasOne(vi => vi.CostCategory)
-                .WithMany(cc => cc.ValuationItem)
-                .HasForeignKey(vi => vi.CostCategoryId);
+            builder.Entity<Link>()
+                .HasOne(l => l.Valuation)
+                .WithMany(v => v.Links)
+                .HasForeignKey(l => l.ValuationId);
 
-            builder.Entity<ValuationItem>()
-                .HasOne(vi => vi.UserGroupType)
-                .WithMany(ugt => ugt.ValuationItem)
+            builder.Entity<CostType>()
+                .HasMany(ct => ct.ValuationItems) 
+                .WithOne(vi => vi.CostType) 
+                .HasForeignKey(vi => vi.CostTypeId); 
+
+            builder.Entity<CostCategory>()
+                .HasMany(c => c.ValuationItems) 
+                .WithOne(vi => vi.CostCategory) 
+                .HasForeignKey(vi => vi.CostCategoryID); 
+
+            builder.Entity<UserGroupType>()
+                .HasMany(u => u.ValuationItems) 
+                .WithOne(vi => vi.UserGroupType) 
                 .HasForeignKey(vi => vi.UserGroupTypeId);
 
             builder.Entity<ErrorLog>()
-                .HasOne(el => el.User)
-                .WithMany(u => u.ErrorLogs)
-                .HasForeignKey(el => el.UserId);
+                .HasOne(e => e.User)
+                .WithMany(u => u.ErrorLog)
+                .HasForeignKey(e => e.UserId)
+                .HasPrincipalKey(u => u.Name);
 
+            builder.Entity<User>()
+                .HasMany(p => p.Projects) 
+                .WithMany(u => u.User) 
+                .UsingEntity(j => j.ToTable("ProjectUsers")); 
         }
     }
 }

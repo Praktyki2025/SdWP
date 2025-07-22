@@ -12,11 +12,11 @@ namespace SdWP.Data.Models
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public string Email { get; set; }
-        public string PasswordHash { get; set; }
-        public string PrefferedLanguage { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastUpdate { get; set; }
         
+        public virtual ICollection<Valuation> Valuations { get; set; }
+        public virtual ICollection<Projects> Projects { get; set; }
+        public virtual ICollection<ErrorLog> ErrorLog { get; set; }
     }
 }

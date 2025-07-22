@@ -17,7 +17,7 @@ namespace SdWP.Data.Models
         public DateTime LastModified { get; set; }
 
         public virtual User CreatorUser { get; set; }
-        public virtual Projects Projects { get; set; } // Rename from Projects to Project
+        public virtual Projects Projects { get; set; } 
         public virtual ICollection<ValuationItem> ValuationItems { get; set; }
         public virtual ICollection<Link> Links { get; set; }
     }

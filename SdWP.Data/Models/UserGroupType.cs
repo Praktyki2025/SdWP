@@ -12,5 +12,7 @@ namespace SdWP.Data.Models
         public string Name { get; set; }
 
         public string UnitOFWork { get; set; }
+
+        public virtual ICollection<ValuationItem> ValuationItems { get; set; }
     }
 }

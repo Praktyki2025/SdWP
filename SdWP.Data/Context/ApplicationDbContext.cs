@@ -10,7 +10,7 @@ using SdWP.Data.Models;
 
 namespace SdWP.Data.Context
 {
-    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
+    public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -23,7 +23,6 @@ namespace SdWP.Data.Context
         public DbSet<ErrorLog> ErrorLog{ get; set; }
         public DbSet<Link> Link { get; set; }
         public DbSet<Projects> Projects { get; set; }
-        public DbSet<User> User { get; set; }
         public DbSet<UserGroupType> UserGroupTypes { get; set; }
         public DbSet<Valuation> Valuation { get; set; }
         public DbSet<ValuationItem> ValuationItems { get; set; }

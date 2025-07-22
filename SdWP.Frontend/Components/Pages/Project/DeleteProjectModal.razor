@@ -1,0 +1,31 @@
+﻿@using SdWP.Frontend.Components.Pages.Project
+@rendermode InteractiveServer
+
+<Modal @ref="modal" Title="Modal title">
+    <BodyTemplate>
+        Modal body text goes here.
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Close</Button>
+        <Button Color="ButtonColor.Warning" @onclick="DeleteProjectAsync">Delete</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private Modal modal = default!;
+
+    private async Task OnShowModalClick()
+    {
+        await modal.ShowAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        await modal.HideAsync();
+    }
+    private async Task DeleteProjectAsync()
+    {
+        // Logic to delete the project goes here
+        await OnHideModalClick();
+	}
+}

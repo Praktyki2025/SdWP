@@ -79,10 +79,14 @@ namespace SdWP.Data.Context
                 .HasForeignKey(e => e.UserId)
                 .HasPrincipalKey(u => u.Name);
 
-            builder.Entity<User>()
-                .HasMany(p => p.Projects) 
-                .WithMany(u => u.User) 
-                .UsingEntity(j => j.ToTable("ProjectUsers")); 
+            builder.Entity<Projects>()
+                .HasMany(p => p.User)
+                .WithMany(u => u.Projects)
+                .UsingEntity(j => j.ToTable("ProjectUsers"));
+
+            builder.Entity<ValuationItem>()
+                .Property(vi => vi.TotalAmount)
+                .HasPrecision(18, 2);
         }
     }
 }

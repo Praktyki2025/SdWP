@@ -27,6 +27,9 @@
 </EditForm>
 
 @code {
+
+    [Inject] protected ToastService ToastService { get; set; } = default!;
+
     public class ProjectModel
     {
         [Required(ErrorMessage = "Nazwa jest wymagana.")]
@@ -40,6 +43,8 @@
 
     private async Task AddProjectToDbAsync()
     {
-        //send DTO
+        //
+        ToastService.Notify(new ToastMessage(ToastType.Success, $"Project added successfully."));
+		Navigation.NavigateTo("/");
     }
 }

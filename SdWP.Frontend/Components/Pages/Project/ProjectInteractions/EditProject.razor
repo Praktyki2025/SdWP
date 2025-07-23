@@ -1,6 +1,5 @@
-﻿@page "/editproject"
+﻿@page "/edit"
 @using System.ComponentModel.DataAnnotations
-@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Add Project</PageTitle>
@@ -28,6 +27,7 @@
 
 @code {
     [Inject] protected ToastService ToastService { get; set; } = default!;
+	[Inject] NavigationManager Navigation { get; set; } = default!;
 
     public class ProjectModel
     {

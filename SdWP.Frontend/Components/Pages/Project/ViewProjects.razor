@@ -1,7 +1,7 @@
 ﻿@page "/projects"
 @using SdWP.Data.Models
+@using ProjectInteractions
 @rendermode InteractiveServer
-@inject NavigationManager Navigation
 
 <h3 class="mb-4">Projects</h3>
 
@@ -17,7 +17,7 @@
             </div>
             <div class="col-md-6 text-end">
                 <Button Color="ButtonColor.Success" @onclick="NavigateAddProject">Add project</Button>
-                <Button Color="ButtonColor.Success" @onclick="GenerateListAndNavigate">Generate list</Button>
+                <Button Color="ButtonColor.Success" @onclick="GenerateList">Generate list</Button>
             </div>
         </div>
 
@@ -46,19 +46,19 @@
                             <tr @onclick="() => NavigateToValuations()" style="cursor:pointer;">
                                 <td>@project.Title</td>
                                 <td>@project.Description</td>
-                                <td class="text-center">
+                                <td class="text-center" @onclick:stopPropagation>
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                             <i class="fas fa-cog"></i> Actions
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li>
-                                                <button class="dropdown-item" type="button" @onclick="NavigateToEdit">
+                                                <button class="dropdown-item" type="button" @onclick="NavigateToEdit" @onclick:stopPropagation>
                                                     <i class="fas fa-edit me-2"></i>Edit
                                                 </button>
                                             </li>
                                             <li>
-                                                <button class="dropdown-item text-danger" type="button" @onclick="NavigateToDelete">
+                                                <button class="dropdown-item text-danger" type="button" @onclick="DeleteProjectAsync" @onclick:stopPropagation>
                                                     <i class="fas fa-trash-alt me-2"></i>Delete
                                                 </button>
                                             </li>
@@ -69,11 +69,12 @@
                         }
                     </tbody>
                 </table>
-            </div>
-            <Pagination ActivePageNumber="@currentPageNumber"
+            </div>    
+        }
+        <Pagination ActivePageNumber="@currentPageNumber"
                         TotalPages="@TotalPages"
                         PageChanged="OnPageChangedAsync" />
-        }
+        <ConfirmDialog @ref="dialog" />
     </div>
 </div>
 
@@ -84,6 +85,34 @@
     private int pageSize = 5;
     private bool sortAscending = true;
     private string _searchTerm = string.Empty;
+	[Inject] protected NavigationManager Navigation { get; set; } = default!;
+    [Inject] protected ToastService ToastService { get; set; } = default!;
+    private ConfirmDialog dialog = default!;
+
+    protected override void OnInitialized()
+    {
+        AllProjects = ExampleDb.GetProjectsAsList();
+        filteredProjects = AllProjects;
+    }
+
+    private async Task DeleteProjectAsync()
+    {
+        var parameters = new Dictionary<string, object>();
+        parameters.Add("Id", 321); // 321 => search Project by ID to delete
+
+        var confirmation = await dialog.ShowAsync<ProjectDemoComponent>("Are you sure you want to delete this project?", parameters);
+        Console.WriteLine(confirmation);
+        if (confirmation)
+        {
+            // call API to delete the project
+            ToastService.Notify(new ToastMessage(ToastType.Success, $"Project deleted successfully."));
+        }
+        else
+        {
+            ToastService.Notify(new ToastMessage(ToastType.Secondary, $"Delete action canceled."));
+        }
+    }
+
     private string searchTerm
     {
         get => _searchTerm;
@@ -92,12 +121,6 @@
             _searchTerm = value;
             FilterProjects();
         }
-    }
-
-    protected override void OnInitialized()
-    {
-        AllProjects = ExampleDb.GetProjectsAsList();
-        filteredProjects = AllProjects;
     }
 
     private IEnumerable<Projects> PagedProjects =>
@@ -125,13 +148,12 @@
         Navigation.NavigateTo("/addproject");
     }
 
-    private void GenerateListAndNavigate()
+    private void GenerateList()
     {
         ExampleDb.GenerateList();
         AllProjects = ExampleDb.GetProjectsAsList();
         FilterProjects();
         StateHasChanged();
-        Console.WriteLine("Done");
     }
 
     private void FilterProjects()
@@ -160,10 +182,5 @@
     private void NavigateToEdit()
     {
         Navigation.NavigateTo("/edit");
-    }
-
-    private void NavigateToDelete()
-    {
-        Navigation.NavigateTo("/delete");
     }
 }

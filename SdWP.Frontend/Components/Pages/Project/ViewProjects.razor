@@ -1,0 +1,82 @@
+﻿@page "/projects"  
+@using SdWP.Data.Models 
+@rendermode InteractiveServer
+
+
+<h2 class="text-center">Projects</h2>  
+
+<div class="text-end">  
+    <Button Color="ButtonColor.Success" @onclick="NavigateAddProject">Add project</Button>
+    <Button Color="ButtonColor.Success" @onclick="GenerateListAndNavigate">Generate list</Button>
+</div>  
+
+<div class="container">  
+    <table class="table table-bordered table-striped table-hover">  
+        <thead>  
+            <tr>  
+                <th @onclick="SortByTitle">Title</th>  
+                <th>Description</th>  
+            </tr>  
+        </thead>  
+        <tbody>  
+            @foreach (var project in PagedProjects)  
+            {  
+                <tr>  
+                    <td>@project.Title</td>  
+                    <td>@project.Description</td>  
+                </tr>  
+            }  
+        </tbody>  
+    </table>  
+
+    <Pagination ActivePageNumber="@currentPageNumber"  
+                TotalPages="10"  
+                PageChanged="OnPageChangedAsync"/>  
+</div>  
+
+@code {
+    [Inject] NavigationManager Navigation { get; set; } = default!;  
+
+    private List<Projects> AllProjects = new();  
+    private int currentPageNumber = 1;  
+    private int pageSize = 5;  
+    private bool sortAscending = true;  
+
+    protected override void OnInitialized()  
+    {  
+        AllProjects = ExampleDb.GetProjectsAsList();  
+    }  
+
+    private IEnumerable<Projects> PagedProjects =>  
+        (sortAscending  
+            ? AllProjects.OrderBy(p => p.Title)  
+            : AllProjects.OrderByDescending(p => p.Title))  
+        .Skip((currentPageNumber - 1) * pageSize)  
+        .Take(pageSize);  
+
+    private int TotalPages => (int)Math.Ceiling((double)AllProjects.Count / pageSize);  
+
+    private async Task OnPageChangedAsync(int newPageNumber)  
+    {  
+        await Task.Run(() => { currentPageNumber = newPageNumber; });  
+    }  
+
+    private void SortByTitle()  
+    {  
+        sortAscending = !sortAscending;  
+        currentPageNumber = 1;  
+    }  
+
+    private void NavigateAddProject()  
+    {  
+        Navigation.NavigateTo("/addproject");  
+    }  
+
+    private void GenerateListAndNavigate()  
+    {
+        ExampleDb.GenerateList();
+        AllProjects = ExampleDb.GetProjectsAsList();
+		StateHasChanged();
+        Console.WriteLine("Done");
+    }
+}

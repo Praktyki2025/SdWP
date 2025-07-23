@@ -1,11 +1,11 @@
-﻿@page "/addproject"
+﻿@page "/editproject"
 @using System.ComponentModel.DataAnnotations
-@using SdWP.Data.Models;
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Add Project</PageTitle>
 
-<EditForm Model="project" OnValidSubmit="AddProjectToDbAsync" FormName="AddProjectForm">
+<EditForm Model="project" OnValidSubmit="EditProjectToDbAsync" FormName="EditProjectForm">
     <DataAnnotationsValidator />
     <ValidationSummary class="alert alert-danger" />
 
@@ -27,7 +27,6 @@
 </EditForm>
 
 @code {
-    [Inject] NavigationManager Navigation { get; set; } = default!;
     [Inject] protected ToastService ToastService { get; set; } = default!;
 
     public class ProjectModel
@@ -37,19 +36,20 @@
 
         [Required(ErrorMessage = "Opis jest wymagany.")]
         public string? Description { get; set; }
+
+        public ProjectModel(string? title = null, string? description = null)
+        {
+            Title = title;
+            Description = description;
+        }
     }
 
-    private ProjectModel project = new ProjectModel();
+    private ProjectModel project = new ProjectModel("Test", "Object");
 
-    private async Task AddProjectToDbAsync()
+    private async Task EditProjectToDbAsync()
     {
-        ExampleDb._projects.Add(new Projects
-        {
-            Title = project.Title,
-            Description = project.Description
-		});
         Console.WriteLine($"{project.Title} {project.Description}");
-        ToastService.Notify(new ToastMessage(ToastType.Success, $"Project added successfully."));
-		Navigation.NavigateTo("/projects");
+        ToastService.Notify(new ToastMessage(ToastType.Success, $"Project edited successfully."));
+        Navigation.NavigateTo("/");
     }
 }

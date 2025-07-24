@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace SdWP.Data.Models
 {
-    public class Projects
+    public class Project
     {
         public Guid Id { get; set; }
-        public Guid GUID { get; set; }
-
+        
         public Guid CreatorUserId { get; set; }
+        public User CreatorUser { get; set; }
 
         public string Title { get; set; }
 
@@ -21,7 +21,7 @@ namespace SdWP.Data.Models
         public string Description { get; set; }
 
         public virtual ICollection<Valuation> Valuations { get; set; }
-        public virtual ICollection<User> User { get; set; }
+        public virtual ICollection<User> Users { get; set; }
         public virtual ICollection<Link> Links { get; set; }
 
         

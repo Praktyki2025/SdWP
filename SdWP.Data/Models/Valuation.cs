@@ -13,11 +13,11 @@ namespace SdWP.Data.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public Guid CreatorUserId { get; set; }
+        public User CreatorUser { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastModified { get; set; }
 
-        public virtual User CreatorUser { get; set; }
-        public virtual Projects Projects { get; set; } 
+        public virtual Project Project { get; set; } 
         public virtual ICollection<ValuationItem> ValuationItems { get; set; }
         public virtual ICollection<Link> Links { get; set; }
     }

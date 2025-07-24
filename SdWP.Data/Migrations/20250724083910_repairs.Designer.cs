@@ -12,8 +12,8 @@ using SdWP.Data.Context;
 namespace SdWP.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250722125028_AddNewCollumnAdnTablesToDatabase")]
-    partial class AddNewCollumnAdnTablesToDatabase
+    [Migration("20250724083910_repairs")]
+    partial class repairs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -209,11 +209,13 @@ namespace SdWP.Data.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("ErrorLog");
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ErrorLogs");
                 });
 
             modelBuilder.Entity("SdWP.Data.Models.Link", b =>
@@ -243,20 +245,19 @@ namespace SdWP.Data.Migrations
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ProjectsId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("ValuationId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProjectsId");
+                    b.HasIndex("ProjectId");
 
-                    b.ToTable("Link");
+                    b.HasIndex("ValuationId");
+
+                    b.ToTable("Links");
                 });
 
-            modelBuilder.Entity("SdWP.Data.Models.Projects", b =>
+            modelBuilder.Entity("SdWP.Data.Models.Project", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -272,9 +273,6 @@ namespace SdWP.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("GUID")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("LastModified")
                         .HasColumnType("datetime2");
 
@@ -283,6 +281,8 @@ namespace SdWP.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatorUserId");
 
                     b.ToTable("Projects");
                 });
@@ -321,7 +321,7 @@ namespace SdWP.Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -408,14 +408,13 @@ namespace SdWP.Data.Migrations
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ProjectsId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ProjectsId");
+                    b.HasIndex("CreatorUserId");
 
-                    b.ToTable("Valuation");
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Valuations");
                 });
 
             modelBuilder.Entity("SdWP.Data.Models.ValuationItem", b =>
@@ -447,9 +446,6 @@ namespace SdWP.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("ProjectsId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18,2)");
 
@@ -461,6 +457,7 @@ namespace SdWP.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<float>("UnitPrice")
@@ -478,13 +475,28 @@ namespace SdWP.Data.Migrations
 
                     b.HasIndex("CostTypeId");
 
-                    b.HasIndex("ProjectsId");
+                    b.HasIndex("CreatorUserId");
 
                     b.HasIndex("UserGroupTypeId");
 
                     b.HasIndex("ValuationId");
 
                     b.ToTable("ValuationItems");
+                });
+
+            modelBuilder.Entity("XProjectUsers", b =>
+                {
+                    b.Property<Guid>("ProjectsId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UsersId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("ProjectsId", "UsersId");
+
+                    b.HasIndex("UsersId");
+
+                    b.ToTable("XProjectUsers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -538,48 +550,89 @@ namespace SdWP.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SdWP.Data.Models.Link", b =>
+            modelBuilder.Entity("SdWP.Data.Models.ErrorLog", b =>
                 {
-                    b.HasOne("SdWP.Data.Models.Projects", "Projects")
-                        .WithMany("Links")
-                        .HasForeignKey("ProjectsId")
+                    b.HasOne("SdWP.Data.Models.User", "User")
+                        .WithMany("ErrorLogs")
+                        .HasForeignKey("UserId")
+                        .HasPrincipalKey("Name")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Projects");
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SdWP.Data.Models.Link", b =>
+                {
+                    b.HasOne("SdWP.Data.Models.Project", "Project")
+                        .WithMany("Links")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SdWP.Data.Models.Valuation", "Valuation")
+                        .WithMany("Links")
+                        .HasForeignKey("ValuationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Valuation");
+                });
+
+            modelBuilder.Entity("SdWP.Data.Models.Project", b =>
+                {
+                    b.HasOne("SdWP.Data.Models.User", "CreatorUser")
+                        .WithMany()
+                        .HasForeignKey("CreatorUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatorUser");
                 });
 
             modelBuilder.Entity("SdWP.Data.Models.Valuation", b =>
                 {
-                    b.HasOne("SdWP.Data.Models.Projects", "Projects")
-                        .WithMany()
-                        .HasForeignKey("ProjectsId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("SdWP.Data.Models.User", "CreatorUser")
+                        .WithMany("Valuations")
+                        .HasForeignKey("CreatorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Projects");
+                    b.HasOne("SdWP.Data.Models.Project", "Project")
+                        .WithMany("Valuations")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatorUser");
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("SdWP.Data.Models.ValuationItem", b =>
                 {
                     b.HasOne("SdWP.Data.Models.CostCategory", "CostCategory")
-                        .WithMany()
+                        .WithMany("ValuationItems")
                         .HasForeignKey("CostCategoryID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SdWP.Data.Models.CostType", "CostType")
-                        .WithMany()
+                        .WithMany("ValuationItems")
                         .HasForeignKey("CostTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SdWP.Data.Models.Projects", null)
-                        .WithMany("ValuationItems")
-                        .HasForeignKey("ProjectsId");
+                    b.HasOne("SdWP.Data.Models.User", "CreatorUser")
+                        .WithMany()
+                        .HasForeignKey("CreatorUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SdWP.Data.Models.UserGroupType", "UserGroupType")
-                        .WithMany()
+                        .WithMany("ValuationItems")
                         .HasForeignKey("UserGroupTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -587,27 +640,68 @@ namespace SdWP.Data.Migrations
                     b.HasOne("SdWP.Data.Models.Valuation", "Valuation")
                         .WithMany("ValuationItems")
                         .HasForeignKey("ValuationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CostCategory");
 
                     b.Navigation("CostType");
 
+                    b.Navigation("CreatorUser");
+
                     b.Navigation("UserGroupType");
 
                     b.Navigation("Valuation");
                 });
 
-            modelBuilder.Entity("SdWP.Data.Models.Projects", b =>
+            modelBuilder.Entity("XProjectUsers", b =>
+                {
+                    b.HasOne("SdWP.Data.Models.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectsId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SdWP.Data.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SdWP.Data.Models.CostCategory", b =>
+                {
+                    b.Navigation("ValuationItems");
+                });
+
+            modelBuilder.Entity("SdWP.Data.Models.CostType", b =>
+                {
+                    b.Navigation("ValuationItems");
+                });
+
+            modelBuilder.Entity("SdWP.Data.Models.Project", b =>
                 {
                     b.Navigation("Links");
 
+                    b.Navigation("Valuations");
+                });
+
+            modelBuilder.Entity("SdWP.Data.Models.User", b =>
+                {
+                    b.Navigation("ErrorLogs");
+
+                    b.Navigation("Valuations");
+                });
+
+            modelBuilder.Entity("SdWP.Data.Models.UserGroupType", b =>
+                {
                     b.Navigation("ValuationItems");
                 });
 
             modelBuilder.Entity("SdWP.Data.Models.Valuation", b =>
                 {
+                    b.Navigation("Links");
+
                     b.Navigation("ValuationItems");
                 });
 #pragma warning restore 612, 618

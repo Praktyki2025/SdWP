@@ -15,7 +15,7 @@ namespace SdWP.Data.Models
         public DateTime LastUpdate { get; set; }
         
         public virtual ICollection<Valuation> Valuations { get; set; }
-        public virtual ICollection<Projects> Projects { get; set; }
-        public virtual ICollection<ErrorLog> ErrorLog { get; set; }
+        public virtual ICollection<Project> Projects { get; set; }
+        public virtual ICollection<ErrorLog> ErrorLogs { get; set; }
     }
 }

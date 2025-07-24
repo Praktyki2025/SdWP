@@ -12,8 +12,8 @@ using SdWP.Data.Context;
 namespace SdWP.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250724113635_init2")]
-    partial class init2
+    [Migration("20250724145332_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -158,7 +158,7 @@ namespace SdWP.Data.Migrations
 
             modelBuilder.Entity("SdWP.Data.Models.CostCategory", b =>
                 {
-                    b.Property<Guid>("id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -166,14 +166,14 @@ namespace SdWP.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("id");
+                    b.HasKey("Id");
 
                     b.ToTable("CostCategories");
                 });
 
             modelBuilder.Entity("SdWP.Data.Models.CostType", b =>
                 {
-                    b.Property<Guid>("id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -181,7 +181,7 @@ namespace SdWP.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("id");
+                    b.HasKey("Id");
 
                     b.ToTable("CostTypes");
                 });
@@ -319,7 +319,8 @@ namespace SdWP.Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -363,7 +364,7 @@ namespace SdWP.Data.Migrations
 
             modelBuilder.Entity("SdWP.Data.Models.UserGroupType", b =>
                 {
-                    b.Property<Guid>("id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -375,7 +376,7 @@ namespace SdWP.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("id");
+                    b.HasKey("Id");
 
                     b.ToTable("UserGroupTypes");
                 });

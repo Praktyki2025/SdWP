@@ -32,6 +32,8 @@ namespace SdWP.Data.Context
         {
             base.OnModelCreating(builder);
 
+            
+                
 
             builder.Entity<Valuation>()
                 .HasOne(v => v.Project)
@@ -113,6 +115,11 @@ namespace SdWP.Data.Context
             builder.Entity<ValuationItem>()
                 .Property(vi => vi.Quantity)
                 .HasPrecision(18, 2);
+
+
+            builder.Entity<User>()
+                .Property(u => u.Name)
+                .HasMaxLength(256);
         }
     }
 }

@@ -10,5 +10,9 @@ namespace SdWP.Data.Models
     {
         public Guid ID { get; set; }
         public string Name { get; set; }
+
+        public virtual ICollection<ValuationItem> ValuationItems {get; set;}
+        
+        
     }
 }

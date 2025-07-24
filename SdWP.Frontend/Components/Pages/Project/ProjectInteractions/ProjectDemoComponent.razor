@@ -10,7 +10,7 @@
 </div>
 
 @code {
-    private Projects? projectDemo;
+    private Project? projectDemo;
 
     [Parameter] public int Id { get; set; }
 
@@ -19,7 +19,7 @@
         // get project with {Id} from DB
 
         //replace new projects with dto?
-        projectDemo = new Projects { Title = "Demo", Description = "Project" };
+        projectDemo = new Project { Title = "Demo", Description = "Project" };
         base.OnInitialized();
     }
 }

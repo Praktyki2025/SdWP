@@ -41,4 +41,10 @@
     <ProjectReference Include="..\SdWP.DTO\SdWP.DTO.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Models\CostType.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+
 </Project>

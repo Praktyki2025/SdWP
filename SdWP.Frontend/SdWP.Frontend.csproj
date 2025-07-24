@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\datatable-init.js" />
+    <None Include="wwwroot\js\datatables\projectview-datatable-init.js" />
   </ItemGroup>
 
   <ItemGroup>

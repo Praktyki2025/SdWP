@@ -8,7 +8,7 @@ namespace SdWP.Data.Models
 {
     public class UserGroupType
     {
-        public Guid ID { get; set; }
+        public Guid id { get; set; }
         public string Name { get; set; }
 
         public string UnitOFWork { get; set; }

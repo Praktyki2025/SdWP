@@ -13,7 +13,7 @@ namespace SdWP.Data.Models
         public string StackTrace { get; set; }
         public string Source { get; set; }
         public DateTime TimeStamp { get; set; }
-        public string UserId { get; set; }
+        public Guid? UserId { get; set; }
 
 
         public virtual User User { get; set; }

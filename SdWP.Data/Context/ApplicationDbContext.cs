@@ -84,7 +84,7 @@ namespace SdWP.Data.Context
                 .HasOne(e => e.User)
                 .WithMany(u => u.ErrorLogs)
                 .HasForeignKey(e => e.UserId)
-                .HasPrincipalKey(u => u.Name);
+                .HasPrincipalKey(u => u.Id);
 
             builder.Entity<Project>()
                 .HasMany(p => p.Users)
@@ -108,6 +108,10 @@ namespace SdWP.Data.Context
 
             builder.Entity<ValuationItem>()
                 .Property(vi => vi.TotalAmount)
+                .HasPrecision(18, 2);
+
+            builder.Entity<ValuationItem>()
+                .Property(vi => vi.Quantity)
                 .HasPrecision(18, 2);
         }
     }

@@ -8,7 +8,7 @@ namespace SdWP.Data.Models
 {
     public class CostType
     {
-        public Guid ID { get; set; }
+        public Guid id { get; set; }
         public string Name { get; set; }
 
         public virtual ICollection<ValuationItem> ValuationItems {get; set;}

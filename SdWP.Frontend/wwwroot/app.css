@@ -50,9 +50,10 @@ h1:focus {
     border-color: #929292;
 }
 
-/* Highlight table row on hover */
-.table-hover tbody tr:hover {
-    background-color: #e3f2fd !important;
-    transition: background-color 0.2s !important;
-    cursor: pointer !important;
+.add-project-btn {
+    margin: 12px;
+}
+
+#projectsViewTable tbody tr {
+    cursor: pointer;
 }

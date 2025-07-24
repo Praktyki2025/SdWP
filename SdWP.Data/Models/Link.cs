@@ -15,9 +15,10 @@ namespace SdWP.Data.Models
         public string Description { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastModified { get; set; }
+         public Guid ValuationId { get; set; }
 
-        public Guid ValuationId { get; set; }
+        public virtual Project Project { get; set; }
 
-        public virtual Projects Projects { get; set; }
+        public virtual Valuation Valuation { get; set;}
     }
 }

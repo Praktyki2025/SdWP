@@ -13,6 +13,7 @@ namespace SdWP.Data.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public Guid CreatorUserId { get; set; }
+        public User CreatorUser { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastModified { get; set; }
         public Guid CostTypeId { get; set; }

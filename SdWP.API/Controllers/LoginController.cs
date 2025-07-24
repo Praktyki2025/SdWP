@@ -30,7 +30,7 @@ namespace SdWP.API.Controllers
         {
             try
             {
-                await _antiforgery.ValidateRequestAsync(HttpContext);
+                //await _antiforgery.ValidateRequestAsync(HttpContext);
 
                 if (!ModelState.IsValid)
                 {

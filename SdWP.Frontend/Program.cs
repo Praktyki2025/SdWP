@@ -1,3 +1,4 @@
+using BlazorBootstrap;
 using SdWP.Frontend.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddBlazorBootstrap();
 
 var app = builder.Build();
 

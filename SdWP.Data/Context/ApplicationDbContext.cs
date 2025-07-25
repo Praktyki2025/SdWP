@@ -26,8 +26,6 @@ namespace SdWP.Data.Context
         public DbSet<Valuation> Valuations { get; set; }
         public DbSet<ValuationItem> ValuationItems { get; set; }
 
-
-
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

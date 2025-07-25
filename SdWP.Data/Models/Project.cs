@@ -23,9 +23,5 @@ namespace SdWP.Data.Models
         public virtual ICollection<Valuation> Valuations { get; set; }
         public virtual ICollection<User> Users { get; set; }
         public virtual ICollection<Link> Links { get; set; }
-
-        
-
-        
     }
 }

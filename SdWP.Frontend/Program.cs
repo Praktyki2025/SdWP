@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Identity;
 using SdWP.Data.Models;
 using SdWP.Data.Repositories;
-using BlazorBootstrap;
 using SdWP.Frontend.Components;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
@@ -45,6 +44,8 @@ builder.Services.AddAntiforgery(options =>
 // Register services
 builder.Services.AddScoped<IUserLoginService, UserLoginServices>();
 builder.Services.AddScoped<IUserRegisterService, UserRegisterService>();
+builder.Services.AddSingleton<InMemoryProjectRepository>();
+builder.Services.AddScoped<IProjectInteractionsService, ProjectInteractionsService>();
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();

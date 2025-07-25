@@ -12,7 +12,6 @@ using SdWP.Service.IServices;
 
 namespace SdWP.API.Controllers
 {
-
     [ApiController]
     [Route("api/[controller]")]
     public class RegisterContloller : ControllerBase

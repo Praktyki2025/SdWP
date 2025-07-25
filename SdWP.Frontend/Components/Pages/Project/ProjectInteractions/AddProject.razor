@@ -1,6 +1,10 @@
 ﻿@page "/projects/add"
 @using System.ComponentModel.DataAnnotations
 @using SdWP.Data.Models;
+@using SdWP.Service.IServices
+@using SdWP.Service.Services
+@using SdWP.DTO.Requests;
+@inject IProjectInteractionsService ProjectInteractions
 @rendermode InteractiveServer
 
 <PageTitle>Add Project</PageTitle>
@@ -30,20 +34,12 @@
     [Inject] NavigationManager Navigation { get; set; } = default!;
     [Inject] protected ToastService ToastService { get; set; } = default!;
 
-    public class ProjectModel
-    {
-        [Required(ErrorMessage = "Nazwa jest wymagana.")]
-        public string? Title { get; set; }
-
-        [Required(ErrorMessage = "Opis jest wymagany.")]
-        public string? Description { get; set; }
-    }
-
-    private ProjectModel project = new ProjectModel();
+    private ProjectUpsertRequestDTO project = new ProjectUpsertRequestDTO();
 
     private async Task AddProjectToDbAsync()
     {
-        //add proj logic
+        project.Id = null;
+        await ProjectInteractions.CreateProjectAsync(project);
         ToastService.Notify(new ToastMessage(ToastType.Success, $"Project added successfully."));
 		Navigation.NavigateTo("/projects");
     }

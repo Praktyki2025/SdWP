@@ -3,8 +3,8 @@
 
 @using SdWP.DTO.Requests
 @using SdWP.DTO.Responses
-@using SdWP.Service.IServices
-@inject IUserLoginService UserLoginService
+@using System.Linq
+@inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 
 @if (!string.IsNullOrEmpty(message))
@@ -38,12 +38,25 @@
                                 </div>
                                 <div class="col-12">
                                     <div class="d-grid my-3">
-                                        <button class="btn btn-primary btn-lg" type="submit">Log in</button>
+                                        <button class="btn btn-primary btn-lg" type="submit" disabled="@isLoading">
+                                            @if (isLoading)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                            }
+                                            Log in
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </EditForm>
 
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                Test accounts:<br />
+                                Admin: admin@example.pl / Admin123!<br />
+                                User: user@example.pl / User123!
+                            </small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -53,26 +66,35 @@
 
 @code {
     private UserLoginRequestDTO loginModel = new();
-    private string message;
+    private string message = string.Empty;
+    private bool isLoading = false;
 
     private async Task HandleLogin()
     {
-        try
-        {
-            var result = await UserLoginService.LoginAsync(loginModel);
+        isLoading = true;
+        message = string.Empty;
 
-            if (result != null && result.Success)
+        var result = await JSRuntime.InvokeAsync<UserLoginResponseDTO>("apiLogin", loginModel);
+
+        if (result != null && result.Success)
+        {
+            if (result.Roles.Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
             {
-                Navigation.NavigateTo("/test");
+                Navigation.NavigateTo("/admin", forceLoad: true);
+            }
+            else if (result.Roles.Any(r => r.Equals("User", StringComparison.OrdinalIgnoreCase)))
+            {
+                Navigation.NavigateTo("/user", forceLoad: true);
             }
             else
             {
-                message = result?.Message ?? "Invalid email or password";
+                Navigation.NavigateTo("/", forceLoad: true);
             }
         }
-        catch (Exception ex)
+        else
         {
-            message = "Login failed. Please try again./n" + ex;
+            message = result?.Message ?? "Login failed. Please try again.";
+            isLoading = false;
         }
     }
 }

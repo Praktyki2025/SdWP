@@ -43,6 +43,9 @@ namespace SdWP.Service.Services
 
                 if (result.Succeeded)
                 {
+                    await _userManager.AddToRoleAsync(user, "User");
+                    var roles = await _userManager.GetRolesAsync(user);
+
                     return new UserRegisterResponseDTO
                     {
                         Success = true,
@@ -50,7 +53,8 @@ namespace SdWP.Service.Services
                         Email = user.Email,
                         Name = user.Name,
                         CreatedAt = user.CreatedAt,
-                        Message = "User registered successfully."
+                        Message = "User registered successfully.",
+                        Roles = roles.ToList()
                     };
                 }
                 else

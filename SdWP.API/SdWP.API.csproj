@@ -7,6 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Antiforgery" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.18" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.18" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SdWP.DTO\SdWP.DTO.csproj" />
     <ProjectReference Include="..\SdWP.Service\SdWP.Service.csproj" />
   </ItemGroup>

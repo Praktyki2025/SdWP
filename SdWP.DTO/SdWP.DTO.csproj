@@ -6,8 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\SdWP.Model\SdWP.Model.csproj" />
-  </ItemGroup>
-
 </Project>

@@ -1,9 +1,30 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\datatable-init.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\js\datatables\projectview-datatable-init.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.18" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SdWP.Data\SdWP.Data.csproj" />
+    <ProjectReference Include="..\SdWP.DTO\SdWP.DTO.csproj" />
+  </ItemGroup>
 
 </Project>

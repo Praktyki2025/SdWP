@@ -11,23 +11,25 @@
     <div class="row mb-3">
         <div class="col-md-6">
             <label for="titleInput" class="form-label">Title</label>
-            <InputText id="titleInput" class="form-control" @bind-Value="project.Title" placeholder="Wpisz nazwę projektu" />
+            <InputText id="titleInput" class="form-control" @bind-Value="project.Title" placeholder="Title" />
         </div>
     </div>
 
     <div class="row mb-3">
         <div class="col-md-6">
             <label for="descriptionInput" class="form-label">Description</label>
-            <InputText id="descriptionInput" class="form-control" @bind-Value="project.Description" placeholder="Wpisz opis projektu" />
+            <InputText id="descriptionInput" class="form-control" @bind-Value="project.Description" placeholder="Description" />
         </div>
     </div>
 
-    <button class="btn btn-primary" type="submit">Dodaj projekt</button>
+    <button class="btn btn-primary" type="submit">Apply</button>
 </EditForm>
 
 @code {
     [Inject] protected ToastService ToastService { get; set; } = default!;
 	[Inject] NavigationManager Navigation { get; set; } = default!;
+
+    private ProjectModel project = new ProjectModel("Test", "Object");
 
     public class ProjectModel
     {
@@ -37,19 +39,18 @@
         [Required(ErrorMessage = "Opis jest wymagany.")]
         public string? Description { get; set; }
 
-        public ProjectModel(string? title = null, string? description = null)
+        public ProjectModel(string? title, string? description)
         {
             Title = title;
             Description = description;
         }
     }
 
-    private ProjectModel project = new ProjectModel("Test", "Object");
 
-    private async Task EditProjectToDbAsync()
+    private void EditProjectToDbAsync()
     {
         Console.WriteLine($"{project.Title} {project.Description}");
         ToastService.Notify(new ToastMessage(ToastType.Success, $"Project edited successfully."));
-        Navigation.NavigateTo("/");
+        Navigation.NavigateTo("/projects");
     }
 }

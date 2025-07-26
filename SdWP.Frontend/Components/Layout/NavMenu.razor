@@ -1,42 +1,43 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">SdWP.Frontend</a>
-    </div>
-</div>
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+﻿@inject NavigationManager Navigation
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="projects" Match="NavLinkMatch.All">
+            <a class="nav-link" @onclick='() => NavigateForce("/projects")'>
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Projects
-            </NavLink>
+            </a>
         </div>
+
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <a class="nav-link" @onclick='() => NavigateForce("/")'>
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
+            </a>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
+            <a class="nav-link" @onclick='() => NavigateForce("/counter")'>
                 <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
+            </a>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
+            <a class="nav-link" @onclick='() => NavigateForce("/weather")'>
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
+            </a>
         </div>
 
-
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="register">
+            <a class="nav-link" @onclick='() => NavigateForce("/register")'>
                 <span class="bi bi-person-plus" aria-hidden="true"></span> Register
-            </NavLink>
+            </a>
         </div>
     </nav>
 </div>
 
+@code {
+    void NavigateForce(string url)
+    {
+		Navigation.NavigateTo(url, forceLoad: true); 
+        // nie mam lepszego pomysłu, inaczej jest problem z odświeżaniem stron
+    }
+}

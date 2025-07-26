@@ -67,20 +67,20 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.Use(async (context, next) =>
-{
-    var anti = context.RequestServices.GetRequiredService<IAntiforgery>();
+//app.Use(async (context, next) =>
+//{
+//    var anti = context.RequestServices.GetRequiredService<IAntiforgery>();
 
-    if (context.Request.Path.StartsWithSegments("/api") &&
-        (HttpMethods.IsPost(context.Request.Method) ||
-         HttpMethods.IsPut(context.Request.Method) ||
-         HttpMethods.IsDelete(context.Request.Method)))
-    {
-        await anti.ValidateRequestAsync(context);
-    }
+//    if (context.Request.Path.StartsWithSegments("/api") &&
+//        (HttpMethods.IsPost(context.Request.Method) ||
+//         HttpMethods.IsPut(context.Request.Method) ||
+//         HttpMethods.IsDelete(context.Request.Method)))
+//    {
+//        await anti.ValidateRequestAsync(context);
+//    }
 
-    await next();
-});
+//    await next();
+//});
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

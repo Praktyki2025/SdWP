@@ -56,9 +56,10 @@ namespace SdWP.Service.Services
                 LastModified = response.LastModified
             };
         }
-        public Task<ProjectDeleteResponseDTO> DeleteProjectAsync(ProjectDeleteRequestDTO project)
+        public Task<ProjectDeleteResponseDTO> DeleteProjectAsync(Guid project)
         {
-            _projectRepository.DeleteAsync(project.Id);
+            _projectRepository.DeleteAsync(project);
+            Console.WriteLine($"{_projectRepository.GetSize()}");
             return Task.FromResult(new ProjectDeleteResponseDTO() { Success = true });
         }
 

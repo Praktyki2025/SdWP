@@ -35,10 +35,10 @@ namespace SdWP.API.Controllers
             return Ok(result);
         }
 
-        [HttpDelete]
-        public async Task<ActionResult<ProjectDeleteResponseDTO>> Delete([FromBody] ProjectDeleteRequestDTO dto)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<ProjectDeleteResponseDTO>> Delete(Guid id)
         {
-            var result = await _projectService.DeleteProjectAsync(dto);
+            var result = await _projectService.DeleteProjectAsync(id);
             return Ok(result);
         }
 

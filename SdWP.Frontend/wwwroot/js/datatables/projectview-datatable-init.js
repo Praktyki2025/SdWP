@@ -1,14 +1,10 @@
-﻿window.initializeDataTable = () => {
+﻿window.initializeDataTable = (dotNetRef) => {
     let projectsData = [];
-
-    document.getElementById('addProjectBtn').onclick = function () {
-        window.location.href = '/projects/add';
-    };
 
     let table = $('#projectsViewTable').DataTable({
         processing: true,
         serverSide: true,
-        ajax: function (data, callback, settings) {
+        ajax: function (data, callback) {
             fetch('/api/project/all')
                 .then(response => response.json())
                 .then(json => {
@@ -20,8 +16,7 @@
                         data: json
                     });
                 })
-                .catch(error => {
-                    console.error("Error data load:", error);
+                .catch(() => {
                     callback({
                         draw: data.draw,
                         recordsTotal: 0,
@@ -37,7 +32,7 @@
                 data: "id",
                 orderable: false,
                 searchable: false,
-                render: function (data, type, row, meta) {
+                render: function (data) {
                     return `
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -68,16 +63,23 @@
         window.location.href = `/projects/edit?id=${id}`;
     });
 
-    $('#projectsViewTable').on('click', '.delete-project', function (e) {
+    $('#projectsViewTable').on('click', '.delete-project', async function (e) {
         e.preventDefault();
         const id = $(this).data('id');
-        window.location.href = `/projects/edit?id=${id}`;
+        const response = await fetch(`/api/project/${id}`, {
+            method: 'DELETE'
+        });
+        //ADD MODAL
+        table.ajax.reload(null, false);
     });
-
 
     $('#projectsViewTable tbody').on('click', 'tr', function (e) {
         if ($(e.target).closest('.dropdown, .dropdown-menu').length === 0) {
             window.location.href = '/projects/valuations';
         }
     });
+
+    document.getElementById('addProjectBtn').onclick = function () {
+        window.location.href = '/projects/add';
+    };
 };

@@ -12,5 +12,7 @@ namespace SdWP.Service.IServices
         Task<ProjectUpsertResponseDTO> CreateProjectAsync(ProjectUpsertRequestDTO project);
         Task<ProjectUpsertResponseDTO> EditProjectAsync(ProjectUpsertRequestDTO project);
         Task<ProjectDeleteResponseDTO> DeleteProjectAsync(ProjectDeleteRequestDTO project);
+        Task<ProjectUpsertResponseDTO> GetByIdAsync(Guid id);
+        Task<List<ProjectUpsertResponseDTO>> GetAllAsync();
     }
 }

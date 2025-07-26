@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace SdWP.DTO.Requests
 {
-    public class ProjectDeleteDTO
+    public class ProjectDeleteRequestDTO
     {
         public Guid Id { get; set; }
-        public Guid RequestingUserId { get; set; } // rulescheck
+        //public Guid RequestingUserId { get; set; } // rulescheck
     }
 }

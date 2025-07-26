@@ -4,6 +4,10 @@ public class InMemoryProjectRepository
 {
     private readonly List<Project> _projects = new();
 
+    public int GetSize()
+    {
+        return _projects.Count();
+    }
     public Task AddAsync(Project project)
     {
         _projects.Add(project);

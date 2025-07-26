@@ -21,22 +21,29 @@ namespace SdWP.API.Controllers
             _projectService = projectService;
         }
 
-        [HttpPost("save")] // Create/Edit
-        public async Task<ActionResult<ProjectResponseDTO>> Save([FromBody] ProjectUpsertRequestDTO dto)
+        [HttpPost("create")] // Create
+        public async Task<ActionResult<ProjectUpsertResponseDTO>> Create([FromBody] ProjectUpsertRequestDTO dto)
         {
-            var result = await _projectService.SaveProjectAsync(dto);
+            var result = await _projectService.CreateProjectAsync(dto);
+            return Ok(result);
+        }
+
+        [HttpPost("edit")] // Edit
+        public async Task<ActionResult<ProjectUpsertResponseDTO>> Edit([FromBody] ProjectUpsertRequestDTO dto)
+        {
+            var result = await _projectService.EditProjectAsync(dto);
             return Ok(result);
         }
 
         [HttpDelete]
-        public async Task<ActionResult<DeleteResponseDTO>> Delete([FromBody] ProjectDeleteDTO dto)
+        public async Task<ActionResult<ProjectDeleteResponseDTO>> Delete([FromBody] ProjectDeleteRequestDTO dto)
         {
             var result = await _projectService.DeleteProjectAsync(dto);
             return Ok(result);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProjectResponseDTO>> GetById(Guid id)
+        public async Task<ActionResult<ProjectUpsertResponseDTO>> GetById(Guid id)
         {
             var project = await _projectService.GetByIdAsync(id);
             if (project == null)
@@ -44,8 +51,8 @@ namespace SdWP.API.Controllers
             return Ok(project);
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<ProjectResponseDTO>>> GetAll()
+        [HttpGet("all")]
+        public async Task<ActionResult<List<ProjectUpsertRequestDTO>>> GetAll()
         {
             var projects = await _projectService.GetAllAsync();
             return Ok(projects);

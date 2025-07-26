@@ -1,30 +1,40 @@
 ﻿window.initializeDataTable = () => {
+    let projectsData = [];
 
     document.getElementById('addProjectBtn').onclick = function () {
         window.location.href = '/projects/add';
     };
 
-    $('#projectsViewTable').DataTable({
+    let table = $('#projectsViewTable').DataTable({
         processing: true,
         serverSide: true,
         ajax: function (data, callback, settings) {
-            const mockData = {
-                draw: data.draw,
-                recordsTotal: 3,
-                recordsFiltered: 3,
-                data: [
-                    { Id: 1, Title: "Mock data 1", Description: "Mock data 1" },
-                    { Id: 2, Title: "Mock data 2", Description: "Mock data 2" },
-                    { Id: 3, Title: "Mock data 3", Description: "Mock data 3" }
-                ]
-            };
-            callback(mockData);
+            fetch('/api/project/all')
+                .then(response => response.json())
+                .then(json => {
+                    projectsData = json;
+                    callback({
+                        draw: data.draw,
+                        recordsTotal: json.length,
+                        recordsFiltered: json.length,
+                        data: json
+                    });
+                })
+                .catch(error => {
+                    console.error("Error data load:", error);
+                    callback({
+                        draw: data.draw,
+                        recordsTotal: 0,
+                        recordsFiltered: 0,
+                        data: []
+                    });
+                });
         },
         columns: [
-            { data: "Title" },
-            { data: "Description" },
+            { data: "title" },
+            { data: "description" },
             {
-                data: "Id",
+                data: "id",
                 orderable: false,
                 searchable: false,
                 render: function (data, type, row, meta) {
@@ -61,13 +71,10 @@
     $('#projectsViewTable').on('click', '.delete-project', function (e) {
         e.preventDefault();
         const id = $(this).data('id');
-        if (confirm('Are you sure you want to delete this project?')) {
-            projectsData = projectsData.filter(p => p.Id !== id);
-            table.clear().rows.add(projectsData).draw();
-        }
+        window.location.href = `/projects/edit?id=${id}`;
     });
 
-    // click on row to go to valuations
+
     $('#projectsViewTable tbody').on('click', 'tr', function (e) {
         if ($(e.target).closest('.dropdown, .dropdown-menu').length === 0) {
             window.location.href = '/projects/valuations';

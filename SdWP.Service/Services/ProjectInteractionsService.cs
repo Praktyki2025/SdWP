@@ -40,10 +40,9 @@ namespace SdWP.Service.Services
                 Id = (Guid)project.Id, // Simulating a new project ID
                 Title = project.Title,
                 Description = project.Description,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = (DateTime)project.CreatedAt,
                 LastModified = DateTime.UtcNow
             };
-
 
             await _projectRepository.UpdateAsync(response);
 

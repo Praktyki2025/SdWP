@@ -20,6 +20,7 @@ namespace SdWP.Service.Services
                 LastModified = DateTime.UtcNow
             };
 
+            Console.WriteLine($"Id - {response.Id}");
             await _projectRepository.AddAsync(response);
             Console.WriteLine($"{_projectRepository.GetSize()}");
 

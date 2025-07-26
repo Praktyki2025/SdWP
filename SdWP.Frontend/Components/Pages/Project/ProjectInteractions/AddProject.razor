@@ -38,9 +38,8 @@
 
     private async Task AddProjectToDbAsync()
     {
-        project.Id = null;
         await ProjectInteractions.CreateProjectAsync(project);
         ToastService.Notify(new ToastMessage(ToastType.Success, $"Project added successfully."));
-		Navigation.NavigateTo("/projects");
+        Navigation.NavigateTo("/projects");
     }
 }

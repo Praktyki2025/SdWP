@@ -19,7 +19,7 @@
 </table>
 
 <ConfirmDialog @ref="dialog" />
-<Button Color="ButtonColor.Primary" @onclick="OnDeleteProjectAsync">Vertically centered modal</Button>
+<Button Color="ButtonColor.Primary" @onclick="RenderModal">Vertically centered modal</Button>
 
 @code {
 	[Inject] private ToastService ToastService { get; set; } = default!;
@@ -34,10 +34,10 @@
         }
     }
 
-    private async Task OnDeleteProjectAsync()
+    private async Task RenderModal()
     {
         var parameters = new Dictionary<string, object>();
-        parameters.Add("Id", 321); //321 => Project ID to delete
+        parameters.Add("Id", 321);
 
 
         var confirmation = await dialog.ShowAsync<ProjectDemoComponent>("Are you sure you want to delete this project?", parameters);

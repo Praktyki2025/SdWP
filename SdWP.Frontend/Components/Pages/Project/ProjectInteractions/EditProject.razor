@@ -1,8 +1,10 @@
 ﻿@page "/projects/edit"
 @using System.ComponentModel.DataAnnotations
 @rendermode InteractiveServer
+@inject IHttpClientFactory HttpClientFactory
+@using SdWP.DTO.Requests
 
-<PageTitle>Add Project</PageTitle>
+<PageTitle>Edit Project</PageTitle>
 
 <EditForm Model="project" OnValidSubmit="EditProjectToDbAsync" FormName="EditProjectForm">
     <DataAnnotationsValidator />
@@ -21,36 +23,64 @@
             <InputText id="descriptionInput" class="form-control" @bind-Value="project.Description" placeholder="Description" />
         </div>
     </div>
-
     <button class="btn btn-primary" type="submit">Apply</button>
 </EditForm>
 
 @code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? id { get; set; }
+
     [Inject] protected ToastService ToastService { get; set; } = default!;
-	[Inject] NavigationManager Navigation { get; set; } = default!;
+    [Inject] NavigationManager Navigation { get; set; } = default!;
+    private HttpClient Http => HttpClientFactory.CreateClient("ApiClient");
 
-    private ProjectModel project = new ProjectModel("Test", "Object");
+    private ProjectUpsertResponseDTO project = new();
 
-    public class ProjectModel
+    protected override async Task OnParametersSetAsync()
     {
-        [Required(ErrorMessage = "Nazwa jest wymagana.")]
-        public string? Title { get; set; }
-
-        [Required(ErrorMessage = "Opis jest wymagany.")]
-        public string? Description { get; set; }
-
-        public ProjectModel(string? title, string? description)
+        if (!string.IsNullOrEmpty(id) && Guid.TryParse(id, out var guid))
         {
-            Title = title;
-            Description = description;
+            project.Id = guid;
+            Console.WriteLine($"Id: {project.Id}");
+
+            // Здесь можно подгрузить данные проекта из API:
+            var loadedProject = await Http.GetFromJsonAsync<ProjectUpsertResponseDTO>($"api/project/{project.Id}");
+            if (loadedProject != null)
+            {
+                project = loadedProject;
+                Console.WriteLine(project.Description);
+            }
+            else
+            {
+                Console.WriteLine("Ты долбаеб");
+            }
+        }
+        else
+        {
+            // Нет id или неправильный — можно показать ошибку или перенаправить
         }
     }
 
-
-    private void EditProjectToDbAsync()
+    private async Task EditProjectToDbAsync()
     {
-        Console.WriteLine($"{project.Title} {project.Description}");
-        ToastService.Notify(new ToastMessage(ToastType.Success, $"Project edited successfully."));
-        Navigation.NavigateTo("/projects");
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/project/edit", project);
+            if (response.IsSuccessStatusCode)
+            {
+                ToastService.Notify(new ToastMessage(ToastType.Success, "Project edited successfully."));
+                Navigation.NavigateTo("/projects");
+            }
+            else
+            {
+                ToastService.Notify(new ToastMessage(ToastType.Warning, "Failed to edit project."));
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Notify(new ToastMessage(ToastType.Warning, $"Error: {ex.Message}"));
+        }
     }
+
 }

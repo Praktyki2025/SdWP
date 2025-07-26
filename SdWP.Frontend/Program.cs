@@ -14,6 +14,10 @@ builder.Services.AddRazorComponents()
 builder.Services.AddBlazorBootstrap();
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient("ApiClient", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5267/");
+});
 
 // Konfiguracja Identity z InMemoryUserRepository
 builder.Services.AddIdentityCore<User>(options =>

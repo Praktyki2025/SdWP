@@ -7,51 +7,60 @@ public static class SeedData
     public static async Task Initialize(IServiceProvider serviceProvider)
     {
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
-        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
-        string[] roleNames = { "Admin", "User" };
-        foreach (var roleName in roleNames)
+        string[] roles = { "Admin", "User" };
+
+        foreach (var role in roles)
         {
-            var roleExist = await roleManager.RoleExistsAsync(roleName);
-            if (!roleExist)
+            if (!await roleManager.RoleExistsAsync(role))
             {
-                await roleManager.CreateAsync(new IdentityRole(roleName));
+                var newRole = new IdentityRole<Guid> { Name = role, NormalizedName = role.ToUpper() };
+                await roleManager.CreateAsync(newRole);
             }
         }
 
         var adminEmail = "admin@example.pl";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
-
         if (adminUser == null)
         {
             adminUser = new User
             {
-                UserName = adminEmail,
                 Email = adminEmail,
-                Name = "Admin User",
+                NormalizedEmail = adminEmail.ToUpper(),
+                UserName = "Admin",
+                NormalizedUserName = "ADMIN",
+                Name = "Administrator",
+                CreatedAt = DateTime.UtcNow,
+                LastUpdate = DateTime.UtcNow
             };
-            var createAdminResult = await userManager.CreateAsync(adminUser, "Admin123!");
-            if (createAdminResult.Succeeded)
+
+            var result = await userManager.CreateAsync(adminUser, "Admin123!");
+            if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(adminUser, "Admin");
             }
         }
 
         var userEmail = "user@example.pl";
-        var regularUser = await userManager.FindByEmailAsync(userEmail);
-
-        if (regularUser == null)
+        var normalUser = await userManager.FindByEmailAsync(userEmail);
+        if (normalUser == null)
         {
-            regularUser = new User
+            normalUser = new User
             {
-                UserName = userEmail,
                 Email = userEmail,
-                Name = "Regular User",
+                NormalizedEmail = userEmail.ToUpper(),
+                UserName = "User",
+                NormalizedUserName = "USER",
+                Name = "User",
+                CreatedAt = DateTime.UtcNow,
+                LastUpdate = DateTime.UtcNow
             };
-            var createUserResult = await userManager.CreateAsync(regularUser, "User123!");
-            if (createUserResult.Succeeded)
+
+            var result = await userManager.CreateAsync(normalUser, "User123!");
+            if (result.Succeeded)
             {
-                await userManager.AddToRoleAsync(regularUser, "User");
+                await userManager.AddToRoleAsync(normalUser, "User");
             }
         }
     }

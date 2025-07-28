@@ -45,7 +45,6 @@
             project.Id = guid;
             Console.WriteLine($"Id: {project.Id}");
 
-            // Здесь можно подгрузить данные проекта из API:
             var loadedProject = await Http.GetFromJsonAsync<ProjectUpsertResponseDTO>($"api/project/{project.Id}");
             if (loadedProject != null)
             {
@@ -56,10 +55,6 @@
             {
                 Console.WriteLine("Ты долбаеб");
             }
-        }
-        else
-        {
-            // Нет id или неправильный — можно показать ошибку или перенаправить
         }
     }
 

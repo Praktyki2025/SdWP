@@ -1,29 +1,28 @@
-﻿using SdWP.DTO.Requests;
-using SdWP.DTO.Responses;
-using SdWP.Service.IServices;
-using SdWP.Data.Repositories;
+﻿using Microsoft.EntityFrameworkCore;
+using SdWP.Data.Context;
 using SdWP.Data.Models;
+using SdWP.DTO.Requests;
+using SdWP.Service.IServices;
 
 namespace SdWP.Service.Services
 {
-    public class ProjectInteractionsService(InMemoryProjectRepository repo) : IProjectInteractionsService
+    public class ProjectInteractionsService(ApplicationDbContext context) : IProjectInteractionsService
     {
-        private readonly InMemoryProjectRepository _projectRepository = repo;
+        private readonly ApplicationDbContext _context = context;
         public async Task<ProjectUpsertResponseDTO> CreateProjectAsync(ProjectUpsertRequestDTO project)
         {
             var response = new Project
             {
-                Id = Guid.NewGuid(), // Simulating a new project ID
+                Id = Guid.NewGuid(),
                 Title = project.Title,
                 Description = project.Description,
                 CreatedAt = DateTime.UtcNow,
-                LastModified = DateTime.UtcNow
+                LastModified = DateTime.UtcNow,
+                CreatorUserId = Guid.Parse("06DB0A77-69C1-40BC-BADC-10B2CEA75C36")
             };
 
-            Console.WriteLine($"Id - {response.Id}");
-            await _projectRepository.AddAsync(response);
-            Console.WriteLine($"{_projectRepository.GetSize()}");
-
+            await _context.Projects.AddAsync(response);
+            await _context.SaveChangesAsync();
             return new ProjectUpsertResponseDTO
             {
                 Id = response.Id,
@@ -35,37 +34,46 @@ namespace SdWP.Service.Services
         }
         public async Task<ProjectUpsertResponseDTO> EditProjectAsync(ProjectUpsertRequestDTO project)
         {
-
-            var response = new Project
+            var existingProject = await _context.Projects.FindAsync(project.Id);
+            if (existingProject == null)
             {
-                Id = (Guid)project.Id, // Simulating a new project ID
-                Title = project.Title,
-                Description = project.Description,
-                CreatedAt = (DateTime)project.CreatedAt,
-                LastModified = DateTime.UtcNow
-            };
+                await Task.CompletedTask;
+            }
 
-            await _projectRepository.UpdateAsync(response);
+            existingProject.Title = project.Title;
+            existingProject.Description = project.Description;
+            existingProject.LastModified = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
 
             return new ProjectUpsertResponseDTO
             {
-                Id = response.Id,
-                Title = response.Title,
-                Description = response.Description,
-                CreatedAt = response.CreatedAt,
-                LastModified = response.LastModified
+                Id = existingProject.Id,
+                Title = existingProject.Title,
+                Description = existingProject.Description,
+                CreatedAt = existingProject.CreatedAt,
+                LastModified = existingProject.LastModified
             };
         }
-        public Task<ProjectDeleteResponseDTO> DeleteProjectAsync(Guid project)
-        {
-            _projectRepository.DeleteAsync(project);
-            Console.WriteLine($"{_projectRepository.GetSize()}");
-            return Task.FromResult(new ProjectDeleteResponseDTO() { Success = true });
-        }
+
+        public async Task<ProjectDeleteResponseDTO> DeleteProjectAsync(Guid projectId)
+{
+    var project = await _context.Projects.FindAsync(projectId);
+    if (project == null)
+    {
+        return new ProjectDeleteResponseDTO { Success = false };
+    }
+
+    _context.Projects.Remove(project);
+    await _context.SaveChangesAsync();
+
+    return new ProjectDeleteResponseDTO { Success = true };
+}
 
         public async Task<ProjectUpsertResponseDTO> GetByIdAsync(Guid id)
         {
-            var project = await _projectRepository.GetByIdAsync(id);
+            var project = await _context.Projects.FirstOrDefaultAsync(x => x.Id == id);
+
             if (project == null)
                 return null;
             return new ProjectUpsertResponseDTO
@@ -80,7 +88,8 @@ namespace SdWP.Service.Services
 
         public async Task<List<ProjectUpsertResponseDTO>> GetAllAsync()
         {
-            var projects = await _projectRepository.GetAllAsync();
+            var projects = await _context.Projects.ToListAsync();
+
             return projects.Select(p => new ProjectUpsertResponseDTO
             {
                 Id = p.Id,
@@ -89,7 +98,7 @@ namespace SdWP.Service.Services
                 CreatedAt = p.CreatedAt,
                 LastModified = p.LastModified
             }).ToList();
-
         }
+
     }
 }

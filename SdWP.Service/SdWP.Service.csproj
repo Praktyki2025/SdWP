@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.18" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.18" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SdWP.Data\SdWP.Data.csproj" />
     <ProjectReference Include="..\SdWP.DTO\SdWP.DTO.csproj" />
   </ItemGroup>

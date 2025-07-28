@@ -1,13 +1,16 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using SdWP.Data.Models;
+using SdWP.DTO.Requests;
+using SdWP.DTO.Responses;
+using SdWP.Service.IServices;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using SdWP.DTO.Requests;
-using SdWP.DTO.Responses;
-using Microsoft.AspNetCore.Antiforgery;
-using SdWP.Service.IServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace SdWP.API.Controllers
@@ -18,46 +21,81 @@ namespace SdWP.API.Controllers
     {
         private readonly IUserRegisterService _registerService;
         private readonly IAntiforgery _antiforgery;
+        private readonly UserManager<User> _userManager;
 
-        public RegisterContloller(IUserRegisterService registerService, IAntiforgery antiforgery)
+        public RegisterContloller(
+            IUserRegisterService registerService, 
+            IAntiforgery antiforgery,
+            UserManager<User> userManager)
         {
             _registerService = registerService;
             _antiforgery = antiforgery;
+            _userManager = userManager;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register([FromBody] UserRegisterRequestDTO registerDto)
+        public async Task<UserRegisterResponseDTO> RegisterAsync(UserRegisterRequestDTO dto)
         {
             try
             {
-                if (!ModelState.IsValid)
+                var userExit = await _userManager.FindByEmailAsync(dto.Email);
+
+                if (userExit != null)
                 {
-                    return BadRequest(new UserRegisterResponseDTO
+                    return new UserRegisterResponseDTO
                     {
                         Success = false,
-                        Message = "Invalid input"
-                    });
+                        Message = "User with this email alredy exit"
+                    };
                 }
 
-                var response = await _registerService.RegisterAsync(registerDto);
-
-                if (response.Success)
+                var user = new User
                 {
-                    return Ok(response);
+                    Email = dto.Email,
+                    NormalizedEmail = dto.Email.Normalize(),
+                    UserName = dto.Name,
+                    NormalizedUserName = dto.Name.Normalize(),
+                    CreatedAt = DateTime.UtcNow,
+                    LastUpdate = DateTime.UtcNow
+                };
+
+                var result = await _userManager.CreateAsync(user, dto.Password);
+
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(user, "User");
+
+                    return new UserRegisterResponseDTO
+                    {
+                        Success = true,
+                        Id = user.Id,
+                        Email = user.Email,
+                        Name = user.Name,
+                        CreatedAt = DateTime.UtcNow,
+                        Message = "User registred successfully"
+                    };
                 }
                 else
                 {
-                    return BadRequest(response);
+                    var error = string.Join(", ", result.Errors.Select(e => e.Description));
+
+                    return new UserRegisterResponseDTO
+                    {
+                        Success = false,
+                        Message = $"User registration failed: {error}"
+                    };
                 }
             }
             catch (Exception e)
             {
-                return StatusCode(500, new UserRegisterResponseDTO
+                return new UserRegisterResponseDTO
                 {
                     Success = false,
-                    Message = $"An error occurred: {e.Message}"
-                });
+                    Message = $"User registration failed: {e}"
+                };
             }
+
         }
+
     }
 }

@@ -14,23 +14,19 @@ namespace SdWP.Service.Services
         {
             _userManager = userManager;
         }
-        
-        public async Task<UserLoginResponseDTO?> LoginAsync(UserLoginRequestDTO dto)
+
+        public async Task<User?> ValidateUserAsync(UserLoginRequestDTO dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) return null; 
-            
-            var isValid = await _userManager.CheckPasswordAsync(user, dto.Password);
-            if (!isValid) return null;
+            if (user == null) return null;
 
-            return new UserLoginResponseDTO
-            {
-                Success = true,
-                Id = user.Id,
-                Email = user.Email,
-                Name = user.Name,
-                LoginTime = DateTime.UtcNow
-            };
+            var isValid = await _userManager.CheckPasswordAsync(user, dto.Password);
+            return isValid ? user : null;
+        }
+
+        public async Task<IList<string>> GetUserRolesAsync(User user)
+        {
+            return await _userManager.GetRolesAsync(user);
         }
     }
 }

@@ -1,36 +1,30 @@
-﻿@page "/Error"
-@using System.Diagnostics
+﻿@page "/error"
 
-<PageTitle>Error</PageTitle>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Error</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h4>Access Error</h4>
+                        <p>There was an issue with your authentication or authorization.</p>
+                        <p>This could mean:</p>
+                        <ul>
+                            <li>You don't have the required permissions</li>
+                            <li>Your session has expired</li>
+                            <li>There was a system error</li>
+                        </ul>
+                    </div>
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
-
-@if (ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@RequestId</code>
-    </p>
-}
-
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
-
-@code{
-    [CascadingParameter]
-    private HttpContext? HttpContext { get; set; }
-
-    private string? RequestId { get; set; }
-    private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-
-    protected override void OnInitialized() =>
-        RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
-}
+                    <div class="text-center">
+                        <a href="/login" class="btn btn-primary">Back to Login</a>
+                        <a href="/auth-debug" class="btn btn-info">Debug Info</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

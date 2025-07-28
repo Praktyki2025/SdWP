@@ -1,0 +1,27 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "User")]
+@rendermode InteractiveServer
+
+@inject NavigationManager Navigation
+@inject HttpClient Http
+
+@page "/user"
+
+<h3>User Dashboard</h3>
+
+<button @onclick="Logout">Logout</button>
+
+@code {
+    private async Task Logout()
+    {
+        var response = await Http.PostAsync("api/login/logout", null);
+        if (response.IsSuccessStatusCode)
+        {
+            Navigation.NavigateTo("/login");
+        }
+        else
+        {
+            Console.WriteLine("Logout failed.");
+        }
+    }
+}

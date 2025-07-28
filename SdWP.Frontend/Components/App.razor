@@ -6,12 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
     <link href="_content/Blazor.Bootstrap/blazor.bootstrap.css" rel="stylesheet" />
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="SdWP.Frontend.styles.css" />
-    <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet @rendermode="@InteractiveServer" />
 </head>
 
@@ -34,5 +32,39 @@
     <script src="js/index.js"></script>
 
 </body>
+
+<script>
+    window.apiLogin = async (loginModel) => {
+        try {
+            const tokenResponse = await fetch('/api/antiforgery/token');
+            if (!tokenResponse.ok) {
+                console.error('Failed to get antiforgery token', tokenResponse);
+                return { success: false, message: 'Error: Could not establish a security session.' };
+            }
+            const tokenData = await tokenResponse.json();
+            const requestToken = tokenData.token;
+
+            if (!requestToken) {
+                console.error('Antiforgery token was not present in the response body.');
+                return { success: false, message: 'Error: Invalid security token received.' };
+            }
+
+            const loginResponse = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': requestToken
+                },
+                body: JSON.stringify(loginModel)
+            });
+
+            return await loginResponse.json();
+
+        } catch (error) {
+            console.error('Login API process failed:', error);
+            return { success: false, message: 'A critical error occurred during login.' };
+        }
+    };
+</script>
 
 </html>

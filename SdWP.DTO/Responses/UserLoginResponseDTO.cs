@@ -14,5 +14,7 @@ namespace SdWP.DTO.Responses
         public DateTime LoginTime { get; set; } = DateTime.UtcNow;
         public bool Success { get; set; }
         public string? Message { get; set; }
+
+        public List<string> Roles { get; set; } = new();
     }
 }

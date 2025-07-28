@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using SdWP.Data.Context;
 using SdWP.Data.Models;
 using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
@@ -49,8 +52,10 @@ builder.Services.AddAntiforgery(options =>
 builder.Services.AddScoped<IUserLoginService, UserLoginServices>();
 builder.Services.AddScoped<IUserRegisterService, UserRegisterService>();
 
-builder.Services.AddSingleton<InMemoryProjectRepository>();
+builder.Services.AddScoped<ProjectRepository>();
 builder.Services.AddScoped<IProjectInteractionsService, ProjectInteractionsService>();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();

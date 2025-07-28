@@ -14,5 +14,8 @@ namespace SdWP.Data.Models
         public DateTime CreatedAt { get; set; }
         public DateTime LastUpdate { get; set; }
         
+        public virtual ICollection<Valuation> Valuations { get; set; }
+        public virtual ICollection<Project> Projects { get; set; }
+        public virtual ICollection<ErrorLog> ErrorLogs { get; set; }
     }
 }

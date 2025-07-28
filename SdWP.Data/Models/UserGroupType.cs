@@ -8,9 +8,11 @@ namespace SdWP.Data.Models
 {
     public class UserGroupType
     {
-        public Guid ID { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
 
         public string UnitOFWork { get; set; }
+
+        public virtual ICollection<ValuationItem> ValuationItems { get; set; }
     }
 }

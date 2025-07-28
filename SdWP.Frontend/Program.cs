@@ -1,5 +1,11 @@
 using BlazorBootstrap;
+using Microsoft.EntityFrameworkCore;
+using SdWP.Data.Context;
+using SdWP.Data.Interfaces;
+using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
+
+//zarejestrowac
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +13,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddBlazorBootstrap();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
+                       throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+    
+
 
 var app = builder.Build();
 

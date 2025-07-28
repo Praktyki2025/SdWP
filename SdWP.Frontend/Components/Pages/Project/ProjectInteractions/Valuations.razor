@@ -1,5 +1,5 @@
 ﻿@page "/projects/valuations"
-
+@inject IJSRuntime JS
 
 <h3 class="mb-4">Project Valuations</h3>
 
@@ -123,6 +123,10 @@
     {
         Console.WriteLine($"Delete valuation ID: {valuationId}");
     }
+
+
+
+ 
 
     public class ValuationModel
     {

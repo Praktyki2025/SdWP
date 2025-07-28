@@ -1,6 +1,8 @@
 ﻿@page "/projects/add"
 @using System.ComponentModel.DataAnnotations
 @using SdWP.Data.Models;
+@using SdWP.Data.Interfaces;
+@using Microsoft.AspNetCore.Components.Authorization;
 @rendermode InteractiveServer
 
 <PageTitle>Add Project</PageTitle>
@@ -23,28 +25,57 @@
         </div>
     </div>
 
-    <button class="btn btn-primary" type="submit">Confrim</button>
+    <button class="btn btn-primary" type="submit">Confirm</button>
 </EditForm>
 
 @code {
-    [Inject] NavigationManager Navigation { get; set; } = default!;
-    [Inject] protected ToastService ToastService { get; set; } = default!;
+    [Inject] public IProjectRepository ProjectRepository { get; set; }
+    [Inject] public NavigationManager Navigation { get; set; }
+    [Inject] public ToastService ToastService { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-    public class ProjectModel
+    private Project project = new Project();
+
+    protected override void OnInitialized()
     {
-        [Required(ErrorMessage = "Nazwa jest wymagana.")]
-        public string? Title { get; set; }
-
-        [Required(ErrorMessage = "Opis jest wymagany.")]
-        public string? Description { get; set; }
+        project.CreatedAt = DateTime.Now;
+        project.LastModified = DateTime.Now;
     }
-
-    private ProjectModel project = new ProjectModel();
 
     private async Task AddProjectToDbAsync()
     {
-        //add proj logic
-        ToastService.Notify(new ToastMessage(ToastType.Success, $"Project added successfully."));
-		Navigation.NavigateTo("/projects");
-    }
+        try
+        {
+            var authState = await AuthenticationStateTask;
+            var user = authState.User;
+
+            
+            if (user != null && user.Identity.IsAuthenticated)
+            {
+          
+                {
+                    
+                    ToastService.Notify(new ToastMessage(ToastType.Warning, "Brak identyfikatora użytkownika."));
+                    return; 
+                }
+
+                await ProjectRepository.AddProjectAsync(project);
+
+                ToastService.Notify(new ToastMessage(ToastType.Success, "Projekt dodano pomyślnie."));
+                NavigationManager.NavigateTo("projects");
+            }
+            else
+            {
+                // Obsługa przypadku, gdy użytkownik nie jest zalogowany
+                ToastService.Notify(new ToastMessage(ToastType.Danger, "Musisz być zalogowany, aby dodać projekt."));
+                // Opcjonalnie, przekieruj na stronę logowania
+                NavigationManager.NavigateTo("login");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding project: {ex}");
+            ToastService.Notify(new ToastMessage(ToastType.Danger, "Błąd podczas dodawania projektu"));
+        }
+}
 }

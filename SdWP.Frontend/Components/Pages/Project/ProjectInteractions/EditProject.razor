@@ -1,56 +1,73 @@
-﻿@page "/projects/edit"
+﻿@page "/projects/edit/{ProjectId:int}" 
 @using System.ComponentModel.DataAnnotations
+@using SdWP.Data.Models 
+@using SdWP.Data.Interfaces 
 @rendermode InteractiveServer
 
-<PageTitle>Add Project</PageTitle>
+<PageTitle>Edit Project</PageTitle>
 
-<EditForm Model="project" OnValidSubmit="EditProjectToDbAsync" FormName="EditProjectForm">
-    <DataAnnotationsValidator />
-    <ValidationSummary class="alert alert-danger" />
+@if (project == null)
+{
+    <p><em>Loading project...</em></p>
+}
+else
+{
+    <EditForm Model="project" OnValidSubmit="EditProjectToDbAsync" FormName="EditProjectForm">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="alert alert-danger" />
 
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <label for="titleInput" class="form-label">Title</label>
-            <InputText id="titleInput" class="form-control" @bind-Value="project.Title" placeholder="Title" />
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="titleInput" class="form-label">Title</label>
+                <InputText id="titleInput" class="form-control" @bind-Value="project.Title" placeholder="Title" />
+            </div>
         </div>
-    </div>
 
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <label for="descriptionInput" class="form-label">Description</label>
-            <InputText id="descriptionInput" class="form-control" @bind-Value="project.Description" placeholder="Description" />
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="descriptionInput" class="form-label">Description</label>
+                <InputText id="descriptionInput" class="form-control" @bind-Value="project.Description" placeholder="Description" />
+            </div>
         </div>
-    </div>
 
-    <button class="btn btn-primary" type="submit">Apply</button>
-</EditForm>
+        <button class="btn btn-primary" type="submit">Apply</button>
+    </EditForm>
+}
 
 @code {
+    [Parameter]
+    public int ProjectId { get; set; }
+
+    [Inject] public IProjectRepository ProjectRepository { get; set; } = default!;
     [Inject] protected ToastService ToastService { get; set; } = default!;
-	[Inject] NavigationManager Navigation { get; set; } = default!;
+    [Inject] NavigationManager Navigation { get; set; } = default!;
 
-    private ProjectModel project = new ProjectModel("Test", "Object");
+    private Project? project; 
 
-    public class ProjectModel
+    
+    protected override async Task OnInitializedAsync()
     {
-        [Required(ErrorMessage = "Nazwa jest wymagana.")]
-        public string? Title { get; set; }
-
-        [Required(ErrorMessage = "Opis jest wymagany.")]
-        public string? Description { get; set; }
-
-        public ProjectModel(string? title, string? description)
-        {
-            Title = title;
-            Description = description;
-        }
+        project = await ProjectRepository.GetProjectByIdAsync(ProjectId);
     }
 
-
-    private void EditProjectToDbAsync()
+    private async Task EditProjectToDbAsync()
     {
-        Console.WriteLine($"{project.Title} {project.Description}");
-        ToastService.Notify(new ToastMessage(ToastType.Success, $"Project edited successfully."));
-        Navigation.NavigateTo("/projects");
+        if (project != null)
+        {
+            try
+            {
+                
+                await ProjectRepository.UpdateProjectAsync(project);
+
+                ToastService.Notify(new ToastMessage(ToastType.Success, $"Project edited successfully."));
+                Navigation.NavigateTo("/projects");
+            }
+            catch (Exception ex)
+            {
+                
+                Console.WriteLine($"Error editing project: {ex.Message}");
+                ToastService.Notify(new ToastMessage(ToastType.Danger, $"Error editing project."));
+            }
+        }
     }
 }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SdWP.Data.Repositories;
+using SdWP.Data.Interfaces;
 
 namespace SdWP.Data.Models
 {

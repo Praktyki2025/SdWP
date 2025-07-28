@@ -9,15 +9,8 @@
         $(tableSelector).on('click', '.delete-project', async function (e) {
             e.preventDefault();
             const id = $(this).data('id');
-
-            //TODO add modal call from .razor
-
-            try {
-                await window.projectsApi.deleteProject(id);
-                tableInstance.ajax.reload(null, false);
-            } catch {
-                alert('Failed to delete project');
-            }
+            var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+            myModal.show();
         });
 
         $(`${tableSelector} tbody`).on('click', 'tr', function (e) {
@@ -31,3 +24,4 @@
         };
     }
 };
+

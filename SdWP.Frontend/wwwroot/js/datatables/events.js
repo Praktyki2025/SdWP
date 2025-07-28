@@ -11,7 +11,7 @@ window.projectsEvents = {
         $(tableSelector).on('click', '.delete-project', function (e) {
             e.preventDefault();
             selectedProjectId = $(this).data('id');
-            const myModal = new bootstrap.Modal(document.getElementById('myModal'));
+            const myModal = new bootstrap.Modal(document.getElementById('DeleteModal'));
             myModal.show();
         });
 
@@ -25,7 +25,7 @@ window.projectsEvents = {
                 alert('Failed to delete project');
             }
 
-            const modalEl = document.getElementById('myModal');
+            const modalEl = document.getElementById('DeleteModal');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);
             modalInstance.hide();
 

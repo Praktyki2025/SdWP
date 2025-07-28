@@ -1,16 +1,26 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using SdWP.Data.Context;
 using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.Service.IServices;
+using System.Security.Claims;
 
 namespace SdWP.Service.Services
 {
-    public class ProjectInteractionsService(ApplicationDbContext context) : IProjectInteractionsService
+    public class ProjectInteractionsService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor) : IProjectInteractionsService
     {
         private readonly ApplicationDbContext _context = context;
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
         public async Task<ProjectUpsertResponseDTO> CreateProjectAsync(ProjectUpsertRequestDTO project)
         {
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new UnauthorizedAccessException("User is not authenticated");
+            }
+
             var response = new Project
             {
                 Id = Guid.NewGuid(),
@@ -18,7 +28,8 @@ namespace SdWP.Service.Services
                 Description = project.Description,
                 CreatedAt = DateTime.UtcNow,
                 LastModified = DateTime.UtcNow,
-                CreatorUserId = Guid.Parse("06DB0A77-69C1-40BC-BADC-10B2CEA75C36")
+                CreatorUserId = Guid.Parse(userId)
+
             };
 
             await _context.Projects.AddAsync(response);

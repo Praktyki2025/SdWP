@@ -1,15 +1,18 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SdWP.DTO.Requests;
+using SdWP.DTO.Responses;
+using SdWP.Service.IServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using SdWP.DTO.Responses;
-using SdWP.Service.IServices;
 
 namespace SdWP.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ProjectController : ControllerBase
@@ -57,5 +60,15 @@ namespace SdWP.API.Controllers
             var projects = await _projectService.GetAllAsync();
             return Ok(projects);
         }
+
+        //[HttpGet("user-id")]
+        //public IActionResult GetMyUserId()
+        //{
+        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        //    if (userId == null)
+        //        return Unauthorized();
+        //    return Ok(new { UserId = userId });
+        //}
     }
 }

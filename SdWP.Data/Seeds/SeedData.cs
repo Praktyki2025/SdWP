@@ -13,25 +13,23 @@ public static class SeedData
 
         var projectCount = await context.Projects.CountAsync(p => p.CreatorUserId == user.Id);
 
-        if (projectCount > 3)
+        if (projectCount < 3)
         {
-            return;
-        }
-
-        for(int i = 0; i < 3 - projectCount; i++)
-        {
-            var project = new Project
+            for (int i = 0; i < 3 - projectCount; i++)
             {
-                Id = Guid.NewGuid(),
-                Title = $"Title{i}",
-                Description = "Description",
-                CreatedAt = DateTime.UtcNow,
-                LastModified = DateTime.UtcNow,
-                CreatorUserId = user.Id
-            };
+                var project = new Project
+                {
+                    Id = Guid.NewGuid(),
+                    Title = $"Title{i}",
+                    Description = "Description",
+                    CreatedAt = DateTime.UtcNow,
+                    LastModified = DateTime.UtcNow,
+                    CreatorUserId = user.Id
+                };
 
-            await context.Projects.AddAsync(project);
-            await context.SaveChangesAsync();
+                await context.Projects.AddAsync(project);
+                await context.SaveChangesAsync();
+            }
         }
     }
     public static async Task SeedUsers(IServiceProvider serviceProvider)

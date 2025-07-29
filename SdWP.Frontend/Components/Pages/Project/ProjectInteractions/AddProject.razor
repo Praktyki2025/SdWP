@@ -11,7 +11,7 @@
 @rendermode InteractiveServer
 
 <PageTitle>Add Project</PageTitle>
-
+    
 <EditForm Model="project" OnValidSubmit="AddProjectToDbAsync" FormName="AddProjectForm">
     <DataAnnotationsValidator />
     <ValidationSummary class="alert alert-danger" />
@@ -48,9 +48,9 @@
         }
         else
         {
-            ToastService.Notify(new ToastMessage(ToastType.Warning, $"You are not logged in."));
+            ToastService.Notify(new ToastMessage(ToastType.Secondary, $"An error occurred."));
         }
 
-        Navigation.NavigateTo("/projects");
+        Navigation.NavigateTo("/projects", true);
     }
 }

@@ -60,7 +60,8 @@
         if (!user.Identity.IsAuthenticated)
         {
             ToastService.Notify(new ToastMessage(ToastType.Warning, "You are not logged in."));
-            NavigationManager.NavigateTo("/login", true);
+            NavigationManager.NavigateTo("/login");
+            return;
         }
         if (firstRender)
         {

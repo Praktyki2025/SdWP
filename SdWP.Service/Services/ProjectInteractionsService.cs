@@ -14,6 +14,13 @@ namespace SdWP.Service.Services
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
         public async Task<ProjectUpsertResponseDTO> CreateProjectAsync(ProjectUpsertRequestDTO project)
         {
+            var user = _httpContextAccessor.HttpContext?.User;
+
+            if (user?.Identity?.IsAuthenticated != true)
+            {
+                return new ProjectUpsertResponseDTO { Success = false };
+            }
+
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrWhiteSpace(userId))

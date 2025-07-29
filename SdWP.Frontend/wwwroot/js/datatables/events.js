@@ -37,10 +37,6 @@ window.projectsEvents = {
                 window.location.href = '/projects/valuations';
             }
         });
-
-        document.getElementById('addProjectBtn').onclick = function () {
-            window.location.href = '/projects/add';
-        };
     }
 };
 

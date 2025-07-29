@@ -1,10 +1,16 @@
 ﻿@page "/projects"
-@inject IJSRuntime JS
 @rendermode InteractiveServer
+
 @using ProjectInteractions
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
 
 <div class="d-flex justify-content-end mb-12">
-    <Button Class="add-project-btn" Color="ButtonColor.Success" Id="addProjectBtn">Add project</Button>
+    <Button Class="add-project-btn" Color="ButtonColor.Success" @onclick='() => NavigationManager.NavigateTo("/projects/add", true)'>Add project</Button>
 </div>
 
 <table id="projectsViewTable" class="display">
@@ -18,7 +24,7 @@
     <tbody></tbody>
 </table>
 
-<!-- Modal -->
+<!-- Delete Modal -->
 <div class="modal fade" id="DeleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -43,11 +49,19 @@
 
 @code {
     [Inject] private ToastService ToastService { get; set; } = default!;
-
+    private bool isAuthenticated;
     private ConfirmDialog dialog = default!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        Console.WriteLine($"Auth - {user.Identity.IsAuthenticated} Name: {user.Identity.Name}");
+        if (!user.Identity.IsAuthenticated)
+        {
+            ToastService.Notify(new ToastMessage(ToastType.Warning, "You are not logged in."));
+            NavigationManager.NavigateTo("/login", true);
+        }
         if (firstRender)
         {
             await JS.InvokeVoidAsync("initializeDataTable");

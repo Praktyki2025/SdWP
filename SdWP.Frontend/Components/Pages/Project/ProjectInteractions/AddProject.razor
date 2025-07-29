@@ -1,9 +1,11 @@
 ﻿@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
 @using SdWP.Data.Models;
 @using SdWP.Service.IServices
 @using SdWP.Service.Services
 @using SdWP.DTO.Requests;
 @inject IProjectInteractionsService ProjectInteractions
+@attribute [Authorize]
 
 @page "/projects/add"
 @rendermode InteractiveServer
@@ -39,8 +41,16 @@
 
     private async Task AddProjectToDbAsync()
     {
-        await ProjectInteractions.CreateProjectAsync(project);
-        ToastService.Notify(new ToastMessage(ToastType.Success, $"Project added successfully."));
+        var result = await ProjectInteractions.CreateProjectAsync(project);
+        if (result.Success)
+        {
+            ToastService.Notify(new ToastMessage(ToastType.Success, $"Project added successfully."));
+        }
+        else
+        {
+            ToastService.Notify(new ToastMessage(ToastType.Warning, $"You are not logged in."));
+        }
+
         Navigation.NavigateTo("/projects");
     }
 }

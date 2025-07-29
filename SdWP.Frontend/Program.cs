@@ -4,6 +4,8 @@ using SdWP.Data.Context;
 using SdWP.Data.Interfaces;
 using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
+using SdWP.Service.IServices;
+using SdWP.Service.Services;
 
 //zarejestrowac
 
@@ -22,7 +24,9 @@ builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
 
 
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
-    
+builder.Services.AddScoped<IValuationItemRepository, ValuationItemRepository>(); //rej serw
+
+builder.Services.AddScoped<IValuationItemService, ValuationItemService>();
 
 
 var app = builder.Build();

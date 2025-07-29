@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SdWP.Data\SdWP.Data.csproj" />
     <ProjectReference Include="..\SdWP.DTO\SdWP.DTO.csproj" />
+    <ProjectReference Include="..\SdWP.Service\SdWP.Service.csproj" />
   </ItemGroup>
 
 </Project>

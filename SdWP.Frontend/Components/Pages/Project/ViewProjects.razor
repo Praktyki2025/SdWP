@@ -1,0 +1,28 @@
+﻿@page "/projects"
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+
+<div class="d-flex justify-content-end mb-12">
+    <Button Class="add-project-btn" Color="ButtonColor.Success" Id="addProjectBtn">Add project</Button>
+</div>
+
+<table id="projectsViewTable" class="display">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initializeDataTable");
+        }
+    }
+}

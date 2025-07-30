@@ -1,0 +1,25 @@
+﻿@using SdWP.Data.Models;
+
+<div class="row">
+    <div class="col-5 col-md-3 text-end"> Title :</div>
+    <div class="col-7 col-md-9">@projectDemo?.Title</div>
+</div>
+<div class="row">
+    <div class="col-5 col-md-3 text-end">Description :</div>
+    <div class="col-7 col-md-9">@projectDemo?.Description</div>
+</div>
+
+@code {
+    private Project? projectDemo;
+
+    [Parameter] public int Id { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // get project with {Id} from DB
+
+        //replace new projects with dto?
+        projectDemo = new Project { Title = "Demo", Description = "Project" };
+        base.OnInitialized();
+    }
+}

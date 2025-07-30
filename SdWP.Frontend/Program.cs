@@ -1,10 +1,33 @@
+using BlazorBootstrap;
+using Microsoft.EntityFrameworkCore;
+using SdWP.Data.Context;
+using SdWP.Data.Interfaces;
+using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
+using SdWP.Service.IServices;
+using SdWP.Service.Services;
+
+//zarejestrowac
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddBlazorBootstrap();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
+                       throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IValuationItemRepository, ValuationItemRepository>(); //rej serw
+
+builder.Services.AddScoped<IValuationItemService, ValuationItemService>();
+
 
 var app = builder.Build();
 

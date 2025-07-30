@@ -5,12 +5,6 @@ using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace SdWP.API.Controllers
@@ -18,13 +12,13 @@ namespace SdWP.API.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    public class RegisterContloller : ControllerBase
+    public class RegisterController : ControllerBase
     {
         private readonly IUserRegisterService _registerService;
         private readonly IAntiforgery _antiforgery;
         private readonly UserManager<User> _userManager;
 
-        public RegisterContloller(
+        public RegisterController(
             IUserRegisterService registerService, 
             IAntiforgery antiforgery,
             UserManager<User> userManager)

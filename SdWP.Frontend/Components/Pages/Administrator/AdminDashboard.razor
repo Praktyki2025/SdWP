@@ -21,18 +21,10 @@
 @code {
     private bool showModal = false;
 
-    private void ShowModal()
-    {
-        showModal = true;
-    }
 
-    private async Task Logout()
-    {
-        await JSRuntime.InvokeVoidAsync("apiLogout");
-    }
+    private void ShowModal() => showModal = true;
 
-    private void ToggleModal()
-    {
-        showModal = !showModal;
-    }
+    private async Task Logout() => await JSRuntime.InvokeVoidAsync("apiLogout");
+
+    private void ToggleModal() => showModal = !showModal;
 }

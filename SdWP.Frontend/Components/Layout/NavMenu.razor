@@ -1,43 +1,41 @@
-﻿@inject NavigationManager Navigation
+﻿﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">SdWP.Frontend</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
         <div class="nav-item px-3">
-            <a class="nav-link" @onclick='() => NavigateForce("/projects")' style="cursor: pointer">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Projects
-            </a>
-        </div>
-
-        <div class="nav-item px-3">
-            <a class="nav-link" @onclick='() => NavigateForce("/")' style="cursor: pointer">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </a>
-        </div>
-
-        <div class="nav-item px-3">
-            <a class="nav-link" @onclick='() => NavigateForce("/counter")' style="cursor: pointer">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </a>
-        </div>
-
-        <div class="nav-item px-3">
-            <a class="nav-link" @onclick='() => NavigateForce("/weather")' style="cursor: pointer">
+            <NavLink class="nav-link" href="projects">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </a>
+            </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <a class="nav-link" @onclick='() => NavigateForce("/login")' style="cursor: pointer">
-                <span class="bi bi-person-plus" aria-hidden="true"></span> Register
-            </a>
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="counter">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="weather">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="login">
+                <span class="bi bi-person-plus" aria-hidden="true"></span> Login
+            </NavLink>
         </div>
     </nav>
 </div>
-
-@code {
-    void NavigateForce(string url)
-    {
-		Navigation.NavigateTo(url, forceLoad: true); 
-        // nie mam lepszego pomysłu, inaczej jest problem z odświeżaniem stron
-    }
-}

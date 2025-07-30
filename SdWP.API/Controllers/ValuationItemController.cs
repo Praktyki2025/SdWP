@@ -23,9 +23,33 @@ namespace SdWP.API.Controllers
         public async Task<IActionResult> GetValuationItems()
         {
 
-            var valuationItem = _valuationItemService.GetValuationItemsAsync();
+            var valuationItem = await _valuationItemService.GetValuationItemsAsync();
             return Ok(valuationItem);
         }
+
+
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetValuationItemById(Guid id)
+        {
+            var valuationItem = await _valuationItemService.GetValuationItemByIdAsync(id);
+            if (valuationItem == null)
+            {
+                return NotFound(); 
+            }
+            return Ok(valuationItem);
+        }
+
+
+
+        [HttpDelete] 
+        public async Task<IActionResult> DeleteValuationItem(Guid id)
+        {
+            var deleted = await _valuationItemService.DeleteValuationItemAsync(id);
+            return Ok(deleted);
+        }
+
+
 
     }
 }

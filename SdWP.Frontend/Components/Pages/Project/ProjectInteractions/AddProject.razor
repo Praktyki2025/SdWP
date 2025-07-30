@@ -62,14 +62,14 @@
                 await ProjectRepository.AddProjectAsync(project);
 
                 ToastService.Notify(new ToastMessage(ToastType.Success, "Projekt dodano pomyślnie."));
-                NavigationManager.NavigateTo("projects");
+                Navigation.NavigateTo("projects");
             }
             else
             {
                 // Obsługa przypadku, gdy użytkownik nie jest zalogowany
                 ToastService.Notify(new ToastMessage(ToastType.Danger, "Musisz być zalogowany, aby dodać projekt."));
                 // Opcjonalnie, przekieruj na stronę logowania
-                NavigationManager.NavigateTo("login");
+                Navigation.NavigateTo("login");
             }
         }
         catch (Exception ex)

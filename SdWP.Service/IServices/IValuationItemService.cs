@@ -9,7 +9,18 @@ namespace SdWP.Service.IServices
         Task<List<ValuationItemResponse>> GetValuationItemsAsync(); 
         //przykładowa metoda do pobrania wszystkich wycen
 
-        Task<List<ValuationItemResponse>> GetValuationItemByIdAsync(Guid id);
+        Task<ValuationItemResponse> GetValuationItemByIdAsync(Guid id);
+
+        //to taka jakby flaga? nie wei mczy moze tak byc jak wczesniej wzraca tylko ok i nie ma petli
+        Task<bool> DeleteValuationItemAsync(Guid id);
+
+
+        //CRUD - dodac CreateValuation item, UpdateValuationItem i DeleteValuationItem
+
+        //dodac to samo tyle ze w repository 
+
+
+
     }
 
 

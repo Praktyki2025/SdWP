@@ -20,23 +20,56 @@ namespace SdWP.Service.Services
             _valuationItemRepository = valuationItemRepository;
         }
 
-        public Task<List<ValuationItemResponse>> GetValuationItemByThingsIdAsync(Guid id)
-        {
-
-            throw new NotImplementedException();
-        }
-
-   
+        
 
         public async Task<List<ValuationItemResponse>> GetValuationItemsAsync()
         {
+            //pobierz dane
             var valuationItems = await _valuationItemRepository.GetValuationItemsAsync();
+            //robi liste
             var valuationItemResponse = new List<ValuationItemResponse>();
 
-        //przemapowac
+            //przemapowac
+            foreach (var item in valuationItems)
+            {
+                valuationItemResponse.Add(new ValuationItemResponse
+                {
+                    Name = item.Name,
+                    Description = item.Description,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    TotalAmount = item.TotalAmount,
+                   
+                });
+            }
+
             return valuationItemResponse;
             
-            throw new NotImplementedException();
         }
+
+        public async Task<ValuationItemResponse> GetValuationItemByIdAsync(Guid id)
+        {
+         
+
+            var item = await _valuationItemRepository.GetValuationItemByIdAsync(id); 
+            var responseItem = new ValuationItemResponse
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Description = item.Description,
+                Quantity = item.Quantity,
+                UnitPrice = item.UnitPrice,
+                TotalAmount = item.TotalAmount,
+            };
+            return responseItem;
+        }
+
+
+        public async Task<bool> DeleteValuationItemAsync(Guid id)
+        {
+           
+            return await _valuationItemRepository.DeleteValuationItemAsync(id);
+        }
+
     }
 }

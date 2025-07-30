@@ -17,12 +17,33 @@ namespace SdWP.Data.Repositories
         }
 
 
-
-
         public async Task<List<ValuationItem>> GetValuationItemsAsync()
         {
            var valuationItems = await _context.ValuationItems.ToListAsync();
             return valuationItems;
         }
+
+
+        public async Task<ValuationItem> GetValuationItemByIdAsync(Guid id)
+        {
+            var valuationItem = await _context.ValuationItems.FindAsync(id);
+            return valuationItem;
+        }
+
+
+        public async Task<bool> DeleteValuationItemAsync(Guid id)
+        {
+            var valuationItemToDelete = await _context.ValuationItems.FindAsync(id);
+            if (valuationItemToDelete == null)
+            {
+                return false;
+            }
+            _context.ValuationItems.Remove(valuationItemToDelete);
+            await _context.SaveChangesAsync();
+            return true;
+
+        }
+
+
     }
 }

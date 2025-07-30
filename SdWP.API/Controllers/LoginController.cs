@@ -37,8 +37,15 @@ namespace SdWP.API.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
-            return Ok(new { Success = true, Message = "Logged out successfully" });
+            var result = await _userLoginService.HandleLogoutAsync();
+            if (result.Success) return StatusCode(result.StatusCode, result.Data);
+
+            return StatusCode(result.StatusCode, new
+            {
+                success = false,
+                message = result.Message,
+                errors = result.Errors
+            });
         }
     }
 }

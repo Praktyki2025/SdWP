@@ -8,5 +8,6 @@ namespace SdWP.Service.IServices
     public interface IUserLoginService
     {
         Task<ResultService<UserLoginResponseDTO>> HandleLoginAsync(UserLoginRequestDTO dto);
+        Task<ResultService<string>> HandleLogoutAsync();
     }
 }

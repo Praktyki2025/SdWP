@@ -1,8 +1,9 @@
-﻿using SdWP.DTO.Requests;
-using SdWP.DTO.Responses;
+﻿using Microsoft.AspNetCore.Identity;
 using SdWP.Data.Models;
-using Microsoft.AspNetCore.Identity;
+using SdWP.DTO.Requests;
+using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
+using System.Data;
 
 namespace SdWP.Service.Services
 {
@@ -89,6 +90,28 @@ namespace SdWP.Service.Services
                     500
                 );
 
+            }
+        }
+
+        public async Task<ResultService<string>> HandleLogoutAsync()
+        {
+            try 
+            { 
+                await _signInManager.SignOutAsync();
+
+                return ResultService<string>.GoodResult(
+                    null,
+                    "Logout successful",
+                    200
+                );
+            }
+            catch (Exception e)
+            {
+                return ResultService<string>.BadResult(
+                    null,
+                    $"An error occurred during logout: {e.Message}",
+                    500
+                );
             }
         }
     }

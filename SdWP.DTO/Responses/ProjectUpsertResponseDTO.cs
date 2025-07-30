@@ -15,5 +15,17 @@ namespace SdWP.DTO.Requests
         public DateTime LastModified { get; set; }
         public bool Success { get; set; } = true;
         public string? Message { get; set; } // Optional message for errors or additional info
+
+        public ProjectUpsertRequestDTO MapToRequest()
+        {
+            return new ProjectUpsertRequestDTO
+            {
+                Id = this.Id,
+                Title = this.Title,
+                Description = this.Description,
+                CreatedAt = this.CreatedAt,
+                LastModified = this.LastModified
+            };
+        }
     }
 }

@@ -36,7 +36,7 @@
     [Inject] NavigationManager Navigation { get; set; } = default!;
     private HttpClient Http => HttpClientFactory.CreateClient("ApiClient");
 
-    private ProjectUpsertResponseDTO project = new();
+    private ProjectUpsertRequestDTO project = new();
 
     protected override async Task OnParametersSetAsync()
     {
@@ -48,7 +48,7 @@
             var loadedProject = await Http.GetFromJsonAsync<ProjectUpsertResponseDTO>($"api/project/{project.Id}");
             if (loadedProject != null)
             {
-                project = loadedProject;
+                project = loadedProject.MapToRequest();
                 Console.WriteLine(project.Description);
             }
         }

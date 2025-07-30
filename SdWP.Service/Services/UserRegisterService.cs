@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
-using SdWP.Data.Models;
 using SdWP.Service.IServices;
-using Microsoft.Extensions.DependencyInjection;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SdWP.Service.Services
 {
@@ -20,18 +21,18 @@ namespace SdWP.Service.Services
             _provider = provider;
         }
 
-        public async Task<UserRegisterResponseDTO> RegisterAsync(UserRegisterRequestDTO dto)
+        public async Task<ResultService<UserRegisterResponseDTO>> RegisterAsync(UserRegisterRequestDTO dto)
         {
             try
             {
                 var exist = await _userManager.FindByEmailAsync(dto.Email);
                 if (exist != null)
                 {
-                    return new UserRegisterResponseDTO
-                    {
-                        Success = false,
-                        Message = "User with this email already exists"
-                    };
+                    return ResultService<UserRegisterResponseDTO>.BadResult(
+                        null,
+                        "User with this email already exists",
+                        409
+                    );
                 }
 
                 var user = new User
@@ -48,12 +49,13 @@ namespace SdWP.Service.Services
                 var result = await _userManager.CreateAsync(user, dto.Password);
                 if (!result.Succeeded)
                 {
-                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                    return new UserRegisterResponseDTO
-                    {
-                        Success = false,
-                        Message = $"Registration failed: {errors}"
-                    };
+                    var errors = result.Errors.Select(e => e.Description).ToList();
+                    return ResultService<UserRegisterResponseDTO>.BadResult(
+                        null,
+                        "User creation failed",
+                        400,
+                        errors
+                    );
                 }
 
                 using (var scope = _provider.CreateScope())
@@ -63,17 +65,17 @@ namespace SdWP.Service.Services
                     var createdUser = await scopedUserManager.FindByEmailAsync(dto.Email);
                     if (createdUser == null)
                     {
-                        return new UserRegisterResponseDTO
-                        {
-                            Success = false,
-                            Message = "User was created but could not be loaded for role assignment"
-                        };
+                        return ResultService<UserRegisterResponseDTO>.BadResult(
+                            null,
+                            "User was created but could not be loaded for role assignment",
+                            500
+                        );
                     }
 
                     await scopedUserManager.AddToRoleAsync(createdUser, "User");
                     var roles = await scopedUserManager.GetRolesAsync(createdUser);
 
-                    return new UserRegisterResponseDTO
+                    var responseDto = new UserRegisterResponseDTO
                     {
                         Success = true,
                         Id = createdUser.Id,
@@ -83,15 +85,21 @@ namespace SdWP.Service.Services
                         Message = "User registered successfully",
                         Roles = roles.ToList()
                     };
+
+                    return ResultService<UserRegisterResponseDTO>.GoodResult(
+                        responseDto,
+                        "User registered successfully",
+                        201
+                    );
                 }
             }
             catch (Exception e)
             {
-                return new UserRegisterResponseDTO
-                {
-                    Success = false,
-                    Message = $"An error occurred during registration: {e.Message}"
-                };
+                return ResultService<UserRegisterResponseDTO>.BadResult(
+                        null,
+                        $"An error occurred during registration: {e.Message}",
+                        500
+                    );
             }
         }
     }

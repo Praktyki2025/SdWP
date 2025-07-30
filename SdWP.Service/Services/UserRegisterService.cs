@@ -4,7 +4,6 @@ using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SdWP.Service.Services
 {

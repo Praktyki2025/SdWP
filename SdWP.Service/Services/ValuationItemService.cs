@@ -14,7 +14,6 @@ namespace SdWP.Service.Services
     {
         private readonly IValuationItemRepository _valuationItemRepository;
 
-
         public ValuationItemService(IValuationItemRepository valuationItemRepository)
         {
             _valuationItemRepository = valuationItemRepository;
@@ -22,20 +21,20 @@ namespace SdWP.Service.Services
 
         public Task<List<ValuationItemResponse>> GetValuationItemByThingsIdAsync(Guid id)
         {
-
             throw new NotImplementedException();
         }
-
-   
 
         public async Task<List<ValuationItemResponse>> GetValuationItemsAsync()
         {
             var valuationItems = await _valuationItemRepository.GetValuationItemsAsync();
             var valuationItemResponse = new List<ValuationItemResponse>();
 
-        //przemapowac
-            return valuationItemResponse;
             
+            return valuationItemResponse;
+        }
+
+        public Task<List<ValuationItemResponse>> GetValuationItemByIdAsync(Guid id)
+        {
             throw new NotImplementedException();
         }
     }

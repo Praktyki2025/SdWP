@@ -51,15 +51,16 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li>
-                                                <a class="dropdown-item" href="#" @onclick="() => EditValuation(valuation.Id)">
+                                                <a class="dropdown-item" href="javascript:void(0)" @onclick="() => EditValuation(valuation.Id)">
                                                     <i class="fas fa-edit me-2"></i>Edit
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item text-danger" href="#" @onclick="() => DeleteValuation(valuation.Id)">
+                                                <a class="dropdown-item text-danger" href="#">
                                                     <i class="fas fa-trash-alt me-2"></i>Delete
                                                 </a>
                                             </li>
+                                            
                                         </ul>
                                     </div>
                                 </td>
@@ -70,9 +71,52 @@
             </div>
         }
     </div>
-</div>
+</div>  
+
+<Modal @ref="modal" title="Edit Valuation" IsVerticallyCentered="true" IsScrollable="true">
+    <BodyTemplate>
+        <div class="d-grid gap-2 col-9 mx-auto mt-2">
+            <div class="ma-5 p-2">
+                <label class="form-label">Description</label>
+                <TextAreaInput @bind-Value="@enteredText" />
+            </div>
+            <div class="ma-3 p-2">
+                <label class="form-label">Quantity</label>
+                <NumberInput TValue="decimal" @bind-Value="@amount7" />
+            </div>
+            <div class="ma-3 p-2">
+                <label class="form-label">Unit Price</label>
+                <NumberInput TValue="float" @bind-Value="@amount3" />
+            </div>
+            <div class="ma-3 p-2">
+                <label class="form-label">Total Amount</label>
+                <NumberInput TValue="decimal" @bind-Value="@amount8" />
+            </div>
+            <div class="ma-3 p-2">
+                <label class="form-label">Recurrence Period</label>
+                <NumberInput TValue="int" @bind-Value="@amount2" />
+            </div>
+            <div class="ma-3 p-2">
+                <label class="form-label">Recurrence Unit</label>
+                <TextInput @bind-Value="@enteredText2" />
+            </div>
+        </div>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Close</Button>
+        <Button Color="ButtonColor.Primary" @onclick="OnSaveChangesClick">Save changes</Button>
+    </FooterTemplate>
+</Modal>
 
 @code {
+    private Modal modal = default!;
+    private string enteredText;
+    private string enteredText2;
+    private decimal amount7;
+    private float amount3;
+    private decimal amount8;
+    private int amount2;
+
     private List<ValuationModel> allValuations = new();
     private List<ValuationModel> filteredValuations;
 
@@ -94,8 +138,6 @@
         filteredValuations = allValuations;
     }
 
-
-
     private void FilterValuations()
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
@@ -114,19 +156,31 @@
         }
     }
 
-    private void EditValuation(int valuationId)
+    private async Task EditValuation(int valuationId)
     {
-        Console.WriteLine($"Edit valuation ID: {valuationId}");
+        var valuation = allValuations.FirstOrDefault(v => v.Id == valuationId);
+        if (valuation != null)
+        {
+            enteredText2 = valuation.RecurrenceUnit;
+            enteredText = valuation.Description;
+             amount7 = valuation.Quantity;
+            amount3 = valuation.UnitPrice;
+             amount8 = valuation.TotalAmount;
+            amount2 = valuation.RecurrencePeriod;
+        }
+        await modal.ShowAsync();
     }
 
-    private void DeleteValuation(int valuationId)
+    private async Task OnHideModalClick()
     {
-        Console.WriteLine($"Delete valuation ID: {valuationId}");
+        await modal.HideAsync();
     }
 
-
-
- 
+    private async Task OnSaveChangesClick()
+    {
+        // Implement your save logic here
+        await modal.HideAsync();
+    }
 
     public class ValuationModel
     {
@@ -135,6 +189,12 @@
         public string ContactAddress { get; set; }
         public string ContactPhone { get; set; }
         public string OtherInfo { get; set; }
+        public string Description { get; set; }
+        public decimal Quantity { get; set; }
+        public float UnitPrice { get; set; }
+        public decimal TotalAmount { get; set; }
+        public int RecurrencePeriod { get; set; }
+        public string RecurrenceUnit { get; set; }
     }
 
     public class ValuationService

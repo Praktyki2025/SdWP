@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace SdWP.Service.Services
 {
-    public class ProjectInteractionsService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor) : IProjectInteractionsService
+    public class ProjectService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor) : IProjectService
     {
         private readonly ApplicationDbContext _context = context;
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;

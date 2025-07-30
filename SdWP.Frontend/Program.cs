@@ -81,7 +81,7 @@ builder.Services.AddScoped<IUserLoginService, UserLoginServices>();
 builder.Services.AddScoped<IUserRegisterService, UserRegisterService>();
 
 builder.Services.AddScoped<ProjectRepository>();
-builder.Services.AddScoped<IProjectInteractionsService, ProjectInteractionsService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddHttpContextAccessor();

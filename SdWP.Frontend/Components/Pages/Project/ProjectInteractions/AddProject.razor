@@ -4,7 +4,7 @@
 @using SdWP.Service.IServices
 @using SdWP.Service.Services
 @using SdWP.DTO.Requests;
-@inject IProjectInteractionsService ProjectInteractions
+@inject IProjectService ProjectInteractions
 @attribute [Authorize]
 
 @page "/projects/add"
@@ -15,11 +15,10 @@
 <EditForm Model="project" OnValidSubmit="AddProjectToDbAsync" FormName="AddProjectForm">
     <DataAnnotationsValidator />
     <ValidationSummary class="alert alert-danger" />
-
     <div class="row mb-3">
         <div class="col-md-6">
             <label for="titleInput" class="form-label">Title</label>
-            <InputText id="titleInput" class="form-control" @bind-Value="project.Title" placeholder="Title" />
+            <InputText id="titleInput" class="form-control" @bind-Value="project.Title" placeholder="Title"/>
         </div>
     </div>
 
@@ -41,15 +40,9 @@
 
     private async Task AddProjectToDbAsync()
     {
-        var result = await ProjectInteractions.CreateProjectAsync(project);
-        if (result.Success)
-        {
-            ToastService.Notify(new ToastMessage(ToastType.Success, $"Project added successfully."));
-        }
-        else
-        {
-            ToastService.Notify(new ToastMessage(ToastType.Secondary, $"An error occurred."));
-        }
+        var response = await ProjectInteractions.CreateProjectAsync(project);
+
+        ToastService.Notify(new ToastMessage(response.Success && response.Message != null ? ToastType.Success : ToastType.Secondary, response.Message));
 
         Navigation.NavigateTo("/projects", true);
     }

@@ -16,9 +16,9 @@ namespace SdWP.API.Controllers
     [Route("api/[controller]")]
     public class ProjectController : ControllerBase
     {
-        private readonly IProjectInteractionsService _projectService;
+        private readonly IProjectService _projectService;
 
-        public ProjectController(IProjectInteractionsService projectService)
+        public ProjectController(IProjectService projectService)
         {
             _projectService = projectService;
         }

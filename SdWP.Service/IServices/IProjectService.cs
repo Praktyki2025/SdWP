@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SdWP.Service.IServices
 {
-    public interface IProjectInteractionsService
+    public interface IProjectService
     {
         Task<ProjectUpsertResponseDTO> CreateProjectAsync(ProjectUpsertRequestDTO project);
         Task<ProjectUpsertResponseDTO> EditProjectAsync(ProjectUpsertRequestDTO project);

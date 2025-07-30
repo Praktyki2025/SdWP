@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 
 namespace SdWP.API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ProjectController : ControllerBase

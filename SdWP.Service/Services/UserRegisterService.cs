@@ -42,7 +42,10 @@ namespace SdWP.Service.Services
                     UserName = dto.Name,
                     NormalizedUserName = dto.Name.Normalize(),
                     CreatedAt = DateTime.UtcNow,
-                    LastUpdate = DateTime.UtcNow
+                    LastUpdate = DateTime.UtcNow,
+                    EmailConfirmed = true,
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                    ConcurrencyStamp = Guid.NewGuid().ToString()
                 };
 
                 var result = await _userManager.CreateAsync(user, dto.Password);

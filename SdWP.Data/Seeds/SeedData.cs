@@ -32,7 +32,10 @@ public static class SeedData
                 NormalizedUserName = "ADMIN",
                 Name = "Administrator",
                 CreatedAt = DateTime.UtcNow,
-                LastUpdate = DateTime.UtcNow
+                LastUpdate = DateTime.UtcNow,
+                EmailConfirmed = true,
+                ConcurrencyStamp = Guid.NewGuid().ToString(),
+                SecurityStamp = Guid.NewGuid().ToString()
             };
 
             var result = await userManager.CreateAsync(adminUser, "Admin123!");
@@ -54,7 +57,10 @@ public static class SeedData
                 NormalizedUserName = "USER",
                 Name = "User",
                 CreatedAt = DateTime.UtcNow,
-                LastUpdate = DateTime.UtcNow
+                LastUpdate = DateTime.UtcNow,
+                EmailConfirmed = true,
+                ConcurrencyStamp = Guid.NewGuid().ToString(),
+                SecurityStamp = Guid.NewGuid().ToString()
             };
 
             var result = await userManager.CreateAsync(normalUser, "User123!");

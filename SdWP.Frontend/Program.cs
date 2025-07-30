@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SdWP.Data.Context;
 using SdWP.Data.Models;
-using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
@@ -32,8 +31,7 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     options.Password.RequireLowercase = true;
     options.Lockout.AllowedForNewUsers = false;
 })
-    .AddUserStore<UserRepository>()
-    .AddRoleStore<RoleRepository>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
 builder.Services.ConfigureApplicationCookie(options =>
@@ -61,16 +59,6 @@ builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "X-XSRF-TOKEN";
 });
-
-//builder.Services.AddHttpClient("ApiClient", client =>
-//{
-//    client.BaseAddress = new Uri(builder.Configuration["BaseAddress"] ?? "http://localhost:5267");
-//});
-
-//builder.Services.AddScoped(sp => new HttpClient
-//{
-//    BaseAddress = new Uri(builder.Configuration["BaseAddress"] ?? "http://localhost:5267")
-//});
 
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<HttpClient>(sp =>

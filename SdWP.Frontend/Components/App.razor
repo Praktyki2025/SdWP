@@ -61,6 +61,22 @@
             return { success: false, message: 'A critical error occurred during login.' };
         }
     };
+
+    window.apiLogout = async function () {
+        const response = await fetch('/api/login/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include' // jeśli używasz ciasteczek uwierzytelniających
+        });
+
+        if (response.ok) {
+            window.location.href = '/login';
+        } else {
+            console.error('Logout failed:', response.statusText);
+        }
+    };
 </script>
 
 </html>

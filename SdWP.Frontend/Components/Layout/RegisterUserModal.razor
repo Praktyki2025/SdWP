@@ -1,8 +1,10 @@
-﻿@using SdWP.DTO.Requests
+﻿@using System.Text.Json
+@using SdWP.DTO.Requests
 @using SdWP.DTO.Responses
 @using SdWP.Service.IServices
 @inject IUserRegisterService UserRegisterService
 @inject NavigationManager Navigation
+@inject HttpClient HttpClient
 
 @if (Show)
 {
@@ -105,19 +107,34 @@
             message = string.Empty;
             StateHasChanged();
 
-            var response = await UserRegisterService.RegisterAsync(register);
+            var response = await HttpClient.PostAsJsonAsync("api/register", register);
 
-            if (response != null && response.Success)
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
             {
-                message = response.Message ?? "Registration successful!";
-                isSuccess = true;
-                StateHasChanged();
+                try
+                {
+                    var data = JsonSerializer.Deserialize<UserRegisterResponseDTO>(responseContent, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    message = "Account created successfully!";
+                    isSuccess = true;
+                }
+                catch (JsonException)
+                {
+                    message = $"Invalid JSON response: {responseContent}";
+                    isSuccess = false;
+                }
             }
             else
             {
-                message = response?.Message ?? "Registration failed. Please try again.";
+                message = "Registration failed. Please try again.";
                 isSuccess = false;
             }
+
+            StateHasChanged();
         }
         catch (Exception e)
         {
@@ -140,5 +157,12 @@
     {
         Show = false;
         OnClose.InvokeAsync();
+    }
+
+    private class ErrorResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<string>? Errors { get; set; }
     }
 }

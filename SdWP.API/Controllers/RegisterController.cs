@@ -7,7 +7,7 @@ namespace SdWP.API.Controllers
 {
 
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/register")]
     public class RegisterController : ControllerBase
     {
         private readonly IUserRegisterService _registerService;
@@ -17,7 +17,6 @@ namespace SdWP.API.Controllers
             _registerService = registerService;
         }
 
-        [HttpPost]
         public async Task<ActionResult> RegisterAsync(UserRegisterRequestDTO dto)
         {
             var result = await _registerService.RegisterAsync(dto);

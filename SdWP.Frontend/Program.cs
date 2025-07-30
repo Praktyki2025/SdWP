@@ -62,14 +62,36 @@ builder.Services.AddAntiforgery(options =>
     options.HeaderName = "X-XSRF-TOKEN";
 });
 
-builder.Services.AddHttpClient("ApiClient", client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["BaseAddress"] ?? "http://localhost:5267");
-});
+//builder.Services.AddHttpClient("ApiClient", client =>
+//{
+//    client.BaseAddress = new Uri(builder.Configuration["BaseAddress"] ?? "http://localhost:5267");
+//});
 
-builder.Services.AddScoped(sp => new HttpClient
+//builder.Services.AddScoped(sp => new HttpClient
+//{
+//    BaseAddress = new Uri(builder.Configuration["BaseAddress"] ?? "http://localhost:5267")
+//});
+
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<HttpClient>(sp =>
 {
-    BaseAddress = new Uri(builder.Configuration["BaseAddress"] ?? "http://localhost:5267")
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var httpClient = httpClientFactory.CreateClient();
+
+    var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+    var httpContext = httpContextAccessor.HttpContext;
+
+    if (httpContext != null)
+    {
+        var request = httpContext.Request;
+        httpClient.BaseAddress = new Uri($"{request.Scheme}://{request.Host}/");
+    }
+    else
+    {
+        httpClient.BaseAddress = new Uri("https://localhost:7019/");
+    }
+
+    return httpClient;
 });
 
 var app = builder.Build();

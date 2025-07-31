@@ -51,12 +51,6 @@ builder.Services.AddScoped<IUserRegisterService, UserRegisterService>();
 builder.Services.AddScoped<IUserLoginService, UserLoginServices>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
-
-builder.Services.AddAntiforgery(options =>
-{
-    options.HeaderName = "X-XSRF-TOKEN";
-});
-
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<HttpClient>(sp =>
 {

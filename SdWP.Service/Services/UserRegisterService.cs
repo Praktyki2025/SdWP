@@ -29,7 +29,6 @@ namespace SdWP.Service.Services
                 if (exist != null)
                 {
                     return ResultService<UserRegisterResponseDTO>.BadResult(
-                        null,
                         "User with this email already exists",
                         StatusCodes.Status400BadRequest
                     );
@@ -54,7 +53,6 @@ namespace SdWP.Service.Services
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
                     return ResultService<UserRegisterResponseDTO>.BadResult(
-                        null,
                         "User creation failed",
                         StatusCodes.Status400BadRequest,
                         errors
@@ -69,7 +67,6 @@ namespace SdWP.Service.Services
                     if (createdUser == null)
                     {
                         return ResultService<UserRegisterResponseDTO>.BadResult(
-                            null,
                             "User was created but could not be loaded for role assignment",
                             StatusCodes.Status400BadRequest
                         );
@@ -90,16 +87,15 @@ namespace SdWP.Service.Services
                     };
 
                     return ResultService<UserRegisterResponseDTO>.GoodResult(
-                        responseDto,
                         "User registered successfully",
-                        statusCode: StatusCodes.Status201Created
+                        statusCode: StatusCodes.Status201Created,
+                        responseDto
                     );
                 }
             }
             catch (Exception e)
             {
                 return ResultService<UserRegisterResponseDTO>.BadResult(
-                        null,
                         $"An error occurred during registration: {e.Message}",
                         StatusCodes.Status500InternalServerError
                         );

@@ -25,7 +25,6 @@ namespace SdWP.Service.Services
                 if (user == null)
                 {
                     return ResultService<UserLoginResponseDTO>.BadResult(
-                        null,
                         "Invalid email or password",
                         StatusCodes.Status401Unauthorized
                     );
@@ -38,6 +37,8 @@ namespace SdWP.Service.Services
                     var roles = await _userManager.GetRolesAsync(user);
 
                     return ResultService<UserLoginResponseDTO>.GoodResult(
+                        "Login successful",
+                        StatusCodes.Status200OK,
                         new UserLoginResponseDTO
                         {
                             Success = true,
@@ -46,14 +47,11 @@ namespace SdWP.Service.Services
                             Name = user.Name,
                             LoginTime = DateTime.UtcNow,
                             Roles = roles.ToList()
-                        },
-                        "Login successful",
-                        StatusCodes.Status200OK
+                        }
                     );
                 }
 
                 return ResultService<UserLoginResponseDTO>.BadResult(
-                    null,
                     "Invalid email or password",
                     StatusCodes.Status401Unauthorized
                 );
@@ -61,7 +59,6 @@ namespace SdWP.Service.Services
             catch (Exception ex)
             {
                 return ResultService<UserLoginResponseDTO>.BadResult(
-                    null,
                     $"An error occurred during login: {ex.Message}",
                     StatusCodes.Status500InternalServerError
                 );
@@ -75,7 +72,6 @@ namespace SdWP.Service.Services
                 await _signInManager.SignOutAsync();
 
                 return ResultService<string>.GoodResult(
-                    null,
                     "Logout successful",
                     StatusCodes.Status200OK
                 );
@@ -83,7 +79,6 @@ namespace SdWP.Service.Services
             catch (Exception e)
             {
                 return ResultService<string>.BadResult(
-                    null,
                     $"An error occurred during logout: {e.Message}",
                     StatusCodes.Status500InternalServerError
                 );

@@ -15,30 +15,30 @@ namespace SdWP.Service.Services
         public int StatusCode { get; set; }
 
         public static ResultService<T> GoodResult(
-            T data, 
             string message, 
-            int statusCode)
+            int statusCode,
+            T? data = default)
             => new ResultService<T>
             {
-                Success = true,
-                Data = data,
                 Message = message,
-                StatusCode = statusCode
+                StatusCode = statusCode,
+                Success = true,
+                Data = data
             };
 
         public static ResultService<T> BadResult(
-            T data,
             string message,
             int statusCode,
-            List<string>? errors = null)
+            List<string>? errors = null,
+            T? data = default)
             => 
             new ResultService<T>
             {
-                Success = false,
-                Data = data,
                 Message = message,
                 StatusCode = statusCode,
-                Errors = errors ?? new List<string>()
+                Success = false,
+                Errors = errors ?? new List<string>(),
+                Data = data
             };
     }
 }

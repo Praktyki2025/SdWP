@@ -29,7 +29,7 @@ namespace SdWP.Service.Services
         public static ResultService<T> BadResult(
             T data,
             string message,
-            int statusCode = 200,
+            int statusCode,
             List<string>? errors = null)
             => 
             new ResultService<T>

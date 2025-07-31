@@ -33,24 +33,10 @@
 <script>
     window.apiLogin = async (loginModel) => {
         try {
-            const tokenResponse = await fetch('/api/antiforgery/token');
-            if (!tokenResponse.ok) {
-                console.error('Failed to get antiforgery token', tokenResponse);
-                return { success: false, message: 'Error: Could not establish a security session.' };
-            }
-            const tokenData = await tokenResponse.json();
-            const requestToken = tokenData.token;
-
-            if (!requestToken) {
-                console.error('Antiforgery token was not present in the response body.');
-                return { success: false, message: 'Error: Invalid security token received.' };
-            }
-
             const loginResponse = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-XSRF-TOKEN': requestToken
                 },
                 body: JSON.stringify(loginModel)
             });

@@ -76,7 +76,6 @@
         isLoading = true;
         message = string.Empty;
 
-
         var result = await JSRuntime.InvokeAsync<UserLoginResponseDTO>("apiLogin", loginModel);
 
         if (result != null && result.Success)

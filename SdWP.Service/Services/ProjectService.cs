@@ -76,8 +76,17 @@ namespace SdWP.Service.Services
 
         public async Task<ProjectDeleteResponseDTO> DeleteProjectAsync(Guid projectId)
         {
+            var user = _httpContextAccessor.HttpContext?.User;
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+            {
+                return new ProjectDeleteResponseDTO { Success = false };
+            }
+
             var project = await _context.Projects.FindAsync(projectId);
-            if (project == null)
+
+            if (project == null || !user.IsInRole("Admin") && Guid.Parse(userId) != project.CreatorUserId)
             {
                 return new ProjectDeleteResponseDTO { Success = false };
             }
@@ -106,15 +115,38 @@ namespace SdWP.Service.Services
 
         public IQueryable<ProjectUpsertResponseDTO> GetProjects()
         {
-            return _context.Projects
-                .Select(p => new ProjectUpsertResponseDTO
+            var user = _httpContextAccessor.HttpContext?.User;
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (user.Identity.IsAuthenticated)
+            {
+                if (user.IsInRole("Admin"))
                 {
-                    Id = p.Id,
-                    Title = p.Title,
-                    Description = p.Description,
-                    CreatedAt = p.CreatedAt,
-                    LastModified = p.LastModified,
-                });
+                    return _context.Projects
+                    .Select(p => new ProjectUpsertResponseDTO
+                    {
+                        Id = p.Id,
+                        Title = p.Title,
+                        Description = p.Description,
+                        CreatedAt = p.CreatedAt,
+                        LastModified = p.LastModified,
+                    });
+                }
+                else
+                {
+                    return context.Projects
+                    .Where(p => p.CreatorUserId == Guid.Parse(userId))
+                    .Select(p => new ProjectUpsertResponseDTO
+                    {
+                        Id = p.Id,
+                        Title = p.Title,
+                        Description = p.Description,
+                        CreatedAt = p.CreatedAt,
+                        LastModified = p.LastModified,
+                    });
+                }
+            }
+            return null;
         }
     }
 }

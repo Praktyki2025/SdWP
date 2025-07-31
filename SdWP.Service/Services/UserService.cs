@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
 using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
@@ -8,17 +7,15 @@ using Microsoft.AspNetCore.Http;
 
 namespace SdWP.Service.Services
 {
-    public class UserRegisterService : IUserRegisterService
+    public class UserService : IUserService
     {
-        private readonly UserManager<User> _userManager;
-        private readonly IServiceProvider _provider;
+        // In this services class, we handle user registration, delete, and edit user data.
 
-        public UserRegisterService(
-            UserManager<User> userManager,
-            IServiceProvider provider)
+        private readonly UserManager<User> _userManager;
+
+        public UserService(UserManager<User> userManager)
         {
             _userManager = userManager;
-            _provider = provider;
         }
 
         public async Task<ResultService<UserRegisterResponseDTO>> RegisterAsync(UserRegisterRequestDTO dto)
@@ -59,46 +56,41 @@ namespace SdWP.Service.Services
                     );
                 }
 
-                using (var scope = _provider.CreateScope())
+                var createdUser = await _userManager.FindByEmailAsync(dto.Email);
+                if (createdUser == null)
                 {
-                    var scopedUserManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-
-                    var createdUser = await scopedUserManager.FindByEmailAsync(dto.Email);
-                    if (createdUser == null)
-                    {
-                        return ResultService<UserRegisterResponseDTO>.BadResult(
-                            "User was created but could not be loaded for role assignment",
-                            StatusCodes.Status400BadRequest
-                        );
-                    }
-
-                    await scopedUserManager.AddToRoleAsync(createdUser, "User");
-                    var roles = await scopedUserManager.GetRolesAsync(createdUser);
-
-                    var responseDto = new UserRegisterResponseDTO
-                    {
-                        Success = true,
-                        Id = createdUser.Id,
-                        Email = createdUser.Email,
-                        Name = createdUser.Name,
-                        CreatedAt = createdUser.CreatedAt,
-                        Message = "User registered successfully",
-                        Roles = roles.ToList()
-                    };
-
-                    return ResultService<UserRegisterResponseDTO>.GoodResult(
-                        "User registered successfully",
-                        statusCode: StatusCodes.Status201Created,
-                        responseDto
+                    return ResultService<UserRegisterResponseDTO>.BadResult(
+                        "User was created but could not be loaded for role assignment",
+                        StatusCodes.Status400BadRequest
                     );
                 }
+
+                await _userManager.AddToRoleAsync(createdUser, "User");
+                var roles = await _userManager.GetRolesAsync(createdUser);
+
+                var responseDto = new UserRegisterResponseDTO
+                {
+                    Success = true,
+                    Id = createdUser.Id,
+                    Email = createdUser.Email,
+                    Name = createdUser.Name,
+                    CreatedAt = createdUser.CreatedAt,
+                    Message = "User registered successfully",
+                    Roles = roles.ToList()
+                };
+
+                return ResultService<UserRegisterResponseDTO>.GoodResult(
+                    "User registered successfully",
+                    statusCode: StatusCodes.Status201Created,
+                    responseDto
+                );
             }
             catch (Exception e)
             {
                 return ResultService<UserRegisterResponseDTO>.BadResult(
-                        $"An error occurred during registration: {e.Message}",
-                        StatusCodes.Status500InternalServerError
-                        );
+                    $"An error occurred during registration: {e.Message}",
+                    StatusCodes.Status500InternalServerError
+                );
             }
         }
     }

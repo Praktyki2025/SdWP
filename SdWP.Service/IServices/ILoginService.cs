@@ -5,7 +5,7 @@ using SdWP.Service.Services;
 
 namespace SdWP.Service.IServices
 {
-    public interface IUserLoginService
+    public interface ILoginService
     {
         Task<ResultService<UserLoginResponseDTO>> HandleLoginAsync(UserLoginRequestDTO dto);
         Task<ResultService<string>> HandleLogoutAsync();

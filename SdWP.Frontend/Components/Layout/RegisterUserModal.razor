@@ -2,7 +2,7 @@
 @using SdWP.DTO.Requests
 @using SdWP.DTO.Responses
 @using SdWP.Service.IServices
-@inject IUserRegisterService UserRegisterService
+@inject IUserService UserRegisterService
 @inject NavigationManager Navigation
 @inject HttpClient HttpClient
 
@@ -107,7 +107,7 @@
             message = string.Empty;
             StateHasChanged();
 
-            var response = await HttpClient.PostAsJsonAsync("api/register", register);
+            var response = await HttpClient.PostAsJsonAsync("api/user/register", register);
 
             var responseContent = await response.Content.ReadAsStringAsync();
 

@@ -12,8 +12,8 @@ namespace SdWP.API.Controllers
     public class LoginController : ControllerBase
     {
         private readonly SignInManager<User> _signInManager;
-        private readonly IUserLoginService _userLoginService;
-        public LoginController(SignInManager<User> signInManager, IUserLoginService userLoginService)
+        private readonly ILoginService _userLoginService;
+        public LoginController(SignInManager<User> signInManager, ILoginService userLoginService)
         {
             _signInManager = signInManager;
             _userLoginService = userLoginService;

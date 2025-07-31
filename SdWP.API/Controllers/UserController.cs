@@ -6,17 +6,19 @@ using SdWP.Service.IServices;
 namespace SdWP.API.Controllers
 {
 
-    [ApiController]
-    [Route("api/register")]
-    public class RegisterController : ControllerBase
-    {
-        private readonly IUserRegisterService _registerService;
 
-        public RegisterController(IUserRegisterService registerService)
+    [ApiController]
+    [Route("api/user")]
+    public class UserController : ControllerBase
+    {
+        private readonly IUserService _registerService;
+
+        public UserController(IUserService registerService)
         {
             _registerService = registerService;
         }
 
+        [HttpPost("register")]
         public async Task<ActionResult> RegisterAsync(UserRegisterRequestDTO dto)
         {
             var result = await _registerService.RegisterAsync(dto);

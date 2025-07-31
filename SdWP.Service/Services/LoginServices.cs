@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace SdWP.Service.Services
 {
-    public class UserLoginServices : IUserLoginService
+    public class LoginServices : ILoginService
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        public UserLoginServices(UserManager<User> userManager, SignInManager<User> signInManager)
+        public LoginServices(UserManager<User> userManager, SignInManager<User> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;

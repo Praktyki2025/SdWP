@@ -4,6 +4,7 @@ using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
+using Microsoft.AspNetCore.Http;
 
 namespace SdWP.Service.Services
 {
@@ -30,7 +31,7 @@ namespace SdWP.Service.Services
                     return ResultService<UserRegisterResponseDTO>.BadResult(
                         null,
                         "User with this email already exists",
-                        409
+                        StatusCodes.Status400BadRequest
                     );
                 }
 
@@ -55,7 +56,7 @@ namespace SdWP.Service.Services
                     return ResultService<UserRegisterResponseDTO>.BadResult(
                         null,
                         "User creation failed",
-                        400,
+                        StatusCodes.Status400BadRequest,
                         errors
                     );
                 }
@@ -70,7 +71,7 @@ namespace SdWP.Service.Services
                         return ResultService<UserRegisterResponseDTO>.BadResult(
                             null,
                             "User was created but could not be loaded for role assignment",
-                            500
+                            StatusCodes.Status400BadRequest
                         );
                     }
 
@@ -91,7 +92,7 @@ namespace SdWP.Service.Services
                     return ResultService<UserRegisterResponseDTO>.GoodResult(
                         responseDto,
                         "User registered successfully",
-                        201
+                        statusCode: StatusCodes.Status201Created
                     );
                 }
             }
@@ -100,8 +101,8 @@ namespace SdWP.Service.Services
                 return ResultService<UserRegisterResponseDTO>.BadResult(
                         null,
                         $"An error occurred during registration: {e.Message}",
-                        500
-                    );
+                        StatusCodes.Status500InternalServerError
+                        );
             }
         }
     }

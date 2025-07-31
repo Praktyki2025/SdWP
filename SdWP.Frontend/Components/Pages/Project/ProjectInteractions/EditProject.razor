@@ -4,6 +4,9 @@
 
 @page "/projects/edit"
 
+@attribute [StreamRendering]
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
 <PageTitle>Edit Project</PageTitle>
 
 <EditForm Model="project" OnValidSubmit="EditProjectToDbAsync" FormName="EditProjectForm">

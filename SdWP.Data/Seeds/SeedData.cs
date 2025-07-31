@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SdWP.Data.Context;
 using SdWP.Data.Models;
-using System.Security.Cryptography;
 
 public static class SeedData
 {
@@ -13,9 +12,9 @@ public static class SeedData
 
         var projectCount = await context.Projects.CountAsync(p => p.CreatorUserId == user.Id);
 
-        if (projectCount < 3)
+        if (projectCount < 20)
         {
-            for (int i = 0; i < 3 - projectCount; i++)
+            for (int i = 0; i < 20 - projectCount; i++)
             {
                 var project = new Project
                 {

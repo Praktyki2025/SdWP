@@ -75,18 +75,18 @@ namespace SdWP.Service.Services
         }
 
         public async Task<ProjectDeleteResponseDTO> DeleteProjectAsync(Guid projectId)
-{
-    var project = await _context.Projects.FindAsync(projectId);
-    if (project == null)
-    {
-        return new ProjectDeleteResponseDTO { Success = false };
-    }
+        {
+            var project = await _context.Projects.FindAsync(projectId);
+            if (project == null)
+            {
+                return new ProjectDeleteResponseDTO { Success = false };
+            }
 
-    _context.Projects.Remove(project);
-    await _context.SaveChangesAsync();
+            _context.Projects.Remove(project);
+            await _context.SaveChangesAsync();
 
-    return new ProjectDeleteResponseDTO { Success = true };
-}
+            return new ProjectDeleteResponseDTO { Success = true };
+        }
 
         public async Task<ProjectUpsertResponseDTO> GetByIdAsync(Guid id)
         {
@@ -104,19 +104,17 @@ namespace SdWP.Service.Services
             };
         }
 
-        public async Task<List<ProjectUpsertResponseDTO>> GetAllAsync()
+        public IQueryable<ProjectUpsertResponseDTO> GetProjects()
         {
-            var projects = await _context.Projects.ToListAsync();
-
-            return projects.Select(p => new ProjectUpsertResponseDTO
-            {
-                Id = p.Id,
-                Title = p.Title,
-                Description = p.Description,
-                CreatedAt = p.CreatedAt,
-                LastModified = p.LastModified
-            }).ToList();
+            return _context.Projects
+                .Select(p => new ProjectUpsertResponseDTO
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Description = p.Description,
+                    CreatedAt = p.CreatedAt,
+                    LastModified = p.LastModified,
+                });
         }
-
     }
 }

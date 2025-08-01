@@ -65,7 +65,17 @@ namespace SdWP.Service.Services
                     );
                 }
 
-                await _userManager.AddToRoleAsync(createdUser, "User");
+                var roleResult = await _userManager.AddToRoleAsync(createdUser, "User");
+                if (!roleResult.Succeeded)
+                {
+                    var errors = roleResult.Errors.Select(e => e.Description).ToList();
+                    return ResultService<UserRegisterResponseDTO>.BadResult(
+                        "Failed to assign role to user",
+                        StatusCodes.Status400BadRequest,
+                        errors
+                    );
+                }
+
                 var roles = await _userManager.GetRolesAsync(createdUser);
 
                 var responseDto = new UserRegisterResponseDTO

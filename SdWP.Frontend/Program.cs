@@ -7,6 +7,7 @@ using SdWP.Data.Models;
 using SdWP.Frontend.Components;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
+using SdWP.Data.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,8 +78,9 @@ builder.Services.AddScoped<HttpClient>(sp =>
 
     return httpClient;
 });
-builder.Services.AddScoped<ProjectRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddHttpContextAccessor();

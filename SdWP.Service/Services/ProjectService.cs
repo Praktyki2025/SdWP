@@ -7,12 +7,13 @@ using SdWP.DTO.Requests;
 using SdWP.Service.IServices;
 using System.Linq.Expressions;
 using System.Security.Claims;
+using SdWP.Data.Interfaces;
 
 namespace SdWP.Service.Services
 {
-    public class ProjectService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor) : IProjectService
+    public class ProjectService(IProjectRepository projectRepository, IHttpContextAccessor httpContextAccessor) : IProjectService
     {
-        private readonly ApplicationDbContext _context = context;
+        private readonly IProjectRepository _projectRepository = projectRepository;
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
         public async Task<ProjectUpsertResponseDTO> CreateProjectAsync(ProjectUpsertRequestDTO project)
         {
@@ -41,8 +42,7 @@ namespace SdWP.Service.Services
 
             };
 
-            await _context.Projects.AddAsync(response);
-            await _context.SaveChangesAsync();
+            await _projectRepository.AddAsync(response);
             return new ProjectUpsertResponseDTO
             {
                 Id = response.Id,
@@ -54,7 +54,7 @@ namespace SdWP.Service.Services
         }
         public async Task<ProjectUpsertResponseDTO> EditProjectAsync(ProjectUpsertRequestDTO project)
         {
-            var existingProject = await _context.Projects.FindAsync(project.Id);
+            var existingProject = await _projectRepository.GetByIdAsync((Guid)project.Id); // temp
             if (existingProject == null)
             {
                 await Task.CompletedTask;
@@ -64,7 +64,7 @@ namespace SdWP.Service.Services
             existingProject.Description = project.Description;
             existingProject.LastModified = DateTime.UtcNow;
 
-            await _context.SaveChangesAsync();
+            await _projectRepository.UpdateAsync(existingProject);
 
             return new ProjectUpsertResponseDTO
             {
@@ -86,25 +86,27 @@ namespace SdWP.Service.Services
                 return new ProjectDeleteResponseDTO { Success = false };
             }
 
-            var project = await _context.Projects.FindAsync(projectId);
+            var project = await _projectRepository.GetByIdAsync(projectId);
 
             if (project == null || !user.IsInRole("Admin") && Guid.Parse(userId) != project.CreatorUserId)
             {
                 return new ProjectDeleteResponseDTO { Success = false };
             }
 
-            _context.Projects.Remove(project);
-            await _context.SaveChangesAsync();
+            await _projectRepository.DeleteAsync(projectId);
 
             return new ProjectDeleteResponseDTO { Success = true };
         }
 
         public async Task<ProjectUpsertResponseDTO> GetByIdAsync(Guid id)
         {
-            var project = await _context.Projects.FirstOrDefaultAsync(x => x.Id == id);
+            var project = await _projectRepository.GetByIdAsync(id);
 
             if (project == null)
-                return null;
+            {
+                // Handle the case where the project is not found
+            }
+
             return new ProjectUpsertResponseDTO
             {
                 Id = project.Id,
@@ -119,15 +121,7 @@ namespace SdWP.Service.Services
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var projects = _context.Projects
-                    .Select(p => new ProjectUpsertResponseDTO
-                    {
-                        Id = p.Id,
-                        Title = p.Title,
-                        Description = p.Description,        
-                        CreatedAt = p.CreatedAt,
-                        LastModified = p.LastModified,
-                    });
+            var projects = await _projectRepository.GetAllAsync(true);
 
             if (user.Identity.IsAuthenticated)
             {

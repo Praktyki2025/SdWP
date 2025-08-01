@@ -1,8 +1,10 @@
-﻿using SdWP.Data.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using SdWP.Data.Context;
+using SdWP.Data.Interfaces;
 using SdWP.Data.Models;
-using Microsoft.EntityFrameworkCore;
+using SdWP.DTO.Requests;
 
-public class ProjectRepository(ApplicationDbContext context)
+public class ProjectRepository(ApplicationDbContext context) : IProjectRepository
 {
     private readonly ApplicationDbContext _context = context;
     public async Task AddAsync(Project project)
@@ -36,12 +38,32 @@ public class ProjectRepository(ApplicationDbContext context)
         }
     }
 
-    public async Task<List<Project>> GetAllAsync()
+    public async Task<List<Project>> GetAllAsync(bool isAdminRequest)
     {
-        return await _context.Projects
-            .Include(p => p.Users)
-            .Include(p => p.Links)
-            .Include(p => p.Valuations)
-            .ToListAsync();
-    }
+        var projects = new List<Project>();
+        if (isAdminRequest)
+        {
+            projects = _context.Projects
+            .Select(p => new Project
+            {
+                Id = p.Id,
+                Title = p.Title,
+                Description = p.Description,
+                CreatedAt = p.CreatedAt,
+                LastModified = p.LastModified,
+            }).ToList();
+        }
+        else
+        {
+            projects = context.Projects
+            .Where(p => p.CreatorUserId == Guid.Parse(userId))
+            .Select(p => new ProjectUpsertResponseDTO
+            {
+                Id = p.Id,
+                Title = p.Title,
+                Description = p.Description,
+                CreatedAt = p.CreatedAt,
+                LastModified = p.LastModified,
+            });
+        }
 }

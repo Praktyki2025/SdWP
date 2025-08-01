@@ -55,81 +55,17 @@ namespace SdWP.API.Controllers
         }
 
         [HttpPost("all")]
-        public IActionResult GetProjects([FromBody] DataTableRequest request)
+        public async Task<IActionResult> GetProjects([FromBody] DataTableRequest request)
         {
-            var projects = _projectService.GetProjects();
-
-            //search
-            if (!string.IsNullOrWhiteSpace(request.search?.value))
-            {
-                var searchLower = request.search.value.ToLower();
-                projects = projects.Where(p =>
-                    (!string.IsNullOrEmpty(p.Title) && p.Title.ToLower().Contains(searchLower)) ||
-                    (!string.IsNullOrEmpty(p.Description) && p.Description.ToLower().Contains(searchLower)));
-            }
-
-            //sorting
-            if (request.order != null && request.order.Count > 0)
-            {
-                var order = request.order[0];
-                bool ascending = order.dir == "asc";
-                string? sortColumn = null;
-                if (request.columns != null && request.columns.Count > order.column)
-                {
-                    sortColumn = request.columns[order.column].data;
-                }
-
-                if (!string.IsNullOrEmpty(sortColumn))
-                {
-                    projects = ApplyOrdering(projects, sortColumn, ascending);
-                }
-            }
-
-            var totalRecords = projects.Count();
-
-            var data = projects
-                .Skip(request.start)
-                .Take(request.length)
-                .ToList();
+            var (projects, totalRecords) = await _projectService.GetProjects(request);
 
             return Ok(new
             {
                 draw = request.draw,
                 recordsTotal = totalRecords,
                 recordsFiltered = totalRecords,
-                data = data
+                data = projects
             });
-        }
-        
-        //sorting fn
-        private IQueryable<ProjectUpsertResponseDTO> ApplyOrdering(IQueryable<ProjectUpsertResponseDTO> source, string propertyName, bool ascending)
-        {
-            if (string.IsNullOrEmpty(propertyName))
-                return source;
-
-            //normalize prop
-            propertyName = FirstCharToUpper(propertyName);
-
-            var param = Expression.Parameter(typeof(ProjectUpsertResponseDTO), "p");
-            var property = Expression.PropertyOrField(param, propertyName);
-            var sortLambda = Expression.Lambda(property, param);
-
-            string methodName = ascending ? "OrderByDescending" : "OrderBy";
-
-            var result = typeof(Queryable).GetMethods()
-                .Where(m => m.Name == methodName && m.GetParameters().Length == 2)
-                .Single()
-                .MakeGenericMethod(typeof(ProjectUpsertResponseDTO), property.Type)
-                .Invoke(null, new object[] { source, sortLambda });
-
-            return (IQueryable<ProjectUpsertResponseDTO>)result;
-        }
-
-        public static string FirstCharToUpper(string input)
-        {
-            if (string.IsNullOrEmpty(input))
-                return input;
-            return char.ToUpper(input[0]) + input.Substring(1);
         }
     }
 }

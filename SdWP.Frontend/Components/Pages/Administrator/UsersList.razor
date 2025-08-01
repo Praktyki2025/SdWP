@@ -72,10 +72,13 @@ else
                                 </li>
                                 @if (user.Roles != null && user.Roles.Contains("User"))
                                 {
-                                    <li>
+                                    @* <li>
                                         <a class="dropdown-item text-danger" href="#">
                                             <i class="fas fa-trash-alt me-2"></i>Delete
                                         </a>
+                                    </li> *@
+                                    <li>
+                                        <Button Color="ButtonColor.Primary" @onclick="OnShowModalClick">Launch static backdrop modal</Button>
                                     </li>
                                 }
                             </ul>
@@ -87,10 +90,32 @@ else
     </table>
 }
 
+<Modal @ref="modal" title="Modal title" UseStaticBackdrop="true" CloseOnEscape="false">
+    <BodyTemplate>
+        I will not close if you click outside me. Don't even try to press escape key.
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Close</Button>
+        <Button Color="ButtonColor.Primary">Understood</Button>
+    </FooterTemplate>
+</Modal>
+
 
 @code {
     private string message = string.Empty;
     private List<UserListResponseDTO> users = new List<UserListResponseDTO>();
+    private Modal modal = default!;
+
+    private async Task OnShowModalClick()
+    {
+        await modal.ShowAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        await modal.HideAsync();
+    }
+
 
     private class ErrorResponse
     {

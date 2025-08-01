@@ -121,6 +121,7 @@
                     });
                     message = "Account created successfully!";
                     isSuccess = true;
+                    register = new UserRegisterRequestDTO();
                 }
                 catch (JsonException)
                 {
@@ -130,8 +131,27 @@
             }
             else
             {
-                message = "Registration failed. Please try again.";
-                isSuccess = false;
+                try
+                {
+                    var errorResponse = JsonSerializer.Deserialize<ErrorResponse>(responseContent, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    message = errorResponse?.Message ?? "An error occurred while processing your request.";
+
+                    if (errorResponse?.Errors?.Any() == true)
+                    {
+                        message += "Details: " + string.Join(", ", errorResponse.Errors);
+                    }
+
+                    isSuccess = false;
+                }
+                catch (Exception e)
+                {
+                    message = "Registration failed. Try again later";
+                    isSuccess = false;
+                }
             }
 
             StateHasChanged();

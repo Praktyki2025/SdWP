@@ -36,28 +36,15 @@
     <script src="js/datatables/events.js"></script>
     <script src="js/index.js"></script>
 </body>
+</html>
 
 <script>
     window.apiLogin = async (loginModel) => {
         try {
-            const tokenResponse = await fetch('/api/antiforgery/token');
-            if (!tokenResponse.ok) {
-                console.error('Failed to get antiforgery token', tokenResponse);
-                return { success: false, message: 'Error: Could not establish a security session.' };
-            }
-            const tokenData = await tokenResponse.json();
-            const requestToken = tokenData.token;
-
-            if (!requestToken) {
-                console.error('Antiforgery token was not present in the response body.');
-                return { success: false, message: 'Error: Invalid security token received.' };
-            }
-
             const loginResponse = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-XSRF-TOKEN': requestToken
                 },
                 body: JSON.stringify(loginModel)
             });
@@ -69,6 +56,20 @@
             return { success: false, message: 'A critical error occurred during login.' };
         }
     };
-</script>
 
-</html>
+    window.apiLogout = async function () {
+        const response = await fetch('/api/login/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            window.location.href = '/login';
+        } else {
+            console.error('Logout failed:', response.statusText);
+        }
+    };
+</script>

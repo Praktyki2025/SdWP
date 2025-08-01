@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SdWP.Data.Context;
 using SdWP.Data.Models;
-using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
@@ -37,8 +36,7 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     options.Password.RequireLowercase = true;
     options.Lockout.AllowedForNewUsers = false;
 })
-    .AddUserStore<UserRepository>()
-    .AddRoleStore<RoleRepository>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
 builder.Services.ConfigureApplicationCookie(options =>
@@ -54,32 +52,31 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
 });
 
-builder.Services.AddScoped<IUserRegisterService, UserRegisterService>();
-builder.Services.AddScoped<IUserLoginService, UserLoginServices>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ILoginService, LoginServices>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
-
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddAuthorization();
-
-builder.Services.AddAntiforgery(options =>
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<HttpClient>(sp =>
 {
-    options.HeaderName = "X-XSRF-TOKEN";
-});
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var httpClient = httpClientFactory.CreateClient();
 
-builder.Services.AddHttpClient("ApiClient", client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["BaseAddress"] ?? "http://localhost:5267");
-});
+    var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+    var httpContext = httpContextAccessor.HttpContext;
 
-builder.Services.AddScoped(sp => new HttpClient
-{
-    BaseAddress = new Uri(builder.Configuration["BaseAddress"] ?? "http://localhost:5267")
-});
-// Register services
-builder.Services.AddScoped<IUserLoginService, UserLoginServices>();
-builder.Services.AddScoped<IUserRegisterService, UserRegisterService>();
+    if (httpContext != null)
+    {
+        var request = httpContext.Request;
+        httpClient.BaseAddress = new Uri($"{request.Scheme}://{request.Host}/");
+    }
+    else
+    {
+        httpClient.BaseAddress = new Uri("https://localhost:7019/");
+    }
 
+    return httpClient;
+});
 builder.Services.AddScoped<ProjectRepository>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

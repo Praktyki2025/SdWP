@@ -4,6 +4,7 @@
 
 @inject NavigationManager Navigation
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
 
 @page "/user"
 
@@ -12,16 +13,5 @@
 <button @onclick="Logout">Logout</button>
 
 @code {
-    private async Task Logout()
-    {
-        var response = await Http.PostAsync("api/login/logout", null);
-        if (response.IsSuccessStatusCode)
-        {
-            Navigation.NavigateTo("/login");
-        }
-        else
-        {
-            Console.WriteLine("Logout failed.");
-        }
-    }
+    private async Task Logout() => await JSRuntime.InvokeVoidAsync("apiLogout");
 }

@@ -7,6 +7,7 @@
 
 @inject NavigationManager Navigation
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
 
 <h1>Admin Dashboard</h1>
 
@@ -20,26 +21,10 @@
 @code {
     private bool showModal = false;
 
-    private void ShowModal()
-    {
-        showModal = true;
-    }
 
-    private async Task Logout()
-    {
-        var response = await Http.PostAsync("api/login/logout", null);
-        if (response.IsSuccessStatusCode)
-        {
-            Navigation.NavigateTo("/login", forceLoad: true);
-        }
-        else
-        {
-            Console.WriteLine("Logout failed.");
-        }
-    }
+    private void ShowModal() => showModal = true;
 
-    private void ToggleModal()
-    {
-        showModal = !showModal;
-    }
+    private async Task Logout() => await JSRuntime.InvokeVoidAsync("apiLogout");
+
+    private void ToggleModal() => showModal = !showModal;
 }

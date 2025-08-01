@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SdWP.DTO.Requests
 {
-    public class UserRegisterRequestDTO
+    public class RegisterRequestDTO
     {
         [Required(ErrorMessage = "Name is requried")]
         [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters")]

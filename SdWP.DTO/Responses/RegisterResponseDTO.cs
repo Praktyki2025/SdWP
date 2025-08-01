@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SdWP.DTO.Responses
 {
-    public class UserRegisterResponseDTO
+    public class RegisterResponseDTO
     {
         public Guid Id { get; set; }
         public string Email { get; set; } = string.Empty;

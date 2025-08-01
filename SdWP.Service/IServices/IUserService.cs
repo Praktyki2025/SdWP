@@ -8,5 +8,6 @@ namespace SdWP.Service.IServices
     {
         Task<ResultService<RegisterResponseDTO>> RegisterAsync(RegisterRequestDTO dto);
         Task<ResultService<List<UserListResponseDTO>>> GetUserListAsync();
+        Task<ResultService<UserListResponseDTO>> DeleteUserAsync(UserDeleteRequestDTO dto);
     }
 }

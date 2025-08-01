@@ -146,5 +146,68 @@ namespace SdWP.Service.Services
                 );
             }
         }
+
+        public async Task<ResultService<UserListResponseDTO>> DeleteUserAsync(UserDeleteRequestDTO dto)
+        {
+            try
+            {
+                var user = await _userRepository.FindByIdAsync(dto.Id.ToString(), CancellationToken.None);
+                if (user == null)
+                {
+                    return ResultService<UserListResponseDTO>.BadResult(
+                        "User not found",
+                        StatusCodes.Status404NotFound
+                    );
+                }
+
+                var roles = await _userManager.GetRolesAsync(user);
+
+                if (roles != null && roles.Contains("Admin"))
+                {
+                    return ResultService<UserListResponseDTO>.BadResult(
+                        "Cannot delete an admin user",
+                        StatusCodes.Status403Forbidden
+                    );
+                }
+
+                var responseDto = new UserListResponseDTO
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Name = user.Name,
+                    Roles = roles?.ToList() ?? new List<string>(),
+                    CreatedAt = user.CreatedAt,
+                    Success = true
+                };
+
+                var result = await _userManager.DeleteAsync(user);
+
+                if (result.Succeeded)
+                {
+                    return ResultService<UserListResponseDTO>.GoodResult(
+                        "User deleted successfully",
+                        StatusCodes.Status200OK,
+                        responseDto
+                    );
+                }
+                else
+                {
+                    var errors = result.Errors.Select(e => e.Description).ToList();
+                    return ResultService<UserListResponseDTO>.BadResult(
+                        "User deletion failed",
+                        StatusCodes.Status400BadRequest,
+                        errors
+                    );
+                }
+            }
+            catch (Exception e)
+            {
+                return ResultService<UserListResponseDTO>.BadResult(
+                    $"An error occurred while deleting the user: {e.Message}",
+                    StatusCodes.Status500InternalServerError,
+                    new List<string> { e.Message }
+                );
+            }
+        }
     }
 }

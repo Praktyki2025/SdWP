@@ -46,5 +46,20 @@ namespace SdWP.API.Controllers
                 });
         }
 
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteUserAsync(Guid id)
+        {
+            var dto = new UserDeleteRequestDTO { Id = id };
+            var result = await _userService.DeleteUserAsync(dto);
+
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
+        }
     }
 }

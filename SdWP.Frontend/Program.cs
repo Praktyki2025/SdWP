@@ -12,8 +12,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddBlazorBootstrap();
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient("ApiClient", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5267/");
+});
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -72,6 +77,11 @@ builder.Services.AddScoped<HttpClient>(sp =>
 
     return httpClient;
 });
+builder.Services.AddScoped<ProjectRepository>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 

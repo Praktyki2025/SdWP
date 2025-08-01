@@ -11,17 +11,17 @@ namespace SdWP.API.Controllers
     [Route("api/user")]
     public class UserController : ControllerBase
     {
-        private readonly IUserService _registerService;
+        private readonly IUserService _userService;
 
-        public UserController(IUserService registerService)
+        public UserController(IUserService userService)
         {
-            _registerService = registerService;
+            _userService = userService;
         }
 
         [HttpPost("register")]
         public async Task<ActionResult> RegisterAsync(RegisterRequestDTO dto)
         {
-            var result = await _registerService.RegisterAsync(dto);
+            var result = await _userService.RegisterAsync(dto);
 
             if (result.Success) return StatusCode( result.StatusCode, result.Data);
 

@@ -140,9 +140,9 @@
 
                     message = errorResponse?.Message ?? "An error occurred while processing your request.";
 
-                    if (errorResponse?.Errors?.Any() == true)
+                    if (errorResponse?.Errors?.Count > 0)
                     {
-                        message += "Details: " + string.Join(", ", errorResponse.Errors);
+                        message += "\nDetails: " + string.Join(", ", errorResponse.Errors);
                     }
 
                     isSuccess = false;

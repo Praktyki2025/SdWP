@@ -70,7 +70,7 @@ namespace SdWP.Service.Services
                 {
                     var errors = roleResult.Errors.Select(e => e.Description).ToList();
                     return ResultService<RegisterResponseDTO>.BadResult(
-                        "Failed to assign role to user",
+                        "User was created but failed to assign role to user",
                         StatusCodes.Status400BadRequest,
                         errors
                     );

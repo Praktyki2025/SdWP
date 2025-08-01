@@ -1,0 +1,17 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "User")]
+@rendermode InteractiveServer
+
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+@page "/user"
+
+<h3>User Dashboard</h3>
+
+<button @onclick="Logout">Logout</button>
+
+@code {
+    private async Task Logout() => await JSRuntime.InvokeVoidAsync("apiLogout");
+}

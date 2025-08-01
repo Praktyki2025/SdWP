@@ -7,10 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.18" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.18" />
   </ItemGroup>
 
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
   <ItemGroup>
+    <ProjectReference Include="..\SdWP.API\SdWP.API.csproj" />
     <ProjectReference Include="..\SdWP.Data\SdWP.Data.csproj" />
     <ProjectReference Include="..\SdWP.DTO\SdWP.DTO.csproj" />
   </ItemGroup>

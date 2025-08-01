@@ -1,0 +1,30 @@
+﻿@page "/admin"
+@using Microsoft.AspNetCore.Authorization
+@using SdWP.Frontend.Components.Layout
+
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<h1>Admin Dashboard</h1>
+
+<button @onclick="Logout" class="btn btn-primary">Logout</button>
+
+
+<RegisterUserModal Show="showModal" OnClose="@(() => showModal = false)" />
+<button @onclick="ToggleModal" class="btn btn-primary">Register new user</button>
+
+
+@code {
+    private bool showModal = false;
+
+
+    private void ShowModal() => showModal = true;
+
+    private async Task Logout() => await JSRuntime.InvokeVoidAsync("apiLogout");
+
+    private void ToggleModal() => showModal = !showModal;
+}

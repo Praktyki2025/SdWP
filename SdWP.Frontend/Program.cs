@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SdWP.Data.Context;
 using SdWP.Data.Models;
+using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
@@ -49,6 +50,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ILoginService, LoginServices>();
+builder.Services.AddScoped<UserRepository>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 builder.Services.AddHttpClient();
@@ -95,7 +97,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Wyst¹pi³ b³¹d podczas inicjalizacji bazy danych");
+        logger.LogError(ex, "Wyst?pi? b??d podczas inicjalizacji bazy danych");
     }
 }
 

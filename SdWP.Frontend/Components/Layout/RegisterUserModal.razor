@@ -107,7 +107,7 @@
             message = string.Empty;
             StateHasChanged();
 
-            var response = await HttpClient.PostAsJsonAsync("api/user/register", register);
+            var response = await HttpClient.PostAsJsonAsync("api/admin/user/register", register);
 
             var responseContent = await response.Content.ReadAsStringAsync();
 

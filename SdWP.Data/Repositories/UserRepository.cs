@@ -281,5 +281,25 @@ namespace SdWP.Data.Repositories
 
             return users;
         }
+
+        public async Task<List<(User user, List<string> Roles)>> GetUserRoleAsync(CancellationToken cancellationToken)
+        {
+            var users = await _context.Users.ToListAsync(cancellationToken);
+            var userRoles = await  _context.UserRoles.ToListAsync(cancellationToken);
+            var roles = await _context.Roles.ToListAsync(cancellationToken);
+
+            var result = users.Select(u =>
+            {
+                var roleForUser = userRoles
+                .Where(ur => ur.UserId == u.Id)
+                .Select(ur => roles.FirstOrDefault(r => r.Id == ur.RoleId)?.Name)
+                .Where(r => r != null)
+                .ToList()!;
+
+                return (u, roleForUser!);
+            }).ToList();
+
+            return result;
+        }
     }
 }

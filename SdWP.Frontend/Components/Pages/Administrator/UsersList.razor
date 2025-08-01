@@ -1,0 +1,145 @@
+﻿@using System.Net.Http.Json
+@using System.Text.Json;
+@using Microsoft.AspNetCore.Authorization
+@using SdWP.DTO.Responses
+@using BlazorBootstrap
+
+@inject HttpClient Http
+
+@page "/admin/users-list"
+@attribute [Authorize(Roles = "Admin")]
+
+<h3>AllUsersList</h3>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-danger" role="alert">
+        @message
+    </div>
+}
+
+@if (users == null)
+{
+    <div class="alert alert-info" role="alert">
+        Loading...
+    </div>
+}
+else if (users.Count == 0)
+{
+    <div class="alert alert-warning" role="alert">
+        No users found
+    </div>
+}
+else
+{
+    <table id="example" class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Created at</th>
+                <th>Options</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.Name</td>
+                    <td>@user.Email</td>
+                    <td>
+                        @if (user.Roles != null && user.Roles.Count > 0)
+                        {
+                            @string.Join(", ", user.Roles)
+                        }
+                        else
+                        {
+                            @("No roles")
+                        }
+                    </td>
+                    <td>@user.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                    <td>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cog"></i> Actions
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-edit me-2"></i>Edit
+                                    </a>
+                                </li>
+                                @if (user.Roles != null && user.Roles.Contains("User"))
+                                {
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#">
+                                            <i class="fas fa-trash-alt me-2"></i>Delete
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    private string message = string.Empty;
+    private List<UserListResponseDTO> users = new List<UserListResponseDTO>();
+
+    private class ErrorResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<string>? Errors { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/admin/user/list");
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                users = await response.Content.ReadFromJsonAsync<List<UserListResponseDTO>>()
+                    ?? new();
+
+                if (users.Count == 0) message = "No users found in system";
+            }
+            else
+            {
+                try
+                {
+                    var errorResponse = JsonSerializer.Deserialize<ErrorResponse>(responseContent, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    message = errorResponse?.Message ?? "An error occurred while processing your request.";
+
+                    if (errorResponse?.Errors?.Any() == true)
+                    {
+                        message += "Details: " + string.Join(", ", errorResponse.Errors);
+                    }
+                }
+                catch (Exception e)
+                {
+                    message = "Registration failed. Try again later";
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            message = "Registration failed. Try again later";
+        }
+    }
+}
+

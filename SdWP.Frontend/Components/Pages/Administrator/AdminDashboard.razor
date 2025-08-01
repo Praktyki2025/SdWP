@@ -17,6 +17,8 @@
 <RegisterUserModal Show="showModal" OnClose="@(() => showModal = false)" />
 <button @onclick="ToggleModal" class="btn btn-primary">Register new user</button>
 
+<button @onclick="NavigateToUsersList" class="btn btn-primary">User List</button>
+
 
 @code {
     private bool showModal = false;
@@ -27,4 +29,5 @@
     private async Task Logout() => await JSRuntime.InvokeVoidAsync("apiLogout");
 
     private void ToggleModal() => showModal = !showModal;
+    private void NavigateToUsersList() => Navigation.NavigateTo("/admin/users-list");
 }

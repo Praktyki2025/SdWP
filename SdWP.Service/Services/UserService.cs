@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using SdWP.Data.Models;
+using SdWP.Data.Repositories;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
-using Microsoft.AspNetCore.Http;
 
 namespace SdWP.Service.Services
 {
@@ -12,10 +13,12 @@ namespace SdWP.Service.Services
         // In this services class, we handle user registration, delete, and edit user data.
 
         private readonly UserManager<User> _userManager;
+        private readonly UserRepository _userRepository;
 
-        public UserService(UserManager<User> userManager)
+        public UserService(UserManager<User> userManager, UserRepository userRepository)
         {
             _userManager = userManager;
+            _userRepository = userRepository;
         }
 
         public async Task<ResultService<RegisterResponseDTO>> RegisterAsync(RegisterRequestDTO dto)
@@ -100,6 +103,46 @@ namespace SdWP.Service.Services
                 return ResultService<RegisterResponseDTO>.BadResult(
                     $"An error occurred during registration: {e.Message}",
                     StatusCodes.Status500InternalServerError
+                );
+            }
+        }
+
+        public async Task<ResultService<List<UserListResponseDTO>>> GetUserListAsync()
+        {
+            try
+            {
+                var users = await _userRepository.GetUserRoleAsync(CancellationToken.None);
+
+                if (users == null)
+                {
+                    return ResultService<List<UserListResponseDTO>>.BadResult(
+                        "No users found",
+                        StatusCodes.Status404NotFound
+                    );
+                }
+
+                var userList = users.Select(u => new UserListResponseDTO
+                {
+                    Id = u.user.Id,
+                    Email = u.user.Email,
+                    Name = u.user.Name,
+                    Roles = u.Roles ?? new List<string>(),
+                    CreatedAt = u.user.CreatedAt,
+                    Success = true
+                }).ToList();
+
+                return ResultService<List<UserListResponseDTO>>.GoodResult(
+                        "User get successfull",
+                        StatusCodes.Status200OK,
+                        userList
+                );
+            }
+            catch (Exception e)
+            {
+                return ResultService<List<UserListResponseDTO>>.BadResult(
+                    $"An error occurred while retrieving users: {e.Message}",
+                    StatusCodes.Status500InternalServerError,
+                    new List<string> { e.Message }
                 );
             }
         }

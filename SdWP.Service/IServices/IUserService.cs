@@ -6,6 +6,6 @@ namespace SdWP.Service.IServices
 {
     public interface IUserService
     {
-        Task<ResultService<UserRegisterResponseDTO>> RegisterAsync(UserRegisterRequestDTO dto);
+        Task<ResultService<RegisterResponseDTO>> RegisterAsync(RegisterRequestDTO dto);
     }
 }

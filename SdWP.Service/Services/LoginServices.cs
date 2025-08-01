@@ -17,14 +17,14 @@ namespace SdWP.Service.Services
             _signInManager = signInManager;
         }
 
-        public async Task<ResultService<UserLoginResponseDTO>> HandleLoginAsync(UserLoginRequestDTO dto)
+        public async Task<ResultService<LoginResponseDTO>> HandleLoginAsync(LoginRequestDTO dto)
         {
             try
             {
                 var user = await _userManager.FindByEmailAsync(dto.Email);
                 if (user == null)
                 {
-                    return ResultService<UserLoginResponseDTO>.BadResult(
+                    return ResultService<LoginResponseDTO>.BadResult(
                         "Invalid email or password",
                         StatusCodes.Status401Unauthorized
                     );
@@ -36,10 +36,10 @@ namespace SdWP.Service.Services
                 {
                     var roles = await _userManager.GetRolesAsync(user);
 
-                    return ResultService<UserLoginResponseDTO>.GoodResult(
+                    return ResultService<LoginResponseDTO>.GoodResult(
                         "Login successful",
                         StatusCodes.Status200OK,
-                        new UserLoginResponseDTO
+                        new LoginResponseDTO
                         {
                             Success = true,
                             Id = user.Id,
@@ -51,14 +51,14 @@ namespace SdWP.Service.Services
                     );
                 }
 
-                return ResultService<UserLoginResponseDTO>.BadResult(
+                return ResultService<LoginResponseDTO>.BadResult(
                     "Invalid email or password",
                     StatusCodes.Status401Unauthorized
                 );
             }
             catch (Exception ex)
             {
-                return ResultService<UserLoginResponseDTO>.BadResult(
+                return ResultService<LoginResponseDTO>.BadResult(
                     $"An error occurred during login: {ex.Message}",
                     StatusCodes.Status500InternalServerError
                 );

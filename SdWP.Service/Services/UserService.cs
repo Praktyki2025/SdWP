@@ -18,14 +18,14 @@ namespace SdWP.Service.Services
             _userManager = userManager;
         }
 
-        public async Task<ResultService<UserRegisterResponseDTO>> RegisterAsync(UserRegisterRequestDTO dto)
+        public async Task<ResultService<RegisterResponseDTO>> RegisterAsync(RegisterRequestDTO dto)
         {
             try
             {
                 var exist = await _userManager.FindByEmailAsync(dto.Email);
                 if (exist != null)
                 {
-                    return ResultService<UserRegisterResponseDTO>.BadResult(
+                    return ResultService<RegisterResponseDTO>.BadResult(
                         "User with this email already exists",
                         StatusCodes.Status400BadRequest
                     );
@@ -49,7 +49,7 @@ namespace SdWP.Service.Services
                 if (!result.Succeeded)
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
-                    return ResultService<UserRegisterResponseDTO>.BadResult(
+                    return ResultService<RegisterResponseDTO>.BadResult(
                         "User creation failed",
                         StatusCodes.Status400BadRequest,
                         errors
@@ -59,7 +59,7 @@ namespace SdWP.Service.Services
                 var createdUser = await _userManager.FindByEmailAsync(dto.Email);
                 if (createdUser == null)
                 {
-                    return ResultService<UserRegisterResponseDTO>.BadResult(
+                    return ResultService<RegisterResponseDTO>.BadResult(
                         "User was created but could not be loaded for role assignment",
                         StatusCodes.Status400BadRequest
                     );
@@ -69,7 +69,7 @@ namespace SdWP.Service.Services
                 if (!roleResult.Succeeded)
                 {
                     var errors = roleResult.Errors.Select(e => e.Description).ToList();
-                    return ResultService<UserRegisterResponseDTO>.BadResult(
+                    return ResultService<RegisterResponseDTO>.BadResult(
                         "Failed to assign role to user",
                         StatusCodes.Status400BadRequest,
                         errors
@@ -78,7 +78,7 @@ namespace SdWP.Service.Services
 
                 var roles = await _userManager.GetRolesAsync(createdUser);
 
-                var responseDto = new UserRegisterResponseDTO
+                var responseDto = new RegisterResponseDTO
                 {
                     Success = true,
                     Id = createdUser.Id,
@@ -89,7 +89,7 @@ namespace SdWP.Service.Services
                     Roles = roles.ToList()
                 };
 
-                return ResultService<UserRegisterResponseDTO>.GoodResult(
+                return ResultService<RegisterResponseDTO>.GoodResult(
                     "User registered successfully",
                     statusCode: StatusCodes.Status201Created,
                     responseDto
@@ -97,7 +97,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
-                return ResultService<UserRegisterResponseDTO>.BadResult(
+                return ResultService<RegisterResponseDTO>.BadResult(
                     $"An error occurred during registration: {e.Message}",
                     StatusCodes.Status500InternalServerError
                 );

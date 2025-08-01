@@ -92,7 +92,7 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
-    private UserRegisterRequestDTO register = new();
+    private RegisterRequestDTO register = new();
     private string message = string.Empty;
     private bool isSuccess = false;
     private bool isSubmitting = false;
@@ -115,13 +115,13 @@
             {
                 try
                 {
-                    var data = JsonSerializer.Deserialize<UserRegisterResponseDTO>(responseContent, new JsonSerializerOptions
+                    var data = JsonSerializer.Deserialize<RegisterResponseDTO>(responseContent, new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
                     });
                     message = "Account created successfully!";
                     isSuccess = true;
-                    register = new UserRegisterRequestDTO();
+                    register = new RegisterRequestDTO();
                 }
                 catch (JsonException)
                 {

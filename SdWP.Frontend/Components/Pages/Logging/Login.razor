@@ -67,7 +67,7 @@
 </section>
 
 @code {
-    private UserLoginRequestDTO loginModel = new();
+    private LoginRequestDTO loginModel = new();
     private string message = string.Empty;
     private bool isLoading = false;
 
@@ -76,7 +76,7 @@
         isLoading = true;
         message = string.Empty;
 
-        var result = await JSRuntime.InvokeAsync<UserLoginResponseDTO>("apiLogin", loginModel);
+        var result = await JSRuntime.InvokeAsync<LoginResponseDTO>("apiLogin", loginModel);
 
         if (result != null && result.Success)
         {

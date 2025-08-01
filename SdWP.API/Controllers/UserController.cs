@@ -19,7 +19,7 @@ namespace SdWP.API.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult> RegisterAsync(UserRegisterRequestDTO dto)
+        public async Task<ActionResult> RegisterAsync(RegisterRequestDTO dto)
         {
             var result = await _registerService.RegisterAsync(dto);
 

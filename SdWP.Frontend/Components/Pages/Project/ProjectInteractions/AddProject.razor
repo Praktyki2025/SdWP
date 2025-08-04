@@ -2,10 +2,9 @@
 @using Microsoft.AspNetCore.Authorization
 @using SdWP.Data.Models;
 @using SdWP.Service.IServices
-@using SdWP.Service.Services
 @using SdWP.DTO.Requests;
 @using SdWP.DTO.Responses;
-@inject IProjectService ProjectInteractions
+@inject IProjectService ProjectService
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject ToastService ToastService
@@ -49,8 +48,7 @@
 
     private async Task AddProjectToDbAsync()
     {
-        var httpResponse = await Http.PostAsJsonAsync("/api/project/create", project); // doesn't work
-        var response = await httpResponse.Content.ReadFromJsonAsync<ResultService<ProjectUpsertResponseDTO>>(); // doesn't work
+        var response = await ProjectService.CreateProjectAsync(project);
 
         if (response != null && response.Success)
         {

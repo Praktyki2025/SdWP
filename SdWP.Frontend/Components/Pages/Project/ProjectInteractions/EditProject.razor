@@ -1,7 +1,9 @@
 ﻿@using System.ComponentModel.DataAnnotations
-@inject IHttpClientFactory HttpClientFactory
 @using SdWP.DTO.Requests
+@using SdWP.Service.IServices
 @using SdWP.DTO.Responses
+@inject IHttpClientFactory HttpClientFactory
+@inject IProjectService ProjectService
 
 @page "/projects/edit"
 
@@ -55,32 +57,27 @@
         if (!string.IsNullOrEmpty(id) && Guid.TryParse(id, out var guid))
         {
             project.Id = guid;
-            var loadedProject = await Http.GetFromJsonAsync<ProjectUpsertResponseDTO>($"api/project/{project.Id}");
-            if (loadedProject != null)
+            var loadedProject = await ProjectService.GetByIdAsync(guid);
+            if (loadedProject.Success)
             {
-                project = loadedProject.MapToRequest();
+                project = loadedProject.Data.MapToRequest();
             }
         }
     }
 
     private async Task EditProjectToDbAsync()
     {
-        try
+        var response = await ProjectService.EditProjectAsync(project);
+
+        if (response != null && response.Success)
         {
-            var response = await Http.PostAsJsonAsync("api/project/edit", project); // doesn't work
-            if (response.IsSuccessStatusCode)
-            {
-                ToastService.Notify(new ToastMessage(ToastType.Success, "Project edited successfully."));
-                Navigation.NavigateTo("/projects");
-            }
-            else
-            {
-                ToastService.Notify(new ToastMessage(ToastType.Warning, "Failed to edit project."));
-            }
+            ToastService.Notify(new ToastMessage(response.Success && response.Message != null ? ToastType.Success :
+                ToastType.Secondary, response.Data.Message));
+            Navigation.NavigateTo("/projects", true);
         }
-        catch (Exception ex)
+        else
         {
-            
+            message = response?.Message ?? "Editing the project failed. Try again.";
         }
     }
 

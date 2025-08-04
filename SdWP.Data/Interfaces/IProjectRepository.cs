@@ -13,6 +13,6 @@ namespace SdWP.Data.Interfaces
         Task<Project?> GetByIdAsync(Guid id);
         Task UpdateAsync(Project project);
         Task DeleteAsync(Guid id);
-        Task<List<Project>> GetAllAsync(bool isAdminRequest);
+        Task<List<Project>> GetAllAsync();
     }
 }

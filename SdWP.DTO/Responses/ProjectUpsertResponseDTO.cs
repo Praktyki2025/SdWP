@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using SdWP.DTO.Requests;
 
-namespace SdWP.DTO.Requests
+namespace SdWP.DTO.Responses
 {
     public class ProjectUpsertResponseDTO
     {

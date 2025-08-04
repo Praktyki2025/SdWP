@@ -31,6 +31,7 @@ public static class SeedData
             }
         }
     }
+
     public static async Task SeedUsers(IServiceProvider serviceProvider)
     {
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();

@@ -4,10 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using SdWP.Data.Context;
 using SdWP.Data.Models;
 using SdWP.DTO.Requests;
+using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
 using System.Linq.Expressions;
 using System.Security.Claims;
 using SdWP.Data.Interfaces;
+using Microsoft.Identity.Client;
+using Microsoft.IdentityModel.Tokens;
 
 namespace SdWP.Service.Services
 {
@@ -15,21 +18,19 @@ namespace SdWP.Service.Services
     {
         private readonly IProjectRepository _projectRepository = projectRepository;
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-        public async Task<ProjectUpsertResponseDTO> CreateProjectAsync(ProjectUpsertRequestDTO project)
+        public async Task<ResultService<ProjectUpsertResponseDTO>> CreateProjectAsync(ProjectUpsertRequestDTO project)
         {
             var user = _httpContextAccessor.HttpContext?.User;
 
             if (user?.Identity?.IsAuthenticated != true)
             {
-                return new ProjectUpsertResponseDTO { Success = false };
+                return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                    message: "User is not authenticated",
+                    statusCode: StatusCodes.Status401Unauthorized
+                    );
             }
 
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrWhiteSpace(userId))
-            {
-                throw new UnauthorizedAccessException("User is not authenticated");
-            }
 
             var response = new Project
             {
@@ -43,7 +44,8 @@ namespace SdWP.Service.Services
             };
 
             await _projectRepository.AddAsync(response);
-            return new ProjectUpsertResponseDTO
+
+            var result = new ProjectUpsertResponseDTO
             {
                 Id = response.Id,
                 Title = response.Title,
@@ -51,13 +53,31 @@ namespace SdWP.Service.Services
                 CreatedAt = response.CreatedAt,
                 LastModified = response.LastModified
             };
+
+            return ResultService<ProjectUpsertResponseDTO>.GoodResult(
+                message: "User is not authenticated",
+                statusCode: StatusCodes.Status401Unauthorized,
+                data: result
+                );
+
         }
-        public async Task<ProjectUpsertResponseDTO> EditProjectAsync(ProjectUpsertRequestDTO project)
+        public async Task<ResultService<ProjectUpsertResponseDTO>> EditProjectAsync(ProjectUpsertRequestDTO project)
         {
-            var existingProject = await _projectRepository.GetByIdAsync((Guid)project.Id); // temp
+            if (project == null || project.Id == null)
+            {
+                return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                    message: "Project data is invalid.",
+                    statusCode: StatusCodes.Status400BadRequest
+                    );
+            }
+
+            var existingProject = await _projectRepository.GetByIdAsync((Guid)project.Id);
             if (existingProject == null)
             {
-                await Task.CompletedTask;
+                return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                    message: "Project not found.",
+                    statusCode: StatusCodes.Status204NoContent
+                    );
             }
 
             existingProject.Title = project.Title;
@@ -66,7 +86,7 @@ namespace SdWP.Service.Services
 
             await _projectRepository.UpdateAsync(existingProject);
 
-            return new ProjectUpsertResponseDTO
+            var result = new ProjectUpsertResponseDTO
             {
                 Id = existingProject.Id,
                 Title = existingProject.Title,
@@ -74,40 +94,54 @@ namespace SdWP.Service.Services
                 CreatedAt = existingProject.CreatedAt,
                 LastModified = existingProject.LastModified
             };
+
+            return ResultService<ProjectUpsertResponseDTO>.GoodResult(
+                message: "Projects found successfully",
+                statusCode: StatusCodes.Status200OK,
+                data: result
+                );
         }
 
-        public async Task<ProjectDeleteResponseDTO> DeleteProjectAsync(Guid projectId)
+        public async Task<ResultService<ProjectDeleteResponseDTO>> DeleteProjectAsync(Guid projectId)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (userId == null)
             {
-                return new ProjectDeleteResponseDTO { Success = false };
+                return ResultService<ProjectDeleteResponseDTO>.BadResult(
+                    message: "User is not authentificated",
+                    statusCode: StatusCodes.Status401Unauthorized);
             }
 
             var project = await _projectRepository.GetByIdAsync(projectId);
 
             if (project == null || !user.IsInRole("Admin") && Guid.Parse(userId) != project.CreatorUserId)
             {
-                return new ProjectDeleteResponseDTO { Success = false };
+                return ResultService<ProjectDeleteResponseDTO>.BadResult(
+                    message: "You don't have permissions to delete this project.",
+                    statusCode: StatusCodes.Status403Forbidden);
             }
 
             await _projectRepository.DeleteAsync(projectId);
 
-            return new ProjectDeleteResponseDTO { Success = true };
+            return ResultService<ProjectDeleteResponseDTO>.GoodResult(
+                message: "Project was deleted.",
+                statusCode: StatusCodes.Status200OK);
         }
 
-        public async Task<ProjectUpsertResponseDTO> GetByIdAsync(Guid id)
+        public async Task<ResultService<ProjectUpsertResponseDTO>> GetByIdAsync(Guid id)
         {
             var project = await _projectRepository.GetByIdAsync(id);
 
             if (project == null)
             {
-                // Handle the case where the project is not found
+                return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                    message: "Project not found",
+                    statusCode: StatusCodes.Status204NoContent);
             }
 
-            return new ProjectUpsertResponseDTO
+            var result = new ProjectUpsertResponseDTO
             {
                 Id = project.Id,
                 Title = project.Title,
@@ -115,104 +149,103 @@ namespace SdWP.Service.Services
                 CreatedAt = project.CreatedAt,
                 LastModified = project.LastModified
             };
+
+            return ResultService<ProjectUpsertResponseDTO>.GoodResult(
+                message: "Projects found successfully",
+                statusCode: StatusCodes.Status200OK,
+                data: result
+                );
         }
 
-        public async Task<(List<ProjectUpsertResponseDTO> projects, int totalRecords)> GetProjects(DataTableRequest request)
+        public async Task<ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>> GetProjects(DataTableRequest request)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var projects = await _projectRepository.GetAllAsync(true);
+            List<Project>? projects = await _projectRepository.GetAllAsync();
 
-            if (user.Identity.IsAuthenticated)
+            if (!user.IsInRole("Admin"))
             {
-                if (user.IsInRole("Admin"))
-                {
-                    projects = _context.Projects
-                    .Select(p => new ProjectUpsertResponseDTO
-                    {
-                        Id = p.Id,
-                        Title = p.Title,
-                        Description = p.Description,
-                        CreatedAt = p.CreatedAt,
-                        LastModified = p.LastModified,
-                    });
-                }
-                else
-                {
-                    projects = context.Projects
-                    .Where(p => p.CreatorUserId == Guid.Parse(userId))
-                    .Select(p => new ProjectUpsertResponseDTO
-                    {
-                        Id = p.Id,
-                        Title = p.Title,
-                        Description = p.Description,
-                        CreatedAt = p.CreatedAt,
-                        LastModified = p.LastModified,
-                    });
-                }
-                if (!string.IsNullOrWhiteSpace(request.search?.value))
-                {
-                    var searchLower = request.search.value.ToLower();
-                    projects = projects.Where(p =>
-                        (!string.IsNullOrEmpty(p.Title) && p.Title.ToLower().Contains(searchLower)) ||
-                        (!string.IsNullOrEmpty(p.Description) && p.Description.ToLower().Contains(searchLower)));
-                }
-
-                //sorting
-                if (request.order != null && request.order.Count > 0)
-                {
-                    var order = request.order[0];
-                    bool ascending = order.dir == "asc";
-                    string? sortColumn = null;
-                    if (request.columns != null && request.columns.Count > order.column)
-                    {
-                        sortColumn = request.columns[order.column].data;
-                    }
-
-                    if (!string.IsNullOrEmpty(sortColumn))
-                    {
-                        projects = ApplyOrdering(projects, sortColumn, ascending);
-                    }
-                }
-
-                var totalRecords = projects.Count();
-
-                var data = projects
-                    .Skip(request.start)
-                    .Take(request.length)
-                    .ToList();
-
-                foreach(var proj in projects)
-                {
-                    Console.WriteLine($"{proj.Title}");
-                }
-                return (data, totalRecords);
+                projects = projects.Where(p => p.CreatorUserId == Guid.Parse(userId)).ToList();
             }
-            return (new List<ProjectUpsertResponseDTO>(), 0);
+
+            if (user == null || !user.Identity.IsAuthenticated)
+            {
+                return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.BadResult(
+                message: "You are not authenticated",
+                statusCode: StatusCodes.Status401Unauthorized
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.search?.value))
+            {
+                string searchLower = request.search.value.ToLower();
+                projects = projects.Where(p =>
+                    (!string.IsNullOrEmpty(p.Title) && p.Title.ToLower().Contains(searchLower)) ||
+                    (!string.IsNullOrEmpty(p.Description) && p.Description.ToLower().Contains(searchLower))
+                ).ToList();
+            }
+
+            //sorting
+            if (request.order != null && request.order.Count > 0)
+            {
+                var order = request.order[0];
+                bool ascending = order.dir == "asc";
+                string? sortColumn = null;
+                if (request.columns != null && request.columns.Count > order.column)
+                {
+                    sortColumn = request.columns[order.column].data;
+                }
+
+                if (!string.IsNullOrEmpty(sortColumn))
+                {
+                    projects = ApplyOrdering(projects, sortColumn, ascending);
+                }
+            }
+
+            var totalRecords = projects.Count();
+
+            var data = projects
+                .Skip(request.start)
+                .Take(request.length)
+                .Select(project => new ProjectUpsertResponseDTO
+                {
+                    Id = project.Id,
+                    Title = project.Title,
+                    Description = project.Description,
+                    CreatedAt = project.CreatedAt,
+                    LastModified = project.LastModified,         
+                })
+                .ToList();
+
+            var projectListResponse = new ProjectListResponse<ProjectUpsertResponseDTO>
+            {
+                Projects = data,
+                TotalCount = totalRecords,
+                HasMore = request.start + request.length < totalRecords
+            };
+
+            return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.GoodResult(
+                message: "Projects retrieved successfully",
+                statusCode: StatusCodes.Status200OK,
+                data: projectListResponse
+                );
         }
 
         //sorting fn
-        private IQueryable<ProjectUpsertResponseDTO> ApplyOrdering(IQueryable<ProjectUpsertResponseDTO> source, string propertyName, bool ascending)
+        private List<Project> ApplyOrdering(List<Project> source, string propertyName, bool ascending)
         {
-            if (string.IsNullOrEmpty(propertyName))
-                return source;
+            if (source == null || string.IsNullOrWhiteSpace(propertyName))
+                return source ?? new List<Project>();
 
-            //normalize prop
             propertyName = FirstCharToUpper(propertyName);
 
-            var param = Expression.Parameter(typeof(ProjectUpsertResponseDTO), "p");
-            var property = Expression.PropertyOrField(param, propertyName);
-            var sortLambda = Expression.Lambda(property, param);
+            var propInfo = typeof(Project).GetProperty(propertyName);
+            if (propInfo == null)
+                return source;
 
-            string methodName = ascending ? "OrderByDescending" : "OrderBy";
-
-            var result = typeof(Queryable).GetMethods()
-                .Where(m => m.Name == methodName && m.GetParameters().Length == 2)
-                .Single()
-                .MakeGenericMethod(typeof(ProjectUpsertResponseDTO), property.Type)
-                .Invoke(null, new object[] { source, sortLambda });
-
-            return (IQueryable<ProjectUpsertResponseDTO>)result;
+            return ascending
+                ? source.OrderBy(x => propInfo.GetValue(x, null)).ToList()
+                : source.OrderByDescending(x => propInfo.GetValue(x, null)).ToList();
         }
 
         public static string FirstCharToUpper(string input)

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
@@ -28,21 +29,21 @@ namespace SdWP.API.Controllers
         public async Task<ActionResult<ProjectUpsertResponseDTO>> Create([FromBody] ProjectUpsertRequestDTO dto)
         {
             var result = await _projectService.CreateProjectAsync(dto);
-            return Ok(result);
+            return Ok(result.Data);
         }
 
         [HttpPost("edit")] // Edit
         public async Task<ActionResult<ProjectUpsertResponseDTO>> Edit([FromBody] ProjectUpsertRequestDTO dto)
         {
             var result = await _projectService.EditProjectAsync(dto);
-            return Ok(result);
+            return Ok(result.Data);
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult<ProjectDeleteResponseDTO>> Delete(Guid id)
         {
             var result = await _projectService.DeleteProjectAsync(id);
-            return Ok(result);
+            return Ok(result.Data);
         }
 
         [HttpGet("{id}")]
@@ -51,20 +52,20 @@ namespace SdWP.API.Controllers
             var project = await _projectService.GetByIdAsync(id);
             if (project == null)
                 return NotFound();
-            return Ok(project);
+            return Ok(project.Data);
         }
 
         [HttpPost("all")]
         public async Task<IActionResult> GetProjects([FromBody] DataTableRequest request)
         {
-            var (projects, totalRecords) = await _projectService.GetProjects(request);
+            var projects = await _projectService.GetProjects(request);
 
             return Ok(new
             {
                 draw = request.draw,
-                recordsTotal = totalRecords,
-                recordsFiltered = totalRecords,
-                data = projects
+                recordsTotal = projects.Data.TotalCount, // 1 page mock
+                recordsFiltered = projects.Data.TotalCount, // 1 page mock
+                data = projects.Data.Projects
             });
         }
     }

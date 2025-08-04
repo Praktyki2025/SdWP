@@ -1,4 +1,6 @@
 ﻿using SdWP.DTO.Requests;
+using SdWP.DTO.Responses;
+using SdWP.Service.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +11,10 @@ namespace SdWP.Service.IServices
 {
     public interface IProjectService
     {
-        Task<ProjectUpsertResponseDTO> CreateProjectAsync(ProjectUpsertRequestDTO project);
-        Task<ProjectUpsertResponseDTO> EditProjectAsync(ProjectUpsertRequestDTO project);
-        Task<ProjectDeleteResponseDTO> DeleteProjectAsync(Guid project);
-        Task<ProjectUpsertResponseDTO> GetByIdAsync(Guid id);
-        Task<(List<ProjectUpsertResponseDTO> projects, int totalRecords)> GetProjects(DataTableRequest request);
+        Task<ResultService<ProjectUpsertResponseDTO>> CreateProjectAsync(ProjectUpsertRequestDTO project);
+        Task<ResultService<ProjectUpsertResponseDTO>> EditProjectAsync(ProjectUpsertRequestDTO project);
+        Task<ResultService<ProjectDeleteResponseDTO>> DeleteProjectAsync(Guid project);
+        Task<ResultService<ProjectUpsertResponseDTO>> GetByIdAsync(Guid id);
+        Task<ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>> GetProjects(DataTableRequest request);
     }
 }

@@ -38,32 +38,6 @@ public class ProjectRepository(ApplicationDbContext context) : IProjectRepositor
         }
     }
 
-    public async Task<List<Project>> GetAllAsync(bool isAdminRequest)
-    {
-        var projects = new List<Project>();
-        if (isAdminRequest)
-        {
-            projects = _context.Projects
-            .Select(p => new Project
-            {
-                Id = p.Id,
-                Title = p.Title,
-                Description = p.Description,
-                CreatedAt = p.CreatedAt,
-                LastModified = p.LastModified,
-            }).ToList();
-        }
-        else
-        {
-            projects = context.Projects
-            .Where(p => p.CreatorUserId == Guid.Parse(userId))
-            .Select(p => new ProjectUpsertResponseDTO
-            {
-                Id = p.Id,
-                Title = p.Title,
-                Description = p.Description,
-                CreatedAt = p.CreatedAt,
-                LastModified = p.LastModified,
-            });
-        }
+    public async Task<List<Project>> GetAllAsync() =>
+        await Task.FromResult(_context.Projects.ToList());
 }

@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace SdWP.API.Controllers
 {
+
     [ApiController]
     [Route("api/[controller]")]
     public class ProjectController : ControllerBase
@@ -101,7 +102,6 @@ namespace SdWP.API.Controllers
             {
                 return StatusCode(result.StatusCode, new
                 {
-                    draw = request.draw,
                     recordsTotal = result.Data.TotalCount,
                     recordsFiltered = result.Data.TotalCount,
                     data = result.Data.Projects

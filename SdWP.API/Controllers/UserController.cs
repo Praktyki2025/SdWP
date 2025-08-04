@@ -17,18 +17,18 @@ namespace SdWP.API.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult> RegisterAsync(RegisterRequestDTO dto)
+        public async Task<ActionResult> RegisterAsync([FromBody] AddUserRequestDTO dto)
         {
             var result = await _userService.RegisterAsync(dto);
 
-            if (result.Success) return StatusCode( result.StatusCode, result.Data);
-
-            return StatusCode( result.StatusCode, new
-            {
-                success = false,
-                message = result.Message,
-                errors = result.Errors
-            });
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
         }
 
         [HttpGet("list")]
@@ -49,8 +49,23 @@ namespace SdWP.API.Controllers
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteUserAsync(Guid id)
         {
-            var dto = new UserDeleteRequestDTO { Id = id };
+            var dto = new DeleteUserRequestDTO { Id = id };
             var result = await _userService.DeleteUserAsync(dto);
+
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
+        }
+
+        [HttpPut("update")]
+        public async Task<IActionResult> EditUserAsync([FromBody] EditUserRequestDTO dto)
+        {
+            var result = await _userService.EditUserAsync(dto);
 
             return result.Success
                 ? StatusCode(result.StatusCode, result.Data)

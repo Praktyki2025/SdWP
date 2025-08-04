@@ -14,22 +14,45 @@ namespace SdWP.Service.Services
 
         private readonly UserManager<User> _userManager;
         private readonly UserRepository _userRepository;
+        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
 
-        public UserService(UserManager<User> userManager, UserRepository userRepository)
+        private readonly List<string> _roles = new();
+
+        public UserService(
+            UserManager<User> userManager,
+            UserRepository userRepository,
+            RoleManager<IdentityRole<Guid>> roleManager)
         {
             _userManager = userManager;
             _userRepository = userRepository;
+            _roleManager = roleManager;
         }
 
-        public async Task<ResultService<RegisterResponseDTO>> RegisterAsync(RegisterRequestDTO dto)
+        public async Task<ResultService<AddUserResponseDTO>> RegisterAsync(AddUserRequestDTO dto)
         {
             try
             {
                 var exist = await _userManager.FindByEmailAsync(dto.Email);
                 if (exist != null)
                 {
-                    return ResultService<RegisterResponseDTO>.BadResult(
+                    return ResultService<AddUserResponseDTO>.BadResult(
                         "User with this email already exists",
+                        StatusCodes.Status400BadRequest
+                    );
+                }
+
+                if (string.IsNullOrEmpty(dto.Role))
+                {
+                    return ResultService<AddUserResponseDTO>.BadResult(
+                        "Invalid role specified",
+                        StatusCodes.Status400BadRequest
+                    );
+                }
+
+                if (!await _roleManager.RoleExistsAsync(dto.Role))
+                {
+                    return ResultService<AddUserResponseDTO>.BadResult(
+                        "Role does not exist",
                         StatusCodes.Status400BadRequest
                     );
                 }
@@ -45,14 +68,14 @@ namespace SdWP.Service.Services
                     LastUpdate = DateTime.UtcNow,
                     EmailConfirmed = true,
                     SecurityStamp = Guid.NewGuid().ToString(),
-                    ConcurrencyStamp = Guid.NewGuid().ToString()
+                    ConcurrencyStamp = Guid.NewGuid().ToString(),
                 };
 
                 var result = await _userManager.CreateAsync(user, dto.Password);
                 if (!result.Succeeded)
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
-                    return ResultService<RegisterResponseDTO>.BadResult(
+                    return ResultService<AddUserResponseDTO>.BadResult(
                         "User creation failed",
                         StatusCodes.Status400BadRequest,
                         errors
@@ -62,17 +85,17 @@ namespace SdWP.Service.Services
                 var createdUser = await _userManager.FindByEmailAsync(dto.Email);
                 if (createdUser == null)
                 {
-                    return ResultService<RegisterResponseDTO>.BadResult(
+                    return ResultService<AddUserResponseDTO>.BadResult(
                         "User was created but could not be loaded for role assignment",
                         StatusCodes.Status400BadRequest
                     );
                 }
 
-                var roleResult = await _userManager.AddToRoleAsync(createdUser, "User");
+                var roleResult = await _userManager.AddToRoleAsync(createdUser, dto.Role);
                 if (!roleResult.Succeeded)
                 {
                     var errors = roleResult.Errors.Select(e => e.Description).ToList();
-                    return ResultService<RegisterResponseDTO>.BadResult(
+                    return ResultService<AddUserResponseDTO>.BadResult(
                         "User was created but failed to assign role to user",
                         StatusCodes.Status400BadRequest,
                         errors
@@ -81,7 +104,7 @@ namespace SdWP.Service.Services
 
                 var roles = await _userManager.GetRolesAsync(createdUser);
 
-                var responseDto = new RegisterResponseDTO
+                var responseDto = new AddUserResponseDTO
                 {
                     Success = true,
                     Id = createdUser.Id,
@@ -92,7 +115,7 @@ namespace SdWP.Service.Services
                     Roles = roles.ToList()
                 };
 
-                return ResultService<RegisterResponseDTO>.GoodResult(
+                return ResultService<AddUserResponseDTO>.GoodResult(
                     "User registered successfully",
                     statusCode: StatusCodes.Status201Created,
                     responseDto
@@ -100,7 +123,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
-                return ResultService<RegisterResponseDTO>.BadResult(
+                return ResultService<AddUserResponseDTO>.BadResult(
                     $"An error occurred during registration: {e.Message}",
                     StatusCodes.Status500InternalServerError
                 );
@@ -147,7 +170,7 @@ namespace SdWP.Service.Services
             }
         }
 
-        public async Task<ResultService<UserListResponseDTO>> DeleteUserAsync(UserDeleteRequestDTO dto)
+        public async Task<ResultService<UserListResponseDTO>> DeleteUserAsync(DeleteUserRequestDTO dto)
         {
             try
             {
@@ -204,6 +227,152 @@ namespace SdWP.Service.Services
             {
                 return ResultService<UserListResponseDTO>.BadResult(
                     $"An error occurred while deleting the user: {e.Message}",
+                    StatusCodes.Status500InternalServerError,
+                    new List<string> { e.Message }
+                );
+            }
+        }
+
+        public async Task<ResultService<EditUserRequestDTO>> EditUserAsync(EditUserRequestDTO dto)
+        {
+            try
+            {
+                var exist = await _userManager.FindByIdAsync(dto.Id.ToString());
+                if (exist == null)
+                {
+                    return ResultService<EditUserRequestDTO>.BadResult(
+                        "User not found",
+                        StatusCodes.Status400BadRequest
+                    );
+                }
+
+                if (!string.IsNullOrEmpty(dto.Email) && dto.Email != exist.Email)
+                {
+                    var userWithEmail = await _userManager.FindByEmailAsync(dto.Email);
+                    if (userWithEmail != null && userWithEmail.Id != exist.Id)
+                    {
+                        return ResultService<EditUserRequestDTO>.BadResult(
+                            "User with this email already exists",
+                            StatusCodes.Status400BadRequest
+                        );
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(dto.Name) && dto.Name != exist.Name)
+                {
+                    var userWithName = await _userManager.FindByNameAsync(dto.Name);
+                    if (userWithName != null && userWithName.Id != exist.Id)
+                    {
+                        return ResultService<EditUserRequestDTO>.BadResult(
+                            "User with this name already exists",
+                            StatusCodes.Status400BadRequest
+                        );
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(dto.Role) && !await _roleManager.RoleExistsAsync(dto.Role))
+                {
+                    return ResultService<EditUserRequestDTO>.BadResult(
+                        "Role does not exist",
+                        StatusCodes.Status400BadRequest
+                    );
+                }
+
+
+                if (!string.IsNullOrEmpty(dto.Name))
+                {
+                    exist.Name = dto.Name;
+                    exist.NormalizedUserName = dto.Name.Normalize();
+                    exist.UserName = dto.Name;
+                }
+
+                if (!string.IsNullOrEmpty(dto.Email))
+                {
+                    exist.Email = dto.Email;
+                    exist.NormalizedEmail = dto.Email.Normalize();
+                }
+
+                exist.LastUpdate = DateTime.UtcNow;
+
+                if (!string.IsNullOrEmpty(dto.Password) && !string.IsNullOrWhiteSpace(dto.Password))
+                {
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(exist);
+                    var editPassword = await _userManager.ResetPasswordAsync(exist, token, dto.Password);
+
+                    if (!editPassword.Succeeded)
+                    {
+                        var errors = editPassword.Errors.Select(e => e.Description).ToList();
+                        return ResultService<EditUserRequestDTO>.BadResult(
+                            "Failed to update password",
+                            StatusCodes.Status400BadRequest,
+                            errors
+                        );
+                    }
+                }
+
+                var updateResult = await _userManager.UpdateAsync(exist);
+
+                if (!updateResult.Succeeded)
+                {
+                    var errors = updateResult.Errors.Select(e => e.Description).ToList();
+                    return ResultService<EditUserRequestDTO>.BadResult(
+                        "Failed to update user",
+                        StatusCodes.Status400BadRequest,
+                        errors
+                    );
+                }
+
+                if (!string.IsNullOrEmpty(dto.Role))
+                {
+                    var currentRole = await _userManager.GetRolesAsync(exist);
+                    if (currentRole.Any())
+                    {
+                        var removeRole = await _userManager.RemoveFromRolesAsync(exist, currentRole);
+                        if (!removeRole.Succeeded)
+                        {
+                            var errors = removeRole.Errors.Select(e => e.Description).ToList();
+                            return ResultService<EditUserRequestDTO>.BadResult(
+                                "Failed to remove existing roles",
+                                StatusCodes.Status400BadRequest,
+                                errors
+                            );
+                        }
+                    }
+
+                    var updateRole = await _userManager.AddToRoleAsync(exist, dto.Role);
+                    if (!updateRole.Succeeded)
+                    {
+                        var errors = updateRole.Errors.Select(e => e.Description).ToList();
+                        return ResultService<EditUserRequestDTO>.BadResult(
+                            "Failed to assign new role",
+                            StatusCodes.Status400BadRequest,
+                            errors
+                        );
+                    }
+                }
+
+                var currentRoles = await _userManager.GetRolesAsync(exist);
+
+                var responseDto = new EditUserRequestDTO
+                {
+                    Id = exist.Id,
+                    Email = exist.Email,
+                    Name = exist.Name,
+                    Role = currentRoles.ToString(),
+                    LastUpdate = exist.LastUpdate,
+
+                };
+
+                return ResultService<EditUserRequestDTO>.GoodResult(
+                    "User updated successfully",
+                    StatusCodes.Status200OK,
+                    responseDto
+                );
+            }
+            catch (Exception e)
+            {
+                return ResultService<EditUserRequestDTO>.BadResult(
+                    $"An error occurred while editing the user: {e.Message}",
                     StatusCodes.Status500InternalServerError,
                     new List<string> { e.Message }
                 );

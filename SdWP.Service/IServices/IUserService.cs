@@ -6,8 +6,9 @@ namespace SdWP.Service.IServices
 {
     public interface IUserService
     {
-        Task<ResultService<RegisterResponseDTO>> RegisterAsync(RegisterRequestDTO dto);
+        Task<ResultService<AddUserResponseDTO>> RegisterAsync(AddUserRequestDTO dto);
         Task<ResultService<List<UserListResponseDTO>>> GetUserListAsync();
-        Task<ResultService<UserListResponseDTO>> DeleteUserAsync(UserDeleteRequestDTO dto);
+        Task<ResultService<UserListResponseDTO>> DeleteUserAsync(DeleteUserRequestDTO dto);
+        Task<ResultService<EditUserRequestDTO>> EditUserAsync(EditUserRequestDTO dto);
     }
 }

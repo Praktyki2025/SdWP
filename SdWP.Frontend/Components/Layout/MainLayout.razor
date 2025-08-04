@@ -1,4 +1,9 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+@inherits LayoutComponentBase
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider Auth
+
 
 <div class="page">
     <div class="sidebar">
@@ -6,10 +11,16 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+        @if (!string.IsNullOrEmpty(userRole))
+        {
+            @if (userRole == "User" || userRole == "Admin")
+            {
+                <div class="top-row px-4">
+                    <a @onclick="Logout">Logout</a>
+                </div>
+            }
 
+        }
         <article class="content px-4">
             @Body
         </article>
@@ -21,3 +32,33 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code
+{
+    private string? userRole = null;
+    private string dashboardUrl = "/";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await Auth.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            userRole = user.IsInRole("Admin") ? "Admin" : "User";
+
+            dashboardUrl = userRole switch
+            {
+                "Admin" => "/admin",
+                "User" => "/user",
+                _ => "/"
+            };
+        }
+        else
+        {
+            dashboardUrl = "";
+        }
+    }
+
+    private async Task Logout() => await JSRuntime.InvokeVoidAsync("apiLogout");
+}

@@ -1,5 +1,6 @@
 ﻿@page "/admin"
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using SdWP.Frontend.Components.Layout
 
 @attribute [Authorize(Roles = "Admin")]
@@ -8,22 +9,20 @@
 @inject NavigationManager Navigation
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider Auth
 
-<h1>Admin Dashboard</h1>
-
-<button @onclick="Logout" class="btn btn-primary">Logout</button>
-
-<button @onclick="NavigateToUsersList" class="btn btn-primary">User List</button>
-
+<h2>Welcome @adminName</h2>
 
 @code {
-    private bool showModal = false;
+    private string? adminName;
 
-
-    private void ShowModal() => showModal = true;
-
-    private async Task Logout() => await JSRuntime.InvokeVoidAsync("apiLogout");
-
-    private void ToggleModal() => showModal = !showModal;
-    private void NavigateToUsersList() => Navigation.NavigateTo("/admin/users-list");
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await Auth.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            adminName = user.Identity.Name ?? "admin";
+        }
+    }
 }

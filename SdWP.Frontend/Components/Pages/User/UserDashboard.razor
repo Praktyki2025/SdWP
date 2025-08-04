@@ -1,17 +1,29 @@
 ﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using SdWP.Frontend.Components.Layout
+
 @attribute [Authorize(Roles = "User")]
 @rendermode InteractiveServer
 
 @inject NavigationManager Navigation
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider Auth
 
 @page "/user"
 
-<h3>User Dashboard</h3>
-
-<button @onclick="Logout">Logout</button>
+<h2>Welcome @userName</h2>
 
 @code {
-    private async Task Logout() => await JSRuntime.InvokeVoidAsync("apiLogout");
+    private string? userName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await Auth.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            userName = user.Identity.Name ?? "user";
+        }
+    }
 }

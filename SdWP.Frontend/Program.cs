@@ -17,6 +17,8 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddControllers();
 
+builder.Services.AddAuthorizationCore();
+
 builder.Services.AddBlazorBootstrap();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -48,7 +50,7 @@ builder.Services.ConfigureApplicationCookie(options =>
         ? CookieSecurePolicy.None
         : CookieSecurePolicy.Always;
     options.SlidingExpiration = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
 });
 
 builder.Services.AddScoped<IUserService, UserService>();

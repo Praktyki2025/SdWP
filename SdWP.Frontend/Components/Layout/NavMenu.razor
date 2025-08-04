@@ -1,4 +1,9 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+@inject AuthenticationStateProvider Auth
+@inject NavigationManager Navigation
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">SdWP.Frontend</a>
     </div>
@@ -6,38 +11,74 @@
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+            <nav class="flex-column">
+
+                @if (!string.IsNullOrEmpty(userRole))
+                {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="@dashboardUrl" Match="NavLinkMatch.All">
+                            <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                        </NavLink>
+                    </div>
+
+                    @if (userRole == "User")
+                    {
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="valuations">
+                                <span class="bi bi-file-earmark-ruled-nav-menu" aria-hidden="true"></span> Projects
+                            </NavLink>
+                        </div>
+                    }
+
+                    @if (userRole == "Admin")
+                    {
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="/admin/users-list">
+                                <span class="bi bi-file-earmark-ruled-nav-menu" aria-hidden="true"></span> User List
+                            </NavLink>
+                        </div>
+                    }
+                }
+            </nav>
         </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="valuations">
-                <span class="bi bi-file-earmark-ruled-nav-menu" aria-hidden="true"></span> Projects
-            </NavLink>
-        </div>
-
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-
+    </Authorized>
+    <NotAuthorized>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="login">
                 <span class="bi bi-person-plus" aria-hidden="true"></span> Login
             </NavLink>
         </div>
-    </nav>
-</div>
+    </NotAuthorized>
+</AuthorizeView>
 
+@code
+{
+    private string? userRole = null;
+    private string dashboardUrl = "/";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await Auth.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            userRole = user.IsInRole("Admin") ? "Admin" : "User";
+
+            dashboardUrl = userRole switch
+            {
+                "Admin" => "/admin",
+                "User" => "/user",
+                _ => "/"
+            };
+        }
+        else
+        {
+            dashboardUrl = "";
+        }
+    }
+}

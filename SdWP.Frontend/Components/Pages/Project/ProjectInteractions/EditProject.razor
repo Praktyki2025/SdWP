@@ -10,6 +10,13 @@
 
 <PageTitle>Edit Project</PageTitle>
 
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-danger" role="alert">
+        @message
+    </div>
+}
+
 <EditForm Model="project" OnValidSubmit="EditProjectToDbAsync" FormName="EditProjectForm">
     <DataAnnotationsValidator />
     <ValidationSummary class="alert alert-danger" />
@@ -34,6 +41,7 @@
     [Parameter]
     [SupplyParameterFromQuery]
     public string? id { get; set; }
+    private string message = string.Empty;
     private bool _initialized = false;
 
     [Inject] protected ToastService ToastService { get; set; } = default!;
@@ -47,13 +55,10 @@
         if (!string.IsNullOrEmpty(id) && Guid.TryParse(id, out var guid))
         {
             project.Id = guid;
-            Console.WriteLine($"Id: {project.Id}");
-
             var loadedProject = await Http.GetFromJsonAsync<ProjectUpsertResponseDTO>($"api/project/{project.Id}");
             if (loadedProject != null)
             {
                 project = loadedProject.MapToRequest();
-                Console.WriteLine($"Title: {project.Title}");
             }
         }
     }
@@ -75,7 +80,7 @@
         }
         catch (Exception ex)
         {
-            ToastService.Notify(new ToastMessage(ToastType.Warning, $"Error: {ex.Message}"));
+            
         }
     }
 

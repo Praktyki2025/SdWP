@@ -57,8 +57,8 @@ namespace SdWP.Service.Services
                 };
 
                 return ResultService<ProjectUpsertResponseDTO>.GoodResult(
-                    message: "User is not authenticated",
-                    statusCode: StatusCodes.Status401Unauthorized,
+                    message: "Project created",
+                    statusCode: StatusCodes.Status201Created,
                     data: result
                     );
             }
@@ -107,7 +107,7 @@ namespace SdWP.Service.Services
                 };
 
                 return ResultService<ProjectUpsertResponseDTO>.GoodResult(
-                    message: "Projects found successfully",
+                    message: "Project edited successfully",
                     statusCode: StatusCodes.Status200OK,
                     data: result
                     );
@@ -169,7 +169,7 @@ namespace SdWP.Service.Services
                 {
                     return ResultService<ProjectUpsertResponseDTO>.BadResult(
                         message: "Project not found",
-                        statusCode: StatusCodes.Status204NoContent);
+                        statusCode: StatusCodes.Status404NotFound);
                 }
 
                 var result = new ProjectUpsertResponseDTO
@@ -182,7 +182,7 @@ namespace SdWP.Service.Services
                 };
 
                 return ResultService<ProjectUpsertResponseDTO>.GoodResult(
-                    message: "Projects found successfully",
+                    message: "Project fetched successfully",
                     statusCode: StatusCodes.Status200OK,
                     data: result
                     );

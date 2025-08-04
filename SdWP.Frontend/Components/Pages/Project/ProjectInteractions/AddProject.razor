@@ -11,6 +11,13 @@
 @rendermode InteractiveServer
 
 <PageTitle>Add Project</PageTitle>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-danger" role="alert">
+        @message
+    </div>
+}
     
 <EditForm Model="project" OnValidSubmit="AddProjectToDbAsync" FormName="AddProjectForm">
     <DataAnnotationsValidator />
@@ -36,14 +43,22 @@
     [Inject] NavigationManager Navigation { get; set; } = default!;
     [Inject] protected ToastService ToastService { get; set; } = default!;
 
+    private string message = string.Empty;
     private ProjectUpsertRequestDTO project = new ProjectUpsertRequestDTO();
 
     private async Task AddProjectToDbAsync()
     {
         var response = await ProjectInteractions.CreateProjectAsync(project);
+        if (response != null && response.Success)
+        {
+            ToastService.Notify(new ToastMessage(response.Success && response.Message != null ? ToastType.Success :
+                ToastType.Secondary, response.Data.Message));
+            Navigation.NavigateTo("/projects", true);
+        }
+        else
+        {
+			message = response?.Message ?? "Adding the project failed. Try again.";
+        }
 
-        ToastService.Notify(new ToastMessage(response.Success && response.Message != null ? ToastType.Success : ToastType.Secondary, response.Message));
-
-        Navigation.NavigateTo("/projects", true);
     }
 }

@@ -26,46 +26,94 @@ namespace SdWP.API.Controllers
         }
 
         [HttpPost("create")] // Create
-        public async Task<ActionResult<ProjectUpsertResponseDTO>> Create([FromBody] ProjectUpsertRequestDTO dto)
+        public async Task<IActionResult> Create([FromBody] ProjectUpsertRequestDTO dto)
         {
             var result = await _projectService.CreateProjectAsync(dto);
-            return Ok(result.Data);
+            if (result.Success)
+            {
+                return StatusCode(result.StatusCode, result.Data);
+            }
+
+            return StatusCode(result.StatusCode, new
+            {
+                success = false,
+                message = result.Message,
+                errors = result.Errors
+            });
         }
 
         [HttpPost("edit")] // Edit
-        public async Task<ActionResult<ProjectUpsertResponseDTO>> Edit([FromBody] ProjectUpsertRequestDTO dto)
+        public async Task<IActionResult> Edit([FromBody] ProjectUpsertRequestDTO dto)
         {
             var result = await _projectService.EditProjectAsync(dto);
-            return Ok(result.Data);
+            if (result.Success)
+            {
+                return StatusCode(result.StatusCode, result.Data);
+            }
+
+            return StatusCode(result.StatusCode, new
+            {
+                success = false,
+                message = result.Message,
+                errors = result.Errors
+            });
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult<ProjectDeleteResponseDTO>> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _projectService.DeleteProjectAsync(id);
-            return Ok(result.Data);
+            if (result.Success)
+            {
+                return StatusCode(result.StatusCode, result.Data);
+            }
+
+            return StatusCode(result.StatusCode, new
+            {
+                success = false,
+                message = result.Message,
+                errors = result.Errors
+            });
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProjectUpsertResponseDTO>> GetById(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var project = await _projectService.GetByIdAsync(id);
-            if (project == null)
-                return NotFound();
-            return Ok(project.Data);
+            var result = await _projectService.GetByIdAsync(id);
+            if (result.Success)
+            {
+                return StatusCode(result.StatusCode, result.Data);
+            }
+
+            return StatusCode(result.StatusCode, new
+            {
+                success = false,
+                message = result.Message,
+                errors = result.Errors
+            });
         }
 
         [HttpPost("all")]
         public async Task<IActionResult> GetProjects([FromBody] DataTableRequest request)
         {
-            var projects = await _projectService.GetProjects(request);
-
-            return Ok(new
+            var result = await _projectService.GetProjects(request);
+            if (result.Success)
             {
-                draw = request.draw,
-                recordsTotal = projects.Data.TotalCount, // 1 page mock
-                recordsFiltered = projects.Data.TotalCount, // 1 page mock
-                data = projects.Data.Projects
+                return StatusCode(result.StatusCode, new
+                {
+                    draw = request.draw,
+                    recordsTotal = result.Data.TotalCount,
+                    recordsFiltered = result.Data.TotalCount,
+                    data = result.Data.Projects
+                }
+                );
+            }
+
+            return StatusCode(result.StatusCode, new
+            {
+                success = false,
+                message = result.Message,
+                errors = result.Errors
             });
         }
     }

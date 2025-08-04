@@ -8,7 +8,7 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url: '/api/project/all',
+                url: '/api/projects/',
                 type: 'POST',
                 contentType: 'application/json',
                 data: function (d) {

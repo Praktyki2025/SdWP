@@ -4,24 +4,17 @@ using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SdWP.API.Controllers
 {
 
     [ApiController]
     [Route("api/[controller]")]
-    public class ProjectController : ControllerBase
+    public class ProjectsController : ControllerBase
     {
         private readonly IProjectService _projectService;
 
-        public ProjectController(IProjectService projectService)
+        public ProjectsController(IProjectService projectService)
         {
             _projectService = projectService;
         }
@@ -94,7 +87,7 @@ namespace SdWP.API.Controllers
             });
         }
 
-        [HttpPost("all")]
+        [HttpPost]
         public async Task<IActionResult> GetProjects([FromBody] DataTableRequest request)
         {
             var result = await _projectService.GetProjects(request);

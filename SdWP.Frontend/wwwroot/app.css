@@ -54,6 +54,7 @@ h1:focus {
     margin: 12px;
 }
 
-#projectsViewTable tbody tr {
+#projectsViewTable tbody tr:hover {
     cursor: pointer;
+    background-color: #f0f8ff;
 }

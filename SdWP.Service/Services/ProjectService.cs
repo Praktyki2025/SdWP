@@ -224,18 +224,18 @@ namespace SdWP.Service.Services
                 var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 List<Project>? projects = await _projectRepository.GetAllAsync();
 
-                //if (!user.IsInRole("Admin"))
-                //{
-                //    projects = projects.Where(p => p.CreatorUserId == Guid.Parse(userId)).ToList();
-                //}
+                if (!user.IsInRole("Admin"))
+                {
+                    projects = projects.Where(p => p.CreatorUserId == Guid.Parse(userId)).ToList();
+                }
 
-                //if (user == null || !user.Identity.IsAuthenticated)
-                //{
-                //    return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.BadResult(
-                //    message: "You are not authenticated",
-                //    statusCode: StatusCodes.Status401Unauthorized
-                //    );
-                //}
+                if (user == null || !user.Identity.IsAuthenticated)
+                {
+                    return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.BadResult(
+                    message: "You are not authenticated",
+                    statusCode: StatusCodes.Status401Unauthorized
+                    );
+                }
 
                 if (!string.IsNullOrWhiteSpace(request.search?.value))
                 {

@@ -4,7 +4,11 @@
 @using SdWP.Service.IServices
 @using SdWP.Service.Services
 @using SdWP.DTO.Requests;
+@using SdWP.DTO.Responses;
 @inject IProjectService ProjectInteractions
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ToastService ToastService
 @attribute [Authorize]
 
 @page "/projects/add"
@@ -40,15 +44,14 @@
 </EditForm>
 
 @code {
-    [Inject] NavigationManager Navigation { get; set; } = default!;
-    [Inject] protected ToastService ToastService { get; set; } = default!;
-
     private string message = string.Empty;
     private ProjectUpsertRequestDTO project = new ProjectUpsertRequestDTO();
 
     private async Task AddProjectToDbAsync()
     {
-        var response = await ProjectInteractions.CreateProjectAsync(project);
+        var httpResponse = await Http.PostAsJsonAsync("/api/project/create", project); // doesn't work
+        var response = await httpResponse.Content.ReadFromJsonAsync<ResultService<ProjectUpsertResponseDTO>>(); // doesn't work
+
         if (response != null && response.Success)
         {
             ToastService.Notify(new ToastMessage(response.Success && response.Message != null ? ToastType.Success :
@@ -59,6 +62,5 @@
         {
 			message = response?.Message ?? "Adding the project failed. Try again.";
         }
-
     }
 }

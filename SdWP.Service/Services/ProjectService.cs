@@ -91,6 +91,25 @@ namespace SdWP.Service.Services
                         );
                 }
 
+                var user = _httpContextAccessor.HttpContext?.User;
+                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (userId == null)
+                {
+                    return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                        message: "User is not authentificated",
+                        statusCode: StatusCodes.Status401Unauthorized);
+                }
+
+                var fetchedProject = await _projectRepository.GetByIdAsync((Guid)project.Id);
+
+                if (project == null || !user.IsInRole("Admin") && Guid.Parse(userId) != fetchedProject.CreatorUserId)
+                {
+                    return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                        message: "You don't have permissions to edit this project.",
+                        statusCode: StatusCodes.Status403Forbidden);
+                }
+
                 existingProject.Title = project.Title;
                 existingProject.Description = project.Description;
                 existingProject.LastModified = DateTime.UtcNow;

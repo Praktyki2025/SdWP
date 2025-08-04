@@ -67,7 +67,7 @@
     {
         try
         {
-            var response = await Http.PostAsJsonAsync("api/project/edit", project);
+            var response = await Http.PostAsJsonAsync("api/project/edit", project); // doesn't work
             if (response.IsSuccessStatusCode)
             {
                 ToastService.Notify(new ToastMessage(ToastType.Success, "Project edited successfully."));

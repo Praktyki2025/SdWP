@@ -113,9 +113,9 @@ using (var scope = app.Services.CreateScope())
 
 
 app.UseStaticFiles();
-app.UseRouting();
 
 app.UseAuthentication();
+app.UseRouting();
 app.UseAuthorization();
 
 app.UseAntiforgery();

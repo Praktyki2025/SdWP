@@ -10,6 +10,8 @@
     <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.18" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.18" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
   </ItemGroup>
 
 	<ItemGroup>

@@ -5,6 +5,7 @@ using SdWP.Data.Repositories;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
+using Serilog;
 
 namespace SdWP.Service.Services
 {
@@ -35,6 +36,7 @@ namespace SdWP.Service.Services
                 var exist = await _userManager.FindByEmailAsync(dto.Email);
                 if (exist != null)
                 {
+                    Log.Warning($"[{DateTime.UtcNow}] User registration attempt with existing email: {dto.Email}");
                     return ResultService<AddUserResponseDTO>.BadResult(
                         "User with this email already exists",
                         StatusCodes.Status400BadRequest
@@ -43,6 +45,7 @@ namespace SdWP.Service.Services
 
                 if (string.IsNullOrEmpty(dto.Role))
                 {
+                    Log.Warning($"[{DateTime.UtcNow}] User registration attempt with unknown role {dto.Role}");
                     return ResultService<AddUserResponseDTO>.BadResult(
                         "Invalid role specified",
                         StatusCodes.Status400BadRequest
@@ -51,6 +54,7 @@ namespace SdWP.Service.Services
 
                 if (!await _roleManager.RoleExistsAsync(dto.Role))
                 {
+                    Log.Warning($"[{DateTime.UtcNow}] User registration attempt with unknown role {dto.Role}");
                     return ResultService<AddUserResponseDTO>.BadResult(
                         "Role does not exist",
                         StatusCodes.Status400BadRequest
@@ -74,6 +78,7 @@ namespace SdWP.Service.Services
                 var result = await _userManager.CreateAsync(user, dto.Password);
                 if (!result.Succeeded)
                 {
+                    Log.Warning($"[{DateTime.UtcNow}] User creation failed for email: {dto.Email}, Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     var errors = result.Errors.Select(e => e.Description).ToList();
                     return ResultService<AddUserResponseDTO>.BadResult(
                         "User creation failed",
@@ -85,6 +90,7 @@ namespace SdWP.Service.Services
                 var createdUser = await _userManager.FindByEmailAsync(dto.Email);
                 if (createdUser == null)
                 {
+                    Log.Error($"[{DateTime.UtcNow}] User created but could not be loaded for role assignment: {dto.Email}");
                     return ResultService<AddUserResponseDTO>.BadResult(
                         "User was created but could not be loaded for role assignment",
                         StatusCodes.Status400BadRequest
@@ -95,6 +101,7 @@ namespace SdWP.Service.Services
                 if (!roleResult.Succeeded)
                 {
                     var errors = roleResult.Errors.Select(e => e.Description).ToList();
+                    Log.Warning($"[{DateTime.UtcNow}] User creation failed for email: {dto.Email}, Errors: {errors}");
                     return ResultService<AddUserResponseDTO>.BadResult(
                         "User was created but failed to assign role to user",
                         StatusCodes.Status400BadRequest,
@@ -103,6 +110,14 @@ namespace SdWP.Service.Services
                 }
 
                 var roles = await _userManager.GetRolesAsync(createdUser);
+                if (roles == null || !roles.Any())
+                {
+                    Log.Warning($"[{DateTime.UtcNow}] User created but no roles assigned for email: {dto.Email}");
+                    return ResultService<AddUserResponseDTO>.BadResult(
+                        "User was created but no roles assigned",
+                        StatusCodes.Status400BadRequest
+                    );
+                }
 
                 var responseDto = new AddUserResponseDTO
                 {
@@ -123,6 +138,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
+                Log.Error($"[{DateTime.UtcNow}] Error during user registration: {e.Message}");
                 return ResultService<AddUserResponseDTO>.BadResult(
                     $"An error occurred during registration: {e.Message}",
                     StatusCodes.Status500InternalServerError
@@ -138,6 +154,7 @@ namespace SdWP.Service.Services
 
                 if (users == null)
                 {
+                    Log.Warning("[{DateTime.UtcNow}] No users found in the database.");
                     return ResultService<List<UserListResponseDTO>>.BadResult(
                         "No users found",
                         StatusCodes.Status404NotFound
@@ -162,6 +179,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
+                Log.Error($"[{DateTime.UtcNow}] Error retrieving user list: {e.Message}");
                 return ResultService<List<UserListResponseDTO>>.BadResult(
                     $"An error occurred while retrieving users: {e.Message}",
                     StatusCodes.Status500InternalServerError,
@@ -177,6 +195,7 @@ namespace SdWP.Service.Services
                 var user = await _userRepository.FindByIdAsync(dto.Id.ToString(), CancellationToken.None);
                 if (user == null)
                 {
+                    Log.Warning($"[{DateTime.UtcNow}] User deletion attempt for non-existing user ID: {dto.Id}");
                     return ResultService<UserListResponseDTO>.BadResult(
                         "User not found",
                         StatusCodes.Status404NotFound
@@ -187,6 +206,7 @@ namespace SdWP.Service.Services
 
                 if (roles != null && roles.Contains("Admin"))
                 {
+                    Log.Warning($"[{DateTime.UtcNow}] Attempt to delete admin user: {user.Email}");
                     return ResultService<UserListResponseDTO>.BadResult(
                         "Cannot delete an admin user",
                         StatusCodes.Status403Forbidden
@@ -216,6 +236,7 @@ namespace SdWP.Service.Services
                 else
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
+                    Log.Warning($"[{DateTime.UtcNow}] User deletion failed for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}");
                     return ResultService<UserListResponseDTO>.BadResult(
                         "User deletion failed",
                         StatusCodes.Status400BadRequest,
@@ -225,6 +246,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
+                Log.Error($"[{DateTime.UtcNow}] Error during user deletion: {e.Message}");
                 return ResultService<UserListResponseDTO>.BadResult(
                     $"An error occurred while deleting the user: {e.Message}",
                     StatusCodes.Status500InternalServerError,
@@ -240,6 +262,7 @@ namespace SdWP.Service.Services
                 var exist = await _userManager.FindByIdAsync(dto.Id.ToString());
                 if (exist == null)
                 {
+                    Log.Warning($"[{DateTime.UtcNow}] User edit attempt for non-existing user ID: {dto.Id}");
                     return ResultService<EditUserRequestDTO>.BadResult(
                         "User not found",
                         StatusCodes.Status400BadRequest
@@ -251,6 +274,7 @@ namespace SdWP.Service.Services
                     var userWithEmail = await _userManager.FindByEmailAsync(dto.Email);
                     if (userWithEmail != null && userWithEmail.Id != exist.Id)
                     {
+                        Log.Warning($"[{DateTime.UtcNow}] User edit attempt with existing email: {dto.Email}");
                         return ResultService<EditUserRequestDTO>.BadResult(
                             "User with this email already exists",
                             StatusCodes.Status400BadRequest
@@ -263,6 +287,7 @@ namespace SdWP.Service.Services
                     var userWithName = await _userManager.FindByNameAsync(dto.Name);
                     if (userWithName != null && userWithName.Id != exist.Id)
                     {
+                        Log.Warning($"[{DateTime.UtcNow}] User edit attempt with existing name: {dto.Name}");
                         return ResultService<EditUserRequestDTO>.BadResult(
                             "User with this name already exists",
                             StatusCodes.Status400BadRequest
@@ -272,6 +297,7 @@ namespace SdWP.Service.Services
 
                 if (!string.IsNullOrEmpty(dto.Role) && !await _roleManager.RoleExistsAsync(dto.Role))
                 {
+                    Log.Warning($"[{DateTime.UtcNow}] User edit attempt with unknown role: {dto.Role}");
                     return ResultService<EditUserRequestDTO>.BadResult(
                         "Role does not exist",
                         StatusCodes.Status400BadRequest
@@ -302,6 +328,7 @@ namespace SdWP.Service.Services
                     if (!editPassword.Succeeded)
                     {
                         var errors = editPassword.Errors.Select(e => e.Description).ToList();
+                        Log.Warning($"[{DateTime.UtcNow}] User password update failed for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}");
                         return ResultService<EditUserRequestDTO>.BadResult(
                             "Failed to update password",
                             StatusCodes.Status400BadRequest,
@@ -315,6 +342,7 @@ namespace SdWP.Service.Services
                 if (!updateResult.Succeeded)
                 {
                     var errors = updateResult.Errors.Select(e => e.Description).ToList();
+                    Log.Warning($"[{DateTime.UtcNow}] User update failed for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}");
                     return ResultService<EditUserRequestDTO>.BadResult(
                         "Failed to update user",
                         StatusCodes.Status400BadRequest,
@@ -331,6 +359,7 @@ namespace SdWP.Service.Services
                         if (!removeRole.Succeeded)
                         {
                             var errors = removeRole.Errors.Select(e => e.Description).ToList();
+                            Log.Warning($"[{DateTime.UtcNow}] Failed to remove existing roles for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}");
                             return ResultService<EditUserRequestDTO>.BadResult(
                                 "Failed to remove existing roles",
                                 StatusCodes.Status400BadRequest,
@@ -343,6 +372,7 @@ namespace SdWP.Service.Services
                     if (!updateRole.Succeeded)
                     {
                         var errors = updateRole.Errors.Select(e => e.Description).ToList();
+                        Log.Warning($"[{DateTime.UtcNow}] Failed to assign new role for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}");
                         return ResultService<EditUserRequestDTO>.BadResult(
                             "Failed to assign new role",
                             StatusCodes.Status400BadRequest,
@@ -371,6 +401,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
+                Log.Warning($"[{DateTime.UtcNow}] Error during user edit: {e.Message}");
                 return ResultService<EditUserRequestDTO>.BadResult(
                     $"An error occurred while editing the user: {e.Message}",
                     StatusCodes.Status500InternalServerError,

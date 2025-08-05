@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using SdWP.Frontend.Components.Layout
+@using Serilog
 
 @attribute [Authorize(Roles = "Admin")]
 @rendermode InteractiveServer
@@ -30,9 +31,16 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        try
         {
-            await JSRuntime.InvokeVoidAsync("initDataTable.destroy", "userTable");
+            if (firstRender)
+            {
+                await JSRuntime.InvokeVoidAsync("initDataTable.destroy", "userTable");
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[{DateTime.UtcNow}] Error during Admin dashboard {e.Message}");
         }
     }
 }

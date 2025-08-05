@@ -9,8 +9,16 @@ using SdWP.Frontend.Components;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
 using BlazorBootstrap;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -102,7 +110,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Wyst?pi? b??d podczas inicjalizacji bazy danych");
+        logger.LogError(ex, "An error occurred during database initialization.");
     }
 }
 

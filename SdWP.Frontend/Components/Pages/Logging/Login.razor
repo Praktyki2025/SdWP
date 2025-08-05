@@ -5,6 +5,8 @@
 @using SdWP.DTO.Responses
 @using System.Linq
 @using Microsoft.AspNetCore.Antiforgery;
+@using Serilog
+
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 @inject IHttpContextAccessor HttpContextAccessor
@@ -73,29 +75,38 @@
 
     private async Task HandleLogin()
     {
-        isLoading = true;
-        message = string.Empty;
-
-        var result = await JSRuntime.InvokeAsync<LoginResponseDTO>("apiLogin", loginModel);
-
-        if (result != null && result.Success)
+        try
         {
-            if (result.Roles.Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
+            isLoading = true;
+            message = string.Empty;
+
+            var result = await JSRuntime.InvokeAsync<LoginResponseDTO>("apiLogin", loginModel);
+
+            if (result != null && result.Success)
             {
-                Navigation.NavigateTo("/admin", forceLoad: true);
-            }
-            else if (result.Roles.Any(r => r.Equals("User", StringComparison.OrdinalIgnoreCase)))
-            {
-                Navigation.NavigateTo("/user", forceLoad: true);
+                if (result.Roles.Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
+                {
+                    Navigation.NavigateTo("/admin", forceLoad: true);
+                }
+                else if (result.Roles.Any(r => r.Equals("User", StringComparison.OrdinalIgnoreCase)))
+                {
+                    Navigation.NavigateTo("/user", forceLoad: true);
+                }
+                else
+                {
+                    Navigation.NavigateTo("/", forceLoad: true);
+                }
             }
             else
             {
-                Navigation.NavigateTo("/", forceLoad: true);
+                Log.Error($"[{DateTime.UtcNow}] Login failed for user {loginModel.Email} - {result?.Message ?? "Login failed. Please try again."}");
+                message = result?.Message ?? "Login failed. Please try again.";
+                isLoading = false;
             }
         }
-        else
+        catch (Exception ex)
         {
-            message = result?.Message ?? "Login failed. Please try again.";
+            Log.Error($"[{DateTime.UtcNow}] Error during login: {ex.Message}");
             isLoading = false;
         }
     }

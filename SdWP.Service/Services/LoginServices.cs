@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
-using Microsoft.AspNetCore.Http;
+using Serilog;
 
 namespace SdWP.Service.Services
 {
@@ -24,8 +26,9 @@ namespace SdWP.Service.Services
                 var user = await _userManager.FindByEmailAsync(dto.Email);
                 if (user == null)
                 {
+                    Log.Warning($"[{DateTime.UtcNow}] Login attempt with invalid email: {dto.Email}");
                     return ResultService<LoginResponseDTO>.BadResult(
-                        "Invalid email or password",
+                        "Invalid email",
                         StatusCodes.Status401Unauthorized
                     );
                 }
@@ -35,7 +38,6 @@ namespace SdWP.Service.Services
                 if (result.Succeeded)
                 {
                     var roles = await _userManager.GetRolesAsync(user);
-
                     return ResultService<LoginResponseDTO>.GoodResult(
                         "Login successful",
                         StatusCodes.Status200OK,
@@ -50,6 +52,10 @@ namespace SdWP.Service.Services
                         }
                     );
                 }
+                else
+                {
+                    Log.Warning($"[{DateTime.UtcNow}] Login failed for user: {dto.Email}. Result: {result.ToString()}");
+                }
 
                 return ResultService<LoginResponseDTO>.BadResult(
                     "Invalid email or password",
@@ -58,6 +64,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception ex)
             {
+                Log.Error($"[{DateTime.UtcNow}] Error: {ex.Message}");
                 return ResultService<LoginResponseDTO>.BadResult(
                     $"An error occurred during login: {ex.Message}",
                     StatusCodes.Status500InternalServerError
@@ -78,6 +85,8 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
+
+                Log.Error($"[{DateTime.UtcNow}] Error during logout: {e.Message}");
                 return ResultService<string>.BadResult(
                     $"An error occurred during logout: {e.Message}",
                     StatusCodes.Status500InternalServerError

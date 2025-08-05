@@ -4,6 +4,7 @@
 @using SdWP.DTO.Responses
 @using SdWP.DTO.Requests
 @using BlazorBootstrap
+@using Serilog
 
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
@@ -326,17 +327,18 @@ else
                     if (errorResponse?.Errors?.Any() == true)
                     {
                         message += "\nDetails: " + string.Join(", ", errorResponse.Errors);
+                        Log.Error($"[{DateTime.UtcNow}] Error during user list loading: {message}");
                     }
                 }
                 catch (Exception e)
                 {
-                    message = "Registration failed. Try again later";
+                    Log.Error($"[{DateTime.UtcNow}] Error during user list loading: {e.Message}");
                 }
             }
         }
         catch (Exception e)
         {
-            message = "Registration failed. Try again later";
+            Log.Error($"[{DateTime.UtcNow}] Error during user list loading: {e.Message}");
         }
     }
 
@@ -370,18 +372,19 @@ else
                     if (errorResponse?.Errors?.Any() == true)
                     {
                         message += "\nDetails: " + string.Join(", ", errorResponse.Errors);
+                        Log.Error($"[{DateTime.UtcNow}] Error during user deletion: {message}");
                     }
                 }
                 catch (Exception e)
                 {
-                    message = "Deleted user failed. Try again later";
+                    Log.Error($"[{DateTime.UtcNow}] Error during user deletion: {e.Message}");
                 }
             }
-            //RefreshDataTable();
+            RefreshDataTable();
         }
         catch (Exception e)
         {
-            message = "An error occurred while deleting the user.";
+            Log.Error($"[{DateTime.UtcNow}] Error during user deletion: {e.Message}");
         }
         finally
         {
@@ -466,13 +469,14 @@ else
                     if (errorResponse?.Errors?.Count > 0)
                     {
                         message += "\nDetails: " + string.Join(", ", errorResponse.Errors);
+                        Log.Error($"[{DateTime.UtcNow}] Error during user registration: {message}");
                     }
 
                     isRegisterSuccess = false;
                 }
                 catch (Exception e)
                 {
-                    message = "Registration failed. Try again later";
+                    Log.Error($"[{DateTime.UtcNow}] Error during user registration: {e.Message}");
                     isRegisterSuccess = false;
                 }
             }
@@ -481,7 +485,7 @@ else
         }
         catch (Exception e)
         {
-            message = $"An error occurred: {e.Message}";
+            Log.Error($"[{DateTime.UtcNow}] Error during user registration: {e.Message}");
             isRegisterSuccess = false;
         }
         finally
@@ -576,6 +580,7 @@ else
                     if (errorResponse?.Errors?.Count > 0)
                     {
                         editMessage += "\nDetails: " + string.Join(", ", errorResponse.Errors);
+                        Log.Error($"[{DateTime.UtcNow}] Error during user edit: {editMessage}");
                     }
                     isEditSuccess = false;
                 }
@@ -588,7 +593,7 @@ else
         }
         catch (Exception e)
         {
-            editMessage = $"An error occurred: {e.Message}";
+            Log.Error($"[{DateTime.UtcNow}] Error during user edit: {e.Message}");
             isEditSuccess = false;
         }
         finally
@@ -615,9 +620,9 @@ else
         {
             await JSRuntime.InvokeVoidAsync("initDataTable.destroy", "userTable");
         }
-        catch
+        catch (Exception e)
         {
-            //
+            Log.Error($"[{DateTime.UtcNow}] Error during DataTable initialization: {e.Message}");
         }
 
         await JSRuntime.InvokeVoidAsync("initDataTable.initialize", "userTable");

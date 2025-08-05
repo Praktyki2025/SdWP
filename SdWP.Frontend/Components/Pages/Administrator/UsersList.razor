@@ -586,7 +586,7 @@ else
                 }
                 catch (Exception e)
                 {
-                    editMessage = "Update failed. Try again later";
+                    Log.Error($"[{DateTime.UtcNow}] User update failed: {e.Message}");
                     isEditSuccess = false;
                 }
             }

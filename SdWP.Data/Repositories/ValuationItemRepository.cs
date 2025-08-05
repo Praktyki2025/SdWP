@@ -43,8 +43,9 @@ namespace SdWP.Data.Repositories
         }
 
         /*  public async Task<ValuationItem?> GetValuationItemByIdAsync(Guid id)
-          {
-              return await _context.ValuationItems.FindAsync(id);
+        {
+            return await _context.ValuationItems.FindAsync(id);
+        }
 
         => uzywac jak zwraca jeden return + "vi" - zmienna pomocnicza 
 

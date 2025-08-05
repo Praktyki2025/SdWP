@@ -18,6 +18,7 @@ namespace SdWP.API.Controllers
             _valuationItemService = valuationItemService;
         }
 
+
         private ActionResult HandleResult<T>(ResultService<T> result)
         {
             if (!result.Success)
@@ -33,6 +34,7 @@ namespace SdWP.API.Controllers
             }
             return StatusCode(result.StatusCode, result.Data);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> GetAllValuationItems()

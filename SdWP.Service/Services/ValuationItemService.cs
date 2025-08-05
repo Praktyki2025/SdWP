@@ -135,6 +135,7 @@ namespace SdWP.Service.Services
                     StatusCodes.Status500InternalServerError);
             }
         }
+
         public async Task<ResultService<ValuationItemResponse>> UpdateValuationItemAsync(UpdateValuationItemRequest request)
         {
             try

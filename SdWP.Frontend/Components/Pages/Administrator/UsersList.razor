@@ -377,7 +377,7 @@ else
                     message = "Deleted user failed. Try again later";
                 }
             }
-            //RefreshDataTable();
+            RefreshDataTable();
         }
         catch (Exception e)
         {
@@ -620,6 +620,8 @@ else
             //
         }
 
+        StateHasChanged();
+        await Task.Delay(100);
         await JSRuntime.InvokeVoidAsync("initDataTable.initialize", "userTable");
     }
 

@@ -64,6 +64,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ILoginService, LoginServices>();
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<ErrorLogRepository>();
+builder.Services.AddScoped<IErrorLogServices, ErrorLogServices>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 builder.Services.AddHttpClient();

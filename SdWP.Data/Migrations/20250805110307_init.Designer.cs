@@ -12,8 +12,8 @@ using SdWP.Data.Context;
 namespace SdWP.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250724145332_Init")]
-    partial class Init
+    [Migration("20250805110307_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -206,6 +206,10 @@ namespace SdWP.Data.Migrations
 
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("TypeOfLog")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");

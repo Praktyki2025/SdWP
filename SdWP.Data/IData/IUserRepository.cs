@@ -2,7 +2,7 @@
 
 namespace SdWP.Data.IData
 {
-    internal interface IUserRepository
+    public interface IUserRepository
     {
         Task<User?> GetByUsernameAsync(string username);
         Task<bool> IsUsernameAvailableAsync(string username, string password);

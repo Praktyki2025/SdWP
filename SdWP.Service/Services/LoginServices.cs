@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
 using SdWP.Data.Models;
+using SdWP.Data.Repositories;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
+using SdWP.Service.Enums;
 using SdWP.Service.IServices;
 using Serilog;
 
@@ -13,10 +14,17 @@ namespace SdWP.Service.Services
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        public LoginServices(UserManager<User> userManager, SignInManager<User> signInManager)
+        private readonly IErrorLogServices _errorLogServices;
+        private string message = string.Empty;
+
+        public LoginServices(
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
+            IErrorLogServices errorLogServices)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _errorLogServices = errorLogServices;
         }
 
         public async Task<ResultService<LoginResponseDTO>> HandleLoginAsync(LoginRequestDTO dto)
@@ -26,11 +34,24 @@ namespace SdWP.Service.Services
                 var user = await _userManager.FindByEmailAsync(dto.Email);
                 if (user == null)
                 {
-                    Log.Warning($"[{DateTime.UtcNow}] Login attempt with invalid email: {dto.Email}");
-                    return ResultService<LoginResponseDTO>.BadResult(
-                        "Invalid email",
-                        StatusCodes.Status401Unauthorized
-                    );
+                    message = $"[{DateTime.UtcNow}] Login attempt with invalid email: {dto.Email}";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponseDTO
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "LoginServices.HandleLoginAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLogEnum.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<LoginResponseDTO>.BadResult(
+                            message,
+                            StatusCodes.Status401Unauthorized
+                        ));
                 }
 
                 var result = await _signInManager.PasswordSignInAsync(user, dto.Password, isPersistent: true, lockoutOnFailure: false);
@@ -54,7 +75,21 @@ namespace SdWP.Service.Services
                 }
                 else
                 {
-                    Log.Warning($"[{DateTime.UtcNow}] Login failed for user: {dto.Email}. Result: {result.ToString()}");
+                    message = $"[{DateTime.UtcNow}] Login failed for user: {dto.Email}. Result: {result.ToString()}";
+
+                    Log.Error(message);
+
+                    var errorLogDTO = new ErrorLogResponseDTO
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "LoginServices.HandleLoginAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLogEnum.Error
+                    };
+
+                    await _errorLogServices.LoggEvent(errorLogDTO);
                 }
 
                 return ResultService<LoginResponseDTO>.BadResult(
@@ -62,13 +97,26 @@ namespace SdWP.Service.Services
                     StatusCodes.Status401Unauthorized
                 );
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Log.Error($"[{DateTime.UtcNow}] Error: {ex.Message}");
-                return ResultService<LoginResponseDTO>.BadResult(
-                    $"An error occurred during login: {ex.Message}",
-                    StatusCodes.Status500InternalServerError
-                );
+                message = $"[{DateTime.UtcNow}] Error: {e.Message}";
+                Log.Error(message);
+
+                var errorLogDTO = new ErrorLogResponseDTO
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = "LoginServices.HandleLoginAsync",
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLogEnum.Error
+                };
+
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith (_ => ResultService<LoginResponseDTO>.BadResult(
+                        message,
+                        StatusCodes.Status500InternalServerError
+                    ));
             }
         }
 
@@ -76,8 +124,6 @@ namespace SdWP.Service.Services
         {
             try
             {
-                await _signInManager.SignOutAsync();
-
                 return ResultService<string>.GoodResult(
                     "Logout successful",
                     StatusCodes.Status200OK
@@ -85,12 +131,23 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
+                message = $"[{DateTime.UtcNow}] Error during logout: {e.Message}";
+                Log.Error(message);
+                var errorLogDTO = new ErrorLogResponseDTO
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = "LoginServices.HandleLogoutAsync",
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLogEnum.Error
+                };
 
-                Log.Error($"[{DateTime.UtcNow}] Error during logout: {e.Message}");
-                return ResultService<string>.BadResult(
-                    $"An error occurred during logout: {e.Message}",
-                    StatusCodes.Status500InternalServerError
-                );
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<string>.BadResult(
+                        message,
+                        StatusCodes.Status500InternalServerError
+                    ));
             }
         }
     }

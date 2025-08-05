@@ -1,12 +1,13 @@
-﻿using System;
+﻿using SdWP.Service.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SdWP.Data.Models
+namespace SdWP.DTO.Responses
 {
-    public class ErrorLog
+    public class ErrorLogResponseDTO
     {
         public Guid Id { get; set; }
         public string Message { get; set; }
@@ -15,8 +16,6 @@ namespace SdWP.Data.Models
         public DateTime TimeStamp { get; set; }
         public Guid? UserId { get; set; }
 
-        public string TypeOfLog { get; set; }
-        public virtual User User { get; set; }
-
+       public TypeOfLogEnum TypeOfLog { get; set; }
     }
 }

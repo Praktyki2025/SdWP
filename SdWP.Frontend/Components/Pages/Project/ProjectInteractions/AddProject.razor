@@ -1,0 +1,64 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
+@using SdWP.Data.Models;
+@using SdWP.Service.IServices
+@using SdWP.DTO.Requests;
+@using SdWP.DTO.Responses;
+@inject IProjectService ProjectService
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ToastService ToastService
+@attribute [Authorize]
+
+@page "/projects/add"
+@rendermode InteractiveServer
+
+<PageTitle>Add Project</PageTitle>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-danger" role="alert">
+        @message
+    </div>
+}
+    
+<EditForm Model="project" OnValidSubmit="AddProjectToDbAsync" FormName="AddProjectForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="alert alert-danger" />
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="titleInput" class="form-label">Title</label>
+            <InputText id="titleInput" class="form-control" @bind-Value="project.Title" placeholder="Title"/>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="descriptionInput" class="form-label">Description</label>
+            <InputText id="descriptionInput" class="form-control" @bind-Value="project.Description" placeholder="Description" />
+        </div>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Confrim</button>
+</EditForm>
+
+@code {
+    private string message = string.Empty;
+    private ProjectUpsertRequestDTO project = new ProjectUpsertRequestDTO();
+
+    private async Task AddProjectToDbAsync()
+    {
+        var response = await ProjectService.CreateProjectAsync(project);
+
+        if (response != null && response.Success)
+        {
+            ToastService.Notify(new ToastMessage(response.Success && response.Message != null ? ToastType.Success :
+                ToastType.Secondary, response.Data.Message));
+            Navigation.NavigateTo("/projects", true);
+        }
+        else
+        {
+			message = response?.Message ?? "Adding the project failed. Try again.";
+        }
+    }
+}

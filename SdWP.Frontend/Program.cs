@@ -7,13 +7,20 @@ using SdWP.Data.Models;
 using SdWP.Frontend.Components;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
+using SdWP.Data.IData;
+using SdWP.Data.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddBlazorBootstrap();
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient("ApiClient", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5267/");
+});
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -72,6 +79,12 @@ builder.Services.AddScoped<HttpClient>(sp =>
 
     return httpClient;
 });
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -101,9 +114,9 @@ using (var scope = app.Services.CreateScope())
 
 
 app.UseStaticFiles();
-app.UseRouting();
 
 app.UseAuthentication();
+app.UseRouting();
 app.UseAuthorization();
 
 app.UseAntiforgery();

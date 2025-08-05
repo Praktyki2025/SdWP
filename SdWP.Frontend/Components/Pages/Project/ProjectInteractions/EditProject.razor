@@ -1,0 +1,84 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using SdWP.DTO.Requests
+@using SdWP.Service.IServices
+@using SdWP.DTO.Responses
+@inject IHttpClientFactory HttpClientFactory
+@inject IProjectService ProjectService
+
+@page "/projects/edit"
+
+@attribute [StreamRendering]
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Edit Project</PageTitle>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-danger" role="alert">
+        @message
+    </div>
+}
+
+<EditForm Model="project" OnValidSubmit="EditProjectToDbAsync" FormName="EditProjectForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="alert alert-danger" />
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="titleInput" class="form-label">Title</label>
+            <InputText id="titleInput" class="form-control" @bind-Value="project.Title" placeholder="Title" />
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="descriptionInput" class="form-label">Description</label>
+            <InputText id="descriptionInput" class="form-control" @bind-Value="project.Description" placeholder="Description" />
+        </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Apply</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? id { get; set; }
+    private string message = string.Empty;
+    private bool _initialized = false;
+
+    [Inject] protected ToastService ToastService { get; set; } = default!;
+    [Inject] NavigationManager Navigation { get; set; } = default!;
+    private HttpClient Http => HttpClientFactory.CreateClient("ApiClient");
+
+    private ProjectUpsertRequestDTO project = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(id) && Guid.TryParse(id, out var guid))
+        {
+            project.Id = guid;
+            var loadedProject = await ProjectService.GetByIdAsync(guid);
+            if (loadedProject.Success)
+            {
+                project = loadedProject.Data.MapToRequest();
+            }
+        }
+    }
+
+    private async Task EditProjectToDbAsync()
+    {
+        var response = await ProjectService.EditProjectAsync(project);
+
+        if (response != null && response.Success)
+        {
+            ToastService.Notify(new ToastMessage(response.Success && response.Message != null ? ToastType.Success :
+                ToastType.Secondary, response.Data.Message));
+            Navigation.NavigateTo("/projects", true);
+        }
+        else
+        {
+            message = response?.Message ?? "Editing the project failed. Try again.";
+        }
+    }
+
+}

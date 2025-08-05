@@ -1,16 +1,28 @@
-﻿using SdWP.Data.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using SdWP.Data.Models;
+using SdWP.DTO.Requests.Datatable;
+using SdWP.DTO.Responses;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SdWP.Data.IData
 {
+    public enum UserRole
+    {
+        Unknown,
+        Admin,
+        User
+    }
+
     public interface IProjectRepository
     {
-        Task<Project> AddProjectAsync(Project project);
-        Task<Project> UpdateProjectAsync(Project project);
-        Task DeleteProjectAsync(Guid id);
-        Task<Project?> GetProjectByIdAsync(Guid id);
-        Task<List<Project>> GetAllProjectsAsync();
-        Task<List<Project>> GetProjectsByCreatorUserIdAsync(Guid userId);
+        Task AddAsync(Project project);
+        Task<Project?> GetByIdAsync(Guid id);
+        Task UpdateAsync(Project project);
+        Task DeleteAsync(Guid id);
+        Task<ProjectListResponse<ProjectUpsertResponseDTO>> FilterAsync(DataTableRequest request, UserRole userRole, Guid userId);
     }
 }

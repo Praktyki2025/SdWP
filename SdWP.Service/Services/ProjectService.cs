@@ -8,9 +8,10 @@ using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
 using System.Linq.Expressions;
 using System.Security.Claims;
-using SdWP.Data.Interfaces;
 using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
+using SdWP.Data.IData;
+using SdWP.DTO.Requests.Datatable;
 
 namespace SdWP.Service.Services
 {
@@ -70,6 +71,7 @@ namespace SdWP.Service.Services
                 );
             }
         }
+        
         public async Task<ResultService<ProjectUpsertResponseDTO>> EditProjectAsync(ProjectUpsertRequestDTO project)
         {
             try
@@ -222,73 +224,33 @@ namespace SdWP.Service.Services
             {
                 var user = _httpContextAccessor.HttpContext?.User;
                 var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                List<Project>? projects = await _projectRepository.GetAllAsync();
-
-                if (!user.IsInRole("Admin"))
-                {
-                    projects = projects.Where(p => p.CreatorUserId == Guid.Parse(userId)).ToList();
-                }
-
+                
                 if (user == null || !user.Identity.IsAuthenticated)
                 {
                     return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.BadResult(
-                    message: "You are not authenticated",
+                    message: "You are not authorized.",
                     statusCode: StatusCodes.Status401Unauthorized
                     );
                 }
 
-                if (!string.IsNullOrWhiteSpace(request.search?.value))
+                ProjectListResponse<ProjectUpsertResponseDTO> projects;
+                if (user.IsInRole("Admin"))
                 {
-                    string searchLower = request.search.value.ToLower();
-                    projects = projects.Where(p =>
-                        (!string.IsNullOrEmpty(p.Title) && p.Title.ToLower().Contains(searchLower)) ||
-                        (!string.IsNullOrEmpty(p.Description) && p.Description.ToLower().Contains(searchLower))
-                    ).ToList();
+                    projects = _projectRepository.FilterAsync(request, userRole: UserRole.Admin, Guid.Parse(userId)).Result;
                 }
-
-                //sorting
-                if (request.order != null && request.order.Count > 0)
+                else if (user.IsInRole("User"))
                 {
-                    var order = request.order[0];
-                    bool ascending = order.dir == "asc";
-                    string? sortColumn = null;
-                    if (request.columns != null && request.columns.Count > order.column)
-                    {
-                        sortColumn = request.columns[order.column].data;
-                    }
-
-                    if (!string.IsNullOrEmpty(sortColumn))
-                    {
-                        projects = ApplyOrdering(projects, sortColumn, ascending);
-                    }
+                    projects = _projectRepository.FilterAsync(request, userRole: UserRole.User, Guid.Parse(userId)).Result;
                 }
-
-                var totalRecords = projects.Count();
-
-                var data = projects
-                    .Skip(request.start)
-                    .Take(request.length)
-                    .Select(project => new ProjectUpsertResponseDTO
-                    {
-                        Id = project.Id,
-                        Title = project.Title,
-                        Description = project.Description,
-                        CreatedAt = project.CreatedAt,
-                        LastModified = project.LastModified,         
-                    })
-                    .ToList();
-
-                var projectListResponse = new ProjectListResponse<ProjectUpsertResponseDTO>
+                else
                 {
-                    Projects = data,
-                    TotalCount = totalRecords,
-                    HasMore = request.start + request.length < totalRecords
-                };
+                    projects = _projectRepository.FilterAsync(request, userRole: UserRole.Unknown, Guid.Parse(userId)).Result;
+                }
 
                 return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.GoodResult(
                     message: "Projects retrieved successfully",
                     statusCode: StatusCodes.Status200OK,
-                    data: projectListResponse
+                    data: projects
                     );
             }
             catch (Exception ex)
@@ -298,30 +260,6 @@ namespace SdWP.Service.Services
                     StatusCodes.Status500InternalServerError
                 );
             }
-        }
-
-        //sorting fn
-        private List<Project> ApplyOrdering(List<Project> source, string propertyName, bool ascending)
-        {
-            if (source == null || string.IsNullOrWhiteSpace(propertyName))
-                return source ?? new List<Project>();
-
-            propertyName = FirstCharToUpper(propertyName);
-
-            var propInfo = typeof(Project).GetProperty(propertyName);
-            if (propInfo == null)
-                return source;
-
-            return ascending
-                ? source.OrderBy(x => propInfo.GetValue(x, null)).ToList()
-                : source.OrderByDescending(x => propInfo.GetValue(x, null)).ToList();
-        }
-
-        public static string FirstCharToUpper(string input)
-        {
-            if (string.IsNullOrEmpty(input))
-                return input;
-            return char.ToUpper(input[0]) + input.Substring(1);
         }
     }
 }

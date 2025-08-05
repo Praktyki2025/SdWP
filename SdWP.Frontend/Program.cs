@@ -7,7 +7,8 @@ using SdWP.Data.Models;
 using SdWP.Frontend.Components;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
-using SdWP.Data.Interfaces;
+using SdWP.Data.IData;
+using SdWP.Data.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 

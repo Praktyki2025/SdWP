@@ -15,14 +15,24 @@
 
 @code {
     private string? adminName;
+    private bool _isInvoke = true;
 
     protected override async Task OnInitializedAsync()
     {
+        OnAfterRenderAsync(_isInvoke);
         var authState = await Auth.GetAuthenticationStateAsync();
         var user = authState.User;
         if (user.Identity?.IsAuthenticated ?? false)
         {
             adminName = user.Identity.Name ?? "admin";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initDataTable.destroy", "userTable");
         }
     }
 }

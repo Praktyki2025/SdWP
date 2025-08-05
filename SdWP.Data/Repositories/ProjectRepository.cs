@@ -5,6 +5,7 @@ using SdWP.Data.IData;
 using SdWP.Data.Models;
 using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
+using System.Linq.Dynamic.Core;
 
 namespace SdWP.Data.Repositories
 {
@@ -42,24 +43,23 @@ namespace SdWP.Data.Repositories
             }
         }
 
-        public Task<ProjectListResponse<ProjectUpsertResponseDTO>> FilterAsync(DataTableRequest request, UserRole userRole, Guid userId)
+        public async Task<ProjectListResponse<ProjectUpsertResponseDTO>> FilterAsync(DataTableRequest request, UserRole userRole, Guid userId)
         {
-            List<Project> projects;
+            IQueryable<Project> projects;
             switch (userRole)
             {
                 case UserRole.Admin:
                     projects = _context.Projects
-                        .ToList();
+                        .AsQueryable();
                     break;
 
                 case UserRole.User:
                     projects = _context.Projects
-                        .Where(p => p.CreatorUserId == userId)
-                        .ToList();
+                        .Where(p => p.CreatorUserId == userId).AsQueryable();
                     break;
                 case UserRole.Unknown:
                 default:
-                    projects = []; // ?
+                    projects = Enumerable.Empty<Project>().AsQueryable();
                     break;
             }
 
@@ -69,7 +69,7 @@ namespace SdWP.Data.Repositories
                 projects = projects.Where(p =>
                     (!string.IsNullOrEmpty(p.Title) && p.Title.ToLower().Contains(searchLower)) ||
                     (!string.IsNullOrEmpty(p.Description) && p.Description.ToLower().Contains(searchLower))
-                ).ToList();
+                );
             }
 
             var totalRecords = projects.Count();
@@ -91,7 +91,7 @@ namespace SdWP.Data.Repositories
                 }
             }
 
-            var data = projects
+            var data = await projects.AsNoTracking()
                 .Skip(request.start)
                 .Take(request.length)
                 .Select(project => new ProjectUpsertResponseDTO
@@ -102,7 +102,7 @@ namespace SdWP.Data.Repositories
                     CreatedAt = project.CreatedAt,
                     LastModified = project.LastModified,
                 })
-                .ToList();
+                .ToListAsync();
 
             var projectListResponse = new ProjectListResponse<ProjectUpsertResponseDTO>
             {
@@ -110,24 +110,14 @@ namespace SdWP.Data.Repositories
                 TotalCount = totalRecords,
                 HasMore = request.start + request.length < totalRecords
             };
-            return Task.FromResult(projectListResponse);
+            return projectListResponse;
         }
 
         //sorting fn
-        private List<Project> ApplyOrdering(List<Project> source, string propertyName, bool ascending)
+        private IQueryable<Project> ApplyOrdering(IQueryable<Project> query, string sortColumn, bool ascending)
         {
-            if (source == null || string.IsNullOrWhiteSpace(propertyName))
-                return source ?? new List<Project>();
-
-            propertyName = FirstCharToUpper(propertyName);
-
-            var propInfo = typeof(Project).GetProperty(propertyName);
-            if (propInfo == null)
-                return source;
-
-            return ascending
-                ? source.OrderBy(x => propInfo.GetValue(x, null)).ToList()
-                : source.OrderByDescending(x => propInfo.GetValue(x, null)).ToList();
+            var direction = ascending ? "ascending" : "descending";
+            return query.OrderBy($"{sortColumn} {direction}");
         }
 
         public static string FirstCharToUpper(string input)

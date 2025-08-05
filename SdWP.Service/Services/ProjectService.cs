@@ -224,7 +224,7 @@ namespace SdWP.Service.Services
             {
                 var user = _httpContextAccessor.HttpContext?.User;
                 var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                
+
                 if (user == null || !user.Identity.IsAuthenticated)
                 {
                     return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.BadResult(
@@ -234,18 +234,17 @@ namespace SdWP.Service.Services
                 }
 
                 ProjectListResponse<ProjectUpsertResponseDTO> projects;
+                UserRole role = UserRole.Unknown;
                 if (user.IsInRole("Admin"))
                 {
-                    projects = _projectRepository.FilterAsync(request, userRole: UserRole.Admin, Guid.Parse(userId)).Result;
+                    role = UserRole.Admin;
                 }
                 else if (user.IsInRole("User"))
                 {
-                    projects = _projectRepository.FilterAsync(request, userRole: UserRole.User, Guid.Parse(userId)).Result;
+                    role = UserRole.User;
                 }
-                else
-                {
-                    projects = _projectRepository.FilterAsync(request, userRole: UserRole.Unknown, Guid.Parse(userId)).Result;
-                }
+
+                projects = await _projectRepository.FilterAsync(request, role, Guid.Parse(userId));
 
                 return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.GoodResult(
                     message: "Projects retrieved successfully",

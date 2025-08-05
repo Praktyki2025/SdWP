@@ -33,8 +33,14 @@ window.projectsEvents = {
         });
 
         $(`${tableSelector} tbody`).on('click', 'tr', function (e) {
+            e.preventDefault();
+            if ($(this).find('td').hasClass('dataTables_empty')) {
+                return;
+            }
+            const id = $(this).data('id');
             if ($(e.target).closest('.dropdown, .dropdown-menu').length === 0) {
-                window.location.href = '/projects/valuations';
+                //window.location.href = `/projects/valutaions?id=${id}`;
+                window.location.href = `/projects/valutaions`;
             }
         });
     }

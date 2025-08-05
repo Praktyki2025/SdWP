@@ -244,6 +244,14 @@ namespace SdWP.Service.Services
                     role = UserRole.User;
                 }
 
+                if(role == UserRole.Unknown)
+                {
+                    return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.BadResult(
+                        message: "You don't have permissions to view projects.",
+                        statusCode: StatusCodes.Status403Forbidden
+                    );
+                }
+
                 projects = await _projectRepository.FilterAsync(request, role, Guid.Parse(userId));
 
                 return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.GoodResult(

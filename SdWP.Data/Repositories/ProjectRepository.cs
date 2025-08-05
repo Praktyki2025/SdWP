@@ -52,15 +52,18 @@ namespace SdWP.Data.Repositories
                     projects = _context.Projects
                         .AsQueryable();
                     break;
-
                 case UserRole.User:
                     projects = _context.Projects
                         .Where(p => p.CreatorUserId == userId).AsQueryable();
                     break;
                 case UserRole.Unknown:
                 default:
-                    projects = Enumerable.Empty<Project>().AsQueryable();
-                    break;
+                    return new ProjectListResponse<ProjectUpsertResponseDTO>()
+                    {
+                        Projects = [],
+                        TotalCount = 0,
+                        HasMore = false
+                    };
             }
 
             if (!string.IsNullOrWhiteSpace(request.search?.value))
@@ -73,6 +76,7 @@ namespace SdWP.Data.Repositories
             }
 
             var totalRecords = projects.Count();
+            Console.WriteLine($"Size - {projects.Count()}");
 
             //sorting
             if (request.order != null && request.order.Count > 0)

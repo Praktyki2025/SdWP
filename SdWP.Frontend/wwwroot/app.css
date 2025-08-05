@@ -54,7 +54,8 @@ h1:focus {
     margin: 12px;
 }
 
-#projectsViewTable tbody tr:hover {
+
+#projectsViewTable tbody tr:hover:not(:has(td.dataTables_empty)) {
     cursor: pointer;
     background-color: #f0f8ff;
 }

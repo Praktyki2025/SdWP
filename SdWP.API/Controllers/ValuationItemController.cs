@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SdWP.DTO.Requests;
 using SdWP.Service.IServices;
-using SdWP.Service.Services; 
+using SdWP.Service.Services;
 
 namespace SdWP.API.Controllers
 {
@@ -77,9 +77,11 @@ namespace SdWP.API.Controllers
         public async Task<IActionResult> DeleteValuationItem(Guid id)
         {
             var result = await _valuationItemService.DeleteValuationItemAsync(id);
-            
-            if (result.Success) return Ok(new { result.Message });
-            return StatusCode(result.StatusCode, new { result.Message });
+            if (!result.Success)
+            {
+                return StatusCode(result.StatusCode, new { result.Message });
+            }
+            return Ok(new { result.Message });
         }
     }
 }

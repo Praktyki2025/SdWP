@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using SdWP.Data.Context;
 using SdWP.Data.Models;
+using SdWP.DTO.Requests.Datatable;
+using SdWP.DTO.Responses;
+using System.Linq.Dynamic.Core;
 
 namespace SdWP.Data.Repositories
 {
@@ -282,24 +285,115 @@ namespace SdWP.Data.Repositories
             return users;
         }
 
-        public async Task<List<(User user, List<string> Roles)>> GetUserRoleAsync(CancellationToken cancellationToken)
+        public async Task<List<(User user, List<string> Roles)>> GetUserRoleAsync(DataTableRequestDTO request ,CancellationToken cancellationToken)
         {
-            var users = await _context.Users.ToListAsync(cancellationToken);
-            var userRoles = await  _context.UserRoles.ToListAsync(cancellationToken);
-            var roles = await _context.Roles.ToListAsync(cancellationToken);
+            IQueryable<User> users = _context.Users.AsQueryable();
 
-            var result = users.Select(u =>
+            if (!string.IsNullOrEmpty(request.search.value))
             {
-                var roleForUser = userRoles
-                .Where(ur => ur.UserId == u.Id)
-                .Select(ur => roles.FirstOrDefault(r => r.Id == ur.RoleId)?.Name)
-                .Where(r => r != null)
-                .ToList()!;
+                var searchValue = request.search.value.ToLower();
+                users = users.Where(u => u.UserName.ToLower().Contains(searchValue) || 
+                                         u.Email.ToLower().Contains(searchValue));
+            }
 
-                return (u, roleForUser!);
-            }).ToList();
+            if (request.order != null && request.order.Count > 0)
+            {
+                var orderColumn = request.order[0];
+                bool ascending = orderColumn.dir == "asc";
+                string? sortColumn = null;
+                if (request.columns != null && request.columns.Count > orderColumn.column) 
+                    sortColumn = request.columns[orderColumn.column].data;
+                if (!string.IsNullOrEmpty(sortColumn)) 
+                    users = ApplyOrdering(users, sortColumn, ascending);
+            }
+            else
+            {
+                users = users.OrderBy(u => u.UserName);
+            }
 
-            return result;
+            users = users
+                .Skip(request.start)
+                .Take(request.length);
+
+            var userList = await users.AsNoTracking()
+                .Select(u => new
+                {
+                    User = u,
+                    Roles = _context.UserRoles
+                        .Where(ur => ur.UserId == u.Id)
+                        .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
+                        .Where(role => role != null)
+                        .Select(role => role.Name)
+                        .ToList()
+                })
+                .ToListAsync(cancellationToken);
+
+            return userList
+                .Select(u => (u.User, u.Roles))
+                .ToList();
+
         }
+
+        public async Task<UserListResponseDTO> FiltredAsync(DataTableRequestDTO request, Guid userId)
+        {
+            IQueryable<User> users;
+
+            users = _context.Users.AsQueryable();
+            
+            if (!string.IsNullOrEmpty(request.search.value))
+            {
+                var searchValue = request.search.value.ToLower();
+                users = users.Where(u => u.UserName.ToLower().Contains(searchValue) || 
+                                         u.Email.ToLower().Contains(searchValue));
+            }
+
+            var totalRecords = await users.CountAsync();
+            if (request.order != null && request.order.Count > 0)
+            {
+                var orderColumn = request.order[0];
+                bool ascending = orderColumn.dir == "asc";
+                string? sortColumn = null;
+                if (request.columns != null && request.columns.Count > orderColumn.column) sortColumn = request.columns[orderColumn.column].data;
+
+                if (!string.IsNullOrEmpty(sortColumn)) users = ApplyOrdering(users, sortColumn, ascending);
+            }
+
+            var data = await users.AsNoTracking()
+                .Skip(request.start)
+                .Take(request.length)
+                .Select(u => new UserListResponseDTO
+                {
+                    Id = u.Id,
+                    Name = u.UserName,
+                    Email = u.Email,
+                    CreatedAt = u.CreatedAt,
+                    Roles = _context.UserRoles
+                        .Where(ur => ur.UserId == u.Id)
+                        .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
+                        .Where(role => role != null)
+                        .Select(role => role.Name)
+                        .ToList()!
+                })
+                .ToListAsync();
+
+            var firstUser = data.FirstOrDefault();
+
+            var response = new UserListResponseDTO
+            {
+                Id = firstUser.Id,
+                Email = firstUser?.Email ?? string.Empty,
+                Name = firstUser?.Name,
+                Roles = firstUser?.Roles ?? new List<string>(),
+                CreatedAt = firstUser?.CreatedAt,
+                Success = true
+            };
+
+            return response;
+        }
+
+        private IQueryable<User> ApplyOrdering(IQueryable<User> query, string sortColumn, bool ascending)
+            => query.OrderBy($"{sortColumn} {(ascending ? "ascending" : "descending")}");
+
+
     }
 }

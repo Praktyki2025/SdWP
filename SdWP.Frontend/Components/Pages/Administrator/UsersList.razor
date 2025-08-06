@@ -23,7 +23,7 @@
     </div>
 }
 
-@if (users == null)
+@if (users == null || users.Count <= 0)
 {
     <div class="alert alert-info" role="alert">
         Loading...
@@ -290,6 +290,15 @@ else
     private bool _dataTableInitialized = false;
 
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender && !_dataTableInitialized)
+        {
+            await RefreshDataTable();
+            _dataTableInitialized = true;
+        })
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await LoadUserList();
@@ -301,8 +310,22 @@ else
     {
         try
         {
-            var response = await Http.GetAsync("api/admin/user/list");
+            var request = new
+            {
+                start = 0,
+                length = 1000, 
+                search = new { value = "", regex = false },
+                order = new[] { new { column = 0, dir = "asc" } }, 
+                columns = new[]
+                {
+                new { data = "name", searchable = true, orderable = true, search = new { value = "", regex = false } },
+                new { data = "email", searchable = true, orderable = true, search = new { value = "", regex = false } },
+                new { data = "roles", searchable = false, orderable = false, search = new { value = "", regex = false } },
+                new { data = "createdAt", searchable = false, orderable = true, search = new { value = "", regex = false } }
+            }
+            };
 
+            var response = await Http.PostAsJsonAsync("api/admin/user/list", request);
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
@@ -330,13 +353,13 @@ else
                 }
                 catch (Exception e)
                 {
-                    message = "Registration failed. Try again later";
+                    message = "Loading users failed. Try again later";
                 }
             }
         }
         catch (Exception e)
         {
-            message = "Registration failed. Try again later";
+            message = "Loading users failed. Try again later";
         }
     }
 
@@ -377,7 +400,7 @@ else
                     message = "Deleted user failed. Try again later";
                 }
             }
-            RefreshDataTable();
+            await RefreshDataTable();
         }
         catch (Exception e)
         {
@@ -487,7 +510,7 @@ else
         finally
         {
             StateHasChanged();
-            //await RefreshDataTable();
+            await RefreshDataTable();
         }
     }
 

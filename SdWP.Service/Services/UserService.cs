@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using SdWP.Data.Models;
 using SdWP.Data.Repositories;
 using SdWP.DTO.Requests;
+using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
 
@@ -130,11 +131,11 @@ namespace SdWP.Service.Services
             }
         }
 
-        public async Task<ResultService<List<UserListResponseDTO>>> GetUserListAsync()
+        public async Task<ResultService<List<UserListResponseDTO>>> GetUserListAsync(DataTableRequestDTO request)
         {
             try
             {
-                var users = await _userRepository.GetUserRoleAsync(CancellationToken.None);
+                var users = await _userRepository.GetUserRoleAsync(request ,CancellationToken.None);
 
                 if (users == null)
                 {

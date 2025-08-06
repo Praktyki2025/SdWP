@@ -1,4 +1,7 @@
 ﻿using SdWP.Data.Models;
+using SdWP.DTO.Responses;
+using SdWP.DTO.Requests.Datatable;
+using SdWP.Data.Repositories;
 
 namespace SdWP.Data.IData
 {
@@ -6,5 +9,7 @@ namespace SdWP.Data.IData
     {
         Task<User?> GetByUsernameAsync(string username);
         Task<bool> IsUsernameAvailableAsync(string username, string password);
+
+        Task<UserListResponseDTO> FiltredAsync(DataTableRequestDTO request, UserRepository userRole, Guid userId);
     }
 }

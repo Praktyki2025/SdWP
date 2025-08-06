@@ -1,4 +1,4 @@
-﻿namespace SdWP.DTO.Enums
+﻿namespace SdWP.Frontend.Enum
 {
     public enum TypeOfLogEnum
     {

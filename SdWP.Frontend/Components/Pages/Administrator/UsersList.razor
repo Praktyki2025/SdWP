@@ -5,6 +5,8 @@
 @using SdWP.DTO.Requests
 @using BlazorBootstrap
 @using Serilog
+@using SdWP.Frontend.Enum
+@using SdWP.Frontend.Functions
 
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
@@ -327,18 +329,30 @@ else
                     if (errorResponse?.Errors?.Any() == true)
                     {
                         message += "\nDetails: " + string.Join(", ", errorResponse.Errors);
-                        Log.Error($"[{DateTime.UtcNow}] Error during user list loading: {message}");
+                        await SendLogToDatabase.SendLogAsync(
+                            $"Error during show user list: {message}",
+                            "Unknow",
+                            "Client/UserList/LoadUserList",
+                            TypeOfLogEnum.Error);
                     }
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"[{DateTime.UtcNow}] Error during user list loading: {e.Message}");
+                    await SendLogToDatabase.SendLogAsync(
+                        $"Error during user list loading: {e.Message}",
+                        e.StackTrace ?? "Unknow",
+                        e.Source ?? "Client/Login/HandleLogin",
+                        TypeOfLogEnum.Error);
                 }
             }
         }
         catch (Exception e)
         {
-            Log.Error($"[{DateTime.UtcNow}] Error during user list loading: {e.Message}");
+            await SendLogToDatabase.SendLogAsync(
+                $"Error during user list loading: {e.Message}",
+                e.StackTrace ?? "Unknow",
+                e.Source ?? "Client/Login/HandleLogin",
+                TypeOfLogEnum.Error);
         }
     }
 
@@ -372,19 +386,32 @@ else
                     if (errorResponse?.Errors?.Any() == true)
                     {
                         message += "\nDetails: " + string.Join(", ", errorResponse.Errors);
-                        Log.Error($"[{DateTime.UtcNow}] Error during user deletion: {message}");
+         
+                        await SendLogToDatabase.SendLogAsync(
+                            $"Error during user deletion: {message}",
+                            "Unknow",
+                            "Client/Login/HandleDeleteUserAsync",
+                            TypeOfLogEnum.Error);
                     }
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"[{DateTime.UtcNow}] Error during user deletion: {e.Message}");
+                    await SendLogToDatabase.SendLogAsync(
+                        $"Error during user deletion: {e.Message}",
+                        e.StackTrace ?? "Unknow",
+                        e.Source ?? "Client/Login/HandleDeleteUserAsync",
+                        TypeOfLogEnum.Error);
                 }
             }
-            RefreshDataTable();
+            await RefreshDataTable();
         }
         catch (Exception e)
         {
-            Log.Error($"[{DateTime.UtcNow}] Error during user deletion: {e.Message}");
+            await SendLogToDatabase.SendLogAsync(
+                $"Error during user deletion: {e.Message}",
+                e.StackTrace ?? "Unknow",
+                e.Source ?? "Client/Login/HandleDeleteUserAsync",
+                TypeOfLogEnum.Error);
         }
         finally
         {
@@ -469,14 +496,25 @@ else
                     if (errorResponse?.Errors?.Count > 0)
                     {
                         message += "\nDetails: " + string.Join(", ", errorResponse.Errors);
-                        Log.Error($"[{DateTime.UtcNow}] Error during user registration: {message}");
+
+                        await SendLogToDatabase.SendLogAsync(
+                            $"Error during user registration: {message}",
+                            "Unknow",
+                            "Client/Login/HandleRegister",
+                            TypeOfLogEnum.Error);
                     }
 
                     isRegisterSuccess = false;
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"[{DateTime.UtcNow}] Error during user registration: {e.Message}");
+
+                    await SendLogToDatabase.SendLogAsync(
+                        $"Error during user registration: {e.Message}",
+                        e.StackTrace ?? "Unknow",
+                        e.Source ?? "Client/Login/HandleDeleteUserAsync",
+                        TypeOfLogEnum.Error);
+
                     isRegisterSuccess = false;
                 }
             }
@@ -484,14 +522,19 @@ else
             StateHasChanged();
         }
         catch (Exception e)
-        {
-            Log.Error($"[{DateTime.UtcNow}] Error during user registration: {e.Message}");
+        {       
+            await SendLogToDatabase.SendLogAsync(
+                $"Error during user registration: {e.Message}",
+                e.StackTrace ?? "Unknow",
+                e.Source ?? "Client/Login/HandleDeleteUserAsync",
+                TypeOfLogEnum.Error);
+
             isRegisterSuccess = false;
         }
         finally
         {
             StateHasChanged();
-            //await RefreshDataTable();
+            await RefreshDataTable();
         }
     }
 
@@ -576,24 +619,48 @@ else
                     {
                         PropertyNameCaseInsensitive = true
                     });
+                    
                     editMessage = errorResponse?.Message ?? "An error occurred while processing your request.";
+                    
+                    await SendLogToDatabase.SendLogAsync(
+                            $"{editMessage}",
+                            "Unknow",
+                            "Client/Login/HandleEditUser",
+                            TypeOfLogEnum.Error);
+
                     if (errorResponse?.Errors?.Count > 0)
                     {
                         editMessage += "\nDetails: " + string.Join(", ", errorResponse.Errors);
-                        Log.Error($"[{DateTime.UtcNow}] Error during user edit: {editMessage}");
+                        
+                        await SendLogToDatabase.SendLogAsync(
+                            $"Error during Admin dashboard {editMessage}",
+                            "Unknow",
+                            "Client/Login/HandleEditUser",
+                            TypeOfLogEnum.Error);
+
                     }
                     isEditSuccess = false;
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"[{DateTime.UtcNow}] User update failed: {e.Message}");
+                    await SendLogToDatabase.SendLogAsync(
+                        $"User update failed: {e.Message}",
+                        e.StackTrace ?? "Unknow",
+                        e.Source ?? "Client/Login/HandleEditUser",
+                        TypeOfLogEnum.Error);
+
                     isEditSuccess = false;
                 }
             }
         }
         catch (Exception e)
         {
-            Log.Error($"[{DateTime.UtcNow}] Error during user edit: {e.Message}");
+            await SendLogToDatabase.SendLogAsync(
+                $"Error during user edit: {e.Message}",
+                e.StackTrace ?? "Unknow",
+                e.Source ?? "Client/Login/HandleEditUser",
+                TypeOfLogEnum.Error);
+            
             isEditSuccess = false;
         }
         finally
@@ -622,7 +689,11 @@ else
         }
         catch (Exception e)
         {
-            Log.Error($"[{DateTime.UtcNow}] Error during DataTable initialization: {e.Message}");
+            await SendLogToDatabase.SendLogAsync(
+                $"Error during DataTable initialization: {e.Message}",
+                e.StackTrace ?? "Unknow",
+                e.Source ?? "Client/Login/RefreshDataTable",
+                TypeOfLogEnum.Error);
         }
 
         await JSRuntime.InvokeVoidAsync("initDataTable.initialize", "userTable");

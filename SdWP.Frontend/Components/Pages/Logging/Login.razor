@@ -6,6 +6,8 @@
 @using System.Linq
 @using Microsoft.AspNetCore.Antiforgery;
 @using Serilog
+@using SdWP.Frontend.Enum
+@using SdWP.Frontend.Functions
 
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
@@ -99,14 +101,25 @@
             }
             else
             {
-                Log.Error($"[{DateTime.UtcNow}] Login failed for user {loginModel.Email} - {result?.Message ?? "Login failed. Please try again."}");
                 message = result?.Message ?? "Login failed. Please try again.";
+
+                await SendLogToDatabase.SendLogAsync(
+                    $"Error during Admin dashboard {message}",
+                    "Unknow",
+                    "Client/Login/HandleLogin",
+                    TypeOfLogEnum.Error);
+
                 isLoading = false;
             }
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            Log.Error($"[{DateTime.UtcNow}] Error during login: {ex.Message}");
+            await SendLogToDatabase.SendLogAsync(
+                $"Error during login: {e.Message}",
+                e.StackTrace ?? "Unknow",
+                e.Source ?? "Client/Login/HandleLogin",
+                TypeOfLogEnum.Error);
+
             isLoading = false;
         }
     }

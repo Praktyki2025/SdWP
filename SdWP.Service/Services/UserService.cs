@@ -41,7 +41,7 @@ namespace SdWP.Service.Services
                 var exist = await _userManager.FindByEmailAsync(dto.Email);
                 if (exist != null)
                 {
-                    message = $"[{DateTime.UtcNow}] User registration attempt with existing email: {dto.Email}";
+                    message = $"User registration attempt with existing email: {dto.Email}";
                     Log.Warning(message);
 
                     var errorLogDTO = new ErrorLogResponseDTO
@@ -63,7 +63,7 @@ namespace SdWP.Service.Services
 
                 if (string.IsNullOrEmpty(dto.Role))
                 {
-                    message = $"[{DateTime.UtcNow}] User registration attempt with unknown role {dto.Role}";
+                    message = $"User registration attempt with unknown role {dto.Role}";
                     Log.Warning(message);
 
                     var errorLogDTO = new ErrorLogResponseDTO
@@ -87,7 +87,7 @@ namespace SdWP.Service.Services
 
                 if (!await _roleManager.RoleExistsAsync(dto.Role))
                 {
-                    message = $"[{DateTime.UtcNow}] User registration attempt with unknown role {dto.Role}";
+                    message = $"User registration attempt with unknown role {dto.Role}";
                     Log.Warning(message);
 
                     var errorLogDTO = new ErrorLogResponseDTO
@@ -126,7 +126,7 @@ namespace SdWP.Service.Services
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
 
-                    message = $"[{DateTime.UtcNow}] User creation failed for email: {dto.Email}, Errors: {errors}";
+                    message = $"User creation failed for email: {dto.Email}, Errors: {errors}";
                     Log.Error(message);
 
                     var errorLogDTO = new ErrorLogResponseDTO
@@ -150,7 +150,7 @@ namespace SdWP.Service.Services
                 var createdUser = await _userManager.FindByEmailAsync(dto.Email);
                 if (createdUser == null)
                 {
-                    message = $"[{DateTime.UtcNow}] User created but could not be loaded for role assignment: {dto.Email}";
+                    message = $"User created but could not be loaded for role assignment: {dto.Email}";
                     Log.Error(message);
 
                     var errorLogDTO = new ErrorLogResponseDTO
@@ -174,7 +174,7 @@ namespace SdWP.Service.Services
                 if (!roleResult.Succeeded)
                 {
                     var errors = roleResult.Errors.Select(e => e.Description).ToList();
-                    message = $"[{DateTime.UtcNow}] User creation failed for email: {dto.Email}, Errors: {errors}";
+                    message = $"User creation failed for email: {dto.Email}, Errors: {errors}";
                     Log.Warning(message);
 
                     var errorLogDTO = new ErrorLogResponseDTO
@@ -198,7 +198,7 @@ namespace SdWP.Service.Services
                 var roles = await _userManager.GetRolesAsync(createdUser);
                 if (roles == null || !roles.Any())
                 {
-                    message = $"[{DateTime.UtcNow}] User created but no roles assigned for email: {dto.Email}";
+                    message = $"User created but no roles assigned for email: {dto.Email}";
                     Log.Error(message);
 
                     var errorLogDTO = new ErrorLogResponseDTO
@@ -237,7 +237,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
-                message = $"[{DateTime.UtcNow}] Error during user registration: {e.Message}";
+                message = $"Error during user registration: {e.Message}";
                 Log.Error(message);
 
                 var errorLogDTO = new ErrorLogResponseDTO
@@ -267,7 +267,7 @@ namespace SdWP.Service.Services
 
                 if (users == null)
                 {
-                    message = ($"[{DateTime.UtcNow}] No users found in the database.");
+                    message = ($"No users found in the database.");
                     Log.Warning(message);
 
                     var errorLogDTO = new ErrorLogResponseDTO
@@ -306,7 +306,7 @@ namespace SdWP.Service.Services
             catch (Exception e)
             {
 
-                message = $"[{DateTime.UtcNow}] Error retrieving user list: {e.Message}";
+                message = $"Error retrieving user list: {e.Message}";
 
                 var errorLogDTO = new ErrorLogResponseDTO
                 {
@@ -334,7 +334,7 @@ namespace SdWP.Service.Services
                 var user = await _userRepository.FindByIdAsync(dto.Id.ToString(), CancellationToken.None);
                 if (user == null)
                 {
-                    message = $"[{DateTime.UtcNow}] User deletion attempt for non-existing user ID: {dto.Id}";
+                    message = $"User deletion attempt for non-existing user ID: {dto.Id}";
 
                     Log.Warning(message);
 
@@ -359,7 +359,7 @@ namespace SdWP.Service.Services
 
                 if (roles != null && roles.Contains("Admin"))
                 {
-                    message = $"[{DateTime.UtcNow}] Attempt to delete admin user: {user.Email}";
+                    message = $"Attempt to delete admin user: {user.Email}";
 
                     Log.Warning(message);
 
@@ -403,7 +403,7 @@ namespace SdWP.Service.Services
                 else
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
-                    message = $"[{DateTime.UtcNow}] User deletion failed for user ID: {dto.Id}, Errors: {errors}";
+                    message = $"User deletion failed for user ID: {dto.Id}, Errors: {errors}";
                     Log.Warning(message);
 
                     var errorLogDTO = new ErrorLogResponseDTO
@@ -426,7 +426,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
-                message = $"[{DateTime.UtcNow}] Error during user deletion: {e.Message}";
+                message = $"Error during user deletion: {e.Message}";
 
                 Log.Error(message);
 
@@ -456,7 +456,7 @@ namespace SdWP.Service.Services
                 var exist = await _userManager.FindByIdAsync(dto.Id.ToString());
                 if (exist == null)
                 {
-                    message = $"[{DateTime.UtcNow}] User edit attempt for non-existing user ID: {dto.Id}";
+                    message = $"User edit attempt for non-existing user ID: {dto.Id}";
                     Log.Warning(message);
 
                     var errorLogDTO = new ErrorLogResponseDTO
@@ -481,7 +481,7 @@ namespace SdWP.Service.Services
                     var userWithEmail = await _userManager.FindByEmailAsync(dto.Email);
                     if (userWithEmail != null && userWithEmail.Id != exist.Id)
                     {
-                        message = $"[{DateTime.UtcNow}] User edit attempt with existing email: {dto.Email}";
+                        message = $"User edit attempt with existing email: {dto.Email}";
                         Log.Warning(message);
 
                         var errorLogDTO = new ErrorLogResponseDTO
@@ -507,7 +507,7 @@ namespace SdWP.Service.Services
                     var userWithName = await _userManager.FindByNameAsync(dto.Name);
                     if (userWithName != null && userWithName.Id != exist.Id)
                     {
-                        message = $"[{DateTime.UtcNow}] User edit attempt with existing name: {dto.Name}";
+                        message = $"User edit attempt with existing name: {dto.Name}";
                         Log.Warning(message);
 
                         var errorLogDTO = new ErrorLogResponseDTO
@@ -530,7 +530,7 @@ namespace SdWP.Service.Services
 
                 if (!string.IsNullOrEmpty(dto.Role) && !await _roleManager.RoleExistsAsync(dto.Role))
                 {
-                    message = "[{DateTime.UtcNow}] User edit attempt with unknown role: {dto.Role}";
+                    message = "User edit attempt with unknown role: {dto.Role}";
 
                     var errorLogDTO = new ErrorLogResponseDTO
                     {
@@ -572,7 +572,7 @@ namespace SdWP.Service.Services
                     if (!editPassword.Succeeded)
                     {
                         var errors = editPassword.Errors.Select(e => e.Description).ToList();
-                        message = $"[{DateTime.UtcNow}] User password update failed for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}";
+                        message = $"User password update failed for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}";
                         Log.Warning(message);
 
                         var errorLogDTO = new ErrorLogResponseDTO
@@ -599,7 +599,7 @@ namespace SdWP.Service.Services
                 if (!updateResult.Succeeded)
                 {
                     var errors = updateResult.Errors.Select(e => e.Description).ToList();
-                    message = $"[{DateTime.UtcNow}] User update failed for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}";
+                    message = $"User update failed for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}";
                     Log.Warning(message);
 
                     var errorLogDTO = new ErrorLogResponseDTO
@@ -629,7 +629,7 @@ namespace SdWP.Service.Services
                         if (!removeRole.Succeeded)
                         {
                             var errors = removeRole.Errors.Select(e => e.Description).ToList();
-                            message = $"[{DateTime.UtcNow}] Failed to remove existing roles for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}";
+                            message = $"Failed to remove existing roles for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}";
                             Log.Warning(message);
 
                             var errorLogDTO = new ErrorLogResponseDTO
@@ -655,7 +655,7 @@ namespace SdWP.Service.Services
                     if (!updateRole.Succeeded)
                     {
                         var errors = updateRole.Errors.Select(e => e.Description).ToList();
-                        message = $"[{DateTime.UtcNow}] Failed to assign new role for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}";
+                        message = $"Failed to assign new role for user ID: {dto.Id}, Errors: {string.Join(", ", errors)}";
                         Log.Warning(message);
 
                         var errorLogDTO = new ErrorLogResponseDTO
@@ -697,7 +697,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
-                message = $"[{DateTime.UtcNow}] Error during user edit: {e.Message}";
+                message = $"Error during user edit: {e.Message}";
                 Log.Warning(message);
 
                 var errorLogDTO = new ErrorLogResponseDTO

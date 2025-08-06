@@ -3,6 +3,9 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using SdWP.Frontend.Components.Layout
 @using Serilog
+@using SdWP.Frontend.Enum
+@using SdWP.Frontend.Functions
+
 
 @attribute [Authorize(Roles = "Admin")]
 @rendermode InteractiveServer
@@ -17,6 +20,7 @@
 @code {
     private string? adminName;
     private bool _isInvoke = true;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -40,7 +44,11 @@
         }
         catch (Exception e)
         {
-            Log.Error($"[{DateTime.UtcNow}] Error during Admin dashboard {e.Message}");
+            await SendLogToDatabase.SendLogAsync(
+                $"Error during Admin dashboard {e.Message}",
+                e.StackTrace, 
+                e.Source, 
+                TypeOfLogEnum.Error);
         }
     }
 }

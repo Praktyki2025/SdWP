@@ -34,7 +34,7 @@ namespace SdWP.Service.Services
                 var user = await _userManager.FindByEmailAsync(dto.Email);
                 if (user == null)
                 {
-                    message = $"[{DateTime.UtcNow}] Login attempt with invalid email: {dto.Email}";
+                    message = $"Login attempt with invalid email: {dto.Email}";
                     Log.Warning(message);
 
                     var errorLogDTO = new ErrorLogResponseDTO
@@ -75,7 +75,7 @@ namespace SdWP.Service.Services
                 }
                 else
                 {
-                    message = $"[{DateTime.UtcNow}] Login failed for user: {dto.Email}. Result: {result.ToString()}";
+                    message = $"Login failed for user: {dto.Email}. Result: {result.ToString()}";
 
                     Log.Error(message);
 
@@ -99,7 +99,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
-                message = $"[{DateTime.UtcNow}] Error: {e.Message}";
+                message = $"Error: {e.Message}";
                 Log.Error(message);
 
                 var errorLogDTO = new ErrorLogResponseDTO
@@ -125,31 +125,15 @@ namespace SdWP.Service.Services
             try
             {
                 await _signInManager.SignOutAsync();
-                
-                message = $"[{DateTime.UtcNow}] User logged out successfully.";
-                Log.Information(message);
 
-                var errorLogDTO = new ErrorLogResponseDTO
-                {
-                    Id = Guid.NewGuid(),
-                    Message = message,
-                    StackTrace = "backend",
-                    Source = "LoginServices.HandleLogoutAsync",
-                    TimeStamp = DateTime.UtcNow,
-                    TypeOfLog = TypeOfLogEnum.Info
-                };
-
-
-
-                return await _errorLogServices.LoggEvent(errorLogDTO)
-                    .ContinueWith(_ => ResultService<string>.GoodResult(
-                        message,
-                        StatusCodes.Status200OK
-                    ));
+                return ResultService<string>.GoodResult(
+                    "Logout successful",
+                    StatusCodes.Status200OK
+                );
             }
             catch (Exception e)
             {
-                message = $"[{DateTime.UtcNow}] Error during logout: {e.Message}";
+                message = $"Error during logout: {e.Message}";
                 Log.Error(message);
                 var errorLogDTO = new ErrorLogResponseDTO
                 {

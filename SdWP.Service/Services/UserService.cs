@@ -5,6 +5,7 @@ using SdWP.Data.Repositories;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
+using SdWP.DTO.Responses.DataTable;
 using SdWP.Service.IServices;
 
 namespace SdWP.Service.Services
@@ -131,15 +132,15 @@ namespace SdWP.Service.Services
             }
         }
 
-        public async Task<ResultService<List<UserListResponseDTO>>> GetUserListAsync(DataTableRequestDTO request)
+        public async Task<ResultService<DataTableResponseDTO<UserListResponseDTO>>> GetUserListAsync(DataTableRequestDTO request)
         {
             try
             {
-                var users = await _userRepository.GetUserRoleAsync(request ,CancellationToken.None);
+                var users = await _userRepository.GetUserRoleAsync(request, CancellationToken.None);
 
                 if (users == null)
                 {
-                    return ResultService<List<UserListResponseDTO>>.BadResult(
+                    return ResultService<DataTableResponseDTO<UserListResponseDTO>>.BadResult(
                         "No users found",
                         StatusCodes.Status404NotFound
                     );
@@ -155,15 +156,24 @@ namespace SdWP.Service.Services
                     Success = true
                 }).ToList();
 
-                return ResultService<List<UserListResponseDTO>>.GoodResult(
-                        "User get successfull",
-                        StatusCodes.Status200OK,
-                        userList
+
+                var dataTableResponse = new DataTableResponseDTO<UserListResponseDTO>
+                {
+                    Draw = request.Draw,
+                    RecordsTotal = userList.Count,
+                    RecordsFiltered = userList.Count,
+                    Data = userList
+                };
+
+                return ResultService<DataTableResponseDTO<UserListResponseDTO>>.GoodResult(
+                    "Users retrieved successfully",
+                    StatusCodes.Status200OK,
+                    dataTableResponse
                 );
             }
             catch (Exception e)
             {
-                return ResultService<List<UserListResponseDTO>>.BadResult(
+                return ResultService<DataTableResponseDTO<UserListResponseDTO>>.BadResult(
                     $"An error occurred while retrieving users: {e.Message}",
                     StatusCodes.Status500InternalServerError,
                     new List<string> { e.Message }

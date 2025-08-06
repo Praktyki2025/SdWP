@@ -2,6 +2,7 @@
 {
     public class DataTableRequestDTO
     {
+        public int Draw { get; set; }
         public int start { get; set; }
         public int length { get; set; }
         public DataTableSearchRequestDTO search { get; set; } = new DataTableSearchRequestDTO();

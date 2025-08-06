@@ -14,13 +14,13 @@ namespace SdWP.Service.Services
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        private readonly IErrorLogServices _errorLogServices;
+        private readonly IErrorLogHelper _errorLogServices;
         private string message = string.Empty;
 
         public LoginServices(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            IErrorLogServices errorLogServices)
+            IErrorLogHelper errorLogServices)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -124,10 +124,28 @@ namespace SdWP.Service.Services
         {
             try
             {
-                return ResultService<string>.GoodResult(
-                    "Logout successful",
-                    StatusCodes.Status200OK
-                );
+                await _signInManager.SignOutAsync();
+                
+                message = $"[{DateTime.UtcNow}] User logged out successfully.";
+                Log.Information(message);
+
+                var errorLogDTO = new ErrorLogResponseDTO
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = "backend",
+                    Source = "LoginServices.HandleLogoutAsync",
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLogEnum.Info
+                };
+
+
+
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<string>.GoodResult(
+                        message,
+                        StatusCodes.Status200OK
+                    ));
             }
             catch (Exception e)
             {

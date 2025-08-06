@@ -3,12 +3,12 @@ using SdWP.DTO.Responses;
 using SdWP.Data.Models;
 using SdWP.Service.IServices;
 
-namespace SdWP.Service.Services
+namespace SdWP.Service.Helpers
 {
-    public class ErrorLogServices : IErrorLogServices
+    public class ErrorLogHelper : IErrorLogHelper
     {
         private readonly ErrorLogRepository _errorLogRepository;
-        public ErrorLogServices(ErrorLogRepository errorLogRepository)
+        public ErrorLogHelper(ErrorLogRepository errorLogRepository)
         {
             _errorLogRepository = errorLogRepository;
         }

@@ -17,7 +17,7 @@ namespace SdWP.Service.Services
         private readonly UserManager<User> _userManager;
         private readonly UserRepository _userRepository;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
-        private readonly IErrorLogServices _errorLogServices;
+        private readonly IErrorLogHelper _errorLogServices;
 
         private string message = string.Empty;
 
@@ -26,7 +26,7 @@ namespace SdWP.Service.Services
             UserManager<User> userManager,
             UserRepository userRepository,
             RoleManager<IdentityRole<Guid>> roleManager,
-            IErrorLogServices errorLogServices)
+            IErrorLogHelper errorLogServices)
         {
             _userManager = userManager;
             _userRepository = userRepository;

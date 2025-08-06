@@ -4,7 +4,7 @@ using SdWP.Service.Services;
 using SdWP.Data.Models;
 namespace SdWP.Service.IServices
 {
-    public interface IErrorLogServices
+    public interface IErrorLogHelper
     {
         Task LoggEvent(ErrorLogResponseDTO dto);
     }

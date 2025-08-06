@@ -10,6 +10,7 @@ using SdWP.Service.IServices;
 using SdWP.Service.Services;
 using BlazorBootstrap;
 using Serilog;
+using SdWP.Service.Helpers;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -65,7 +66,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ILoginService, LoginServices>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<ErrorLogRepository>();
-builder.Services.AddScoped<IErrorLogServices, ErrorLogServices>();
+builder.Services.AddScoped<IErrorLogHelper, ErrorLogHelper>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 builder.Services.AddHttpClient();

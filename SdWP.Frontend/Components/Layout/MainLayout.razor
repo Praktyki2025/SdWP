@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
+<Toasts class="p-3" @rendermode=InteractiveServer AutoHide="true" Delay="4000" Placement="ToastsPlacement.TopRight" />
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -21,5 +23,3 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
-
-<Toasts class="p-3" @rendermode=InteractiveServer AutoHide="true" Delay="4000" Placement="ToastsPlacement.TopRight" />

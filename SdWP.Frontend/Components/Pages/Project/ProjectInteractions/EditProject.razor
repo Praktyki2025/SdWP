@@ -1,13 +1,13 @@
-﻿@using System.ComponentModel.DataAnnotations
+﻿@inject ToastService ToastService
+@inject NavigationManager Navigation
+@inject IProjectService ProjectService
+
+@using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authorization
 @using SdWP.DTO.Requests
 @using SdWP.DTO.Requests.ProjectRequests
 @using SdWP.DTO.Responses
 @using SdWP.Service.IServices
-@inject ToastService ToastService
-@inject NavigationManager Navigation
-@inject IHttpClientFactory HttpClientFactory
-@inject IProjectService ProjectService
 
 @page "/projects/edit"
 
@@ -17,14 +17,8 @@
 
 <PageTitle>Edit Project</PageTitle>
 
-@if (!string.IsNullOrEmpty(message))
-{
-    <div class="alert alert-danger">@message</div>
-    <button class="btn btn-secondary" @onclick='() => Navigation.NavigateTo("/projects")'>Back</button>
-}
-else
-{
-    <EditForm Model="project" OnValidSubmit="EditProjectToDbAsync" FormName="EditProjectForm">
+
+<EditForm Model="project" OnValidSubmit="EditProjectToDbAsync" FormName="EditProjectForm">
     <DataAnnotationsValidator />
     <ValidationSummary class="alert alert-danger" />
 
@@ -44,17 +38,13 @@ else
     <button class="btn btn-primary" type="submit">Save</button>
     <button class="btn btn-secondary" type="button" @onclick='() => Navigation.NavigateTo("/projects")'>Cancel</button>
 </EditForm>
-}
+
 
 
 @code {
     [Parameter]
     [SupplyParameterFromQuery]
     public string? id { get; set; }
-    private string message = string.Empty;
-    private bool _initialized = false;
-
-    private HttpClient Http => HttpClientFactory.CreateClient("ApiClient");
 
     private ProjectEditRequest project = new();
 
@@ -63,7 +53,8 @@ else
         Console.WriteLine($"PARAM id: {id}");
         if (string.IsNullOrEmpty(id))
         {
-            message = "Provided id is empty.";
+            ToastService.Notify(new ToastMessage(ToastType.Danger, "Provided id is empty."));
+            Navigation.NavigateTo("/projects");
             return;
         }
         Guid guid = Guid.Empty;
@@ -71,7 +62,8 @@ else
 
         if (guid == Guid.Empty)
         {
-            message = "Provided id has wrong fromat.";
+            ToastService.Notify(new ToastMessage(ToastType.Danger, $"Provided id={id} has wrong fromat."));
+            Navigation.NavigateTo("/projects");
             return;
         }
 
@@ -83,7 +75,8 @@ else
         }
         else
         {
-            message = loadedProject.Message ?? "Editing the project failed. Try again.";
+            ToastService.Notify(new ToastMessage(ToastType.Danger, loadedProject.Message ?? "Loading the project failed. Try again."));
+            Navigation.NavigateTo("/projects");
         }
 
     }
@@ -99,7 +92,7 @@ else
         }
         else
         {
-            message = response?.Message ?? "Editing the project failed. Try again.";
+            ToastService.Notify(new ToastMessage(ToastType.Danger, response.Message ?? "Editing the project failed. Try again."));
         }
     }
 

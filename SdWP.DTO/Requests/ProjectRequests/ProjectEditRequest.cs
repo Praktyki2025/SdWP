@@ -17,7 +17,6 @@ namespace SdWP.DTO.Requests.ProjectRequests
 
         [StringLength(1200, ErrorMessage = "Description cannot exceed 1200 characters.")]
         public string? Description { get; set; }
-        public DateTime CreatedAt { get; set; }
         public DateTime LastModified { get; set; }
     }
 }

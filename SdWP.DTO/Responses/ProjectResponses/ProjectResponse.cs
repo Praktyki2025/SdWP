@@ -27,7 +27,6 @@ namespace SdWP.DTO.Responses.ProjectRequests
                 Id = Id,
                 Title = Title,
                 Description = Description,
-                CreatedAt = CreatedAt,
                 LastModified = LastModified
             };
         }

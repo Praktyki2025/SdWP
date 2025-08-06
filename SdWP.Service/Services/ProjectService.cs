@@ -200,6 +200,23 @@ namespace SdWP.Service.Services
                         statusCode: StatusCodes.Status404NotFound);
                 }
 
+                var user = _httpContextAccessor.HttpContext?.User;
+                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (userId == null)
+                {
+                    return ResultService<ProjectResponse>.BadResult(
+                        message: "User is not authentificated",
+                        statusCode: StatusCodes.Status401Unauthorized);
+                }
+
+                if (!user.IsInRole("Admin") && Guid.Parse(userId) != project.CreatorUserId)
+                {
+                    return ResultService<ProjectResponse>.BadResult(
+                        message: "You don't have permissions to edit this project.",
+                        statusCode: StatusCodes.Status403Forbidden);
+                }
+
                 var result = new ProjectResponse
                 {
                     Id = project.Id,

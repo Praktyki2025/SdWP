@@ -1,15 +1,13 @@
 ﻿using SdWP.Data.Models;
 using SdWP.DTO.Responses;
 using SdWP.DTO.Requests.Datatable;
-using SdWP.Data.Repositories;
 
 namespace SdWP.Data.IData
 {
-    internal interface IUserRepository
+    public interface IUserRepository
     {
-        Task<User?> GetByUsernameAsync(string username);
-        Task<bool> IsUsernameAvailableAsync(string username, string password);
-
-        Task<UserListResponseDTO> FiltredAsync(DataTableRequestDTO request, UserRepository userRole, Guid userId);
+        Task<UserListResponseDTO> FiltredAsync(DataTableRequestDTO request, Guid userId);
+        Task<List<(User user, List<string> Roles)>> GetUserAsync(DataTableRequestDTO request, CancellationToken cancellationToken);
+        Task<User?> FindByIdAsync(string userId, CancellationToken cancellationToken);
     }
 }

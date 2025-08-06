@@ -7,6 +7,7 @@ using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
 using SdWP.DTO.Responses.DataTable;
 using SdWP.Service.IServices;
+using SdWP.Data.IData;
 
 namespace SdWP.Service.Services
 {
@@ -15,14 +16,14 @@ namespace SdWP.Service.Services
         // In this services class, we handle user registration, delete, and edit user data.
 
         private readonly UserManager<User> _userManager;
-        private readonly UserRepository _userRepository;
+        private readonly IUserRepository _userRepository;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
 
         private readonly List<string> _roles = new();
 
         public UserService(
             UserManager<User> userManager,
-            UserRepository userRepository,
+            IUserRepository userRepository,
             RoleManager<IdentityRole<Guid>> roleManager)
         {
             _userManager = userManager;
@@ -136,7 +137,7 @@ namespace SdWP.Service.Services
         {
             try
             {
-                var users = await _userRepository.GetUserRoleAsync(request, CancellationToken.None);
+                var users = await _userRepository.GetUserAsync(request, CancellationToken.None);
 
                 if (users == null)
                 {

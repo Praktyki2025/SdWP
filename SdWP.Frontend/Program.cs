@@ -1,14 +1,15 @@
+using BlazorBootstrap;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SdWP.Data.Context;
+using SdWP.Data.IData;
 using SdWP.Data.Models;
 using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
-using BlazorBootstrap;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,7 +54,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ILoginService, LoginServices>();
-builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 builder.Services.AddHttpClient();

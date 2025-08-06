@@ -6,6 +6,7 @@ using SdWP.Data.Models;
 using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
 using System.Linq.Dynamic.Core;
+using System.Threading;
 
 namespace SdWP.Data.Repositories
 {
@@ -18,14 +19,14 @@ namespace SdWP.Data.Repositories
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<User?> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public async Task<User?> FindByIdAsync(string userId)
         {
             if (!Guid.TryParse(userId, out var id)) return null;
 
-            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        public async Task<List<(User user, List<string> Roles)>> GetUserAsync(DataTableRequestDTO request, CancellationToken cancellationToken)
+        public async Task<List<UserListResponseDTO>> GetUserAsync(DataTableRequestDTO request)
         {
             IQueryable<User> users = _context.Users.AsQueryable();
 
@@ -56,21 +57,23 @@ namespace SdWP.Data.Repositories
                 .Take(request.length);
 
             var userList = await users.AsNoTracking()
-                .Select(u => new
+                .Select(u => new UserListResponseDTO
                 {
-                    User = u,
+                    Id = u.Id,
+                    Email = u.Email,
+                    Name = u.UserName,
+                    CreatedAt = u.CreatedAt,
                     Roles = _context.UserRoles
                         .Where(ur => ur.UserId == u.Id)
                         .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
                         .Where(role => role != null)
-                        .Select(role => role.Name)
-                        .ToList()
+                        .Select(role => role!.Name)
+                        .ToList(),
+                    Success = true
                 })
-                .ToListAsync(cancellationToken);
+                .ToListAsync();
 
-            return userList
-                .Select(u => (u.User, u.Roles))
-                .ToList();
+            return userList;
 
         }
 

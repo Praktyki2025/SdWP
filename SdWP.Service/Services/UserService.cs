@@ -137,9 +137,9 @@ namespace SdWP.Service.Services
         {
             try
             {
-                var users = await _userRepository.GetUserAsync(request, CancellationToken.None);
+                var users = await _userRepository.GetUserAsync(request);
 
-                if (users == null)
+                if (users == null || users.Count == 0)
                 {
                     return ResultService<DataTableResponseDTO<UserListResponseDTO>>.BadResult(
                         "No users found",
@@ -147,23 +147,13 @@ namespace SdWP.Service.Services
                     );
                 }
 
-                var userList = users.Select(u => new UserListResponseDTO
-                {
-                    Id = u.user.Id,
-                    Email = u.user.Email,
-                    Name = u.user.Name,
-                    Roles = u.Roles ?? new List<string>(),
-                    CreatedAt = u.user.CreatedAt,
-                    Success = true
-                }).ToList();
-
 
                 var dataTableResponse = new DataTableResponseDTO<UserListResponseDTO>
                 {
                     Draw = request.Draw,
-                    RecordsTotal = userList.Count,
-                    RecordsFiltered = userList.Count,
-                    Data = userList
+                    RecordsTotal = users.Count,
+                    RecordsFiltered = users.Count,
+                    Data = users
                 };
 
                 return ResultService<DataTableResponseDTO<UserListResponseDTO>>.GoodResult(
@@ -186,7 +176,7 @@ namespace SdWP.Service.Services
         {
             try
             {
-                var user = await _userRepository.FindByIdAsync(dto.Id.ToString(), CancellationToken.None);
+                var user = await _userRepository.FindByIdAsync(dto.Id.ToString());
                 if (user == null)
                 {
                     return ResultService<UserListResponseDTO>.BadResult(

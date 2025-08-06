@@ -4,7 +4,7 @@ using SdWP.Data.Context;
 using SdWP.Data.IData;
 using SdWP.Data.Models;
 using SdWP.DTO.Requests.Datatable;
-using SdWP.DTO.Responses;
+using SdWP.DTO.Responses.ProjectRequests;
 using System.Linq.Dynamic.Core;
 
 namespace SdWP.Data.Repositories
@@ -18,7 +18,7 @@ namespace SdWP.Data.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Project?> GetByIdAsync(Guid id)
+        public async Task<Project?> GetProjectByIdAsync(Guid id)
         {
             return await _context.Projects
                 .Include(p => p.Users)
@@ -43,7 +43,7 @@ namespace SdWP.Data.Repositories
             }
         }
 
-        public async Task<ProjectListResponse<ProjectUpsertResponseDTO>> FilterAsync(DataTableRequest request, UserRole userRole, Guid userId)
+        public async Task<ProjectListResponse<ProjectResponse>> FilterAsync(DataTableRequest request, UserRole userRole, Guid userId)
         {
             IQueryable<Project> projects;
             switch (userRole)
@@ -58,7 +58,7 @@ namespace SdWP.Data.Repositories
                     break;
                 case UserRole.Unknown:
                 default:
-                    return new ProjectListResponse<ProjectUpsertResponseDTO>()
+                    return new ProjectListResponse<ProjectResponse>()
                     {
                         Projects = [],
                         TotalCount = 0,
@@ -76,7 +76,6 @@ namespace SdWP.Data.Repositories
             }
 
             var totalRecords = projects.Count();
-            Console.WriteLine($"Size - {projects.Count()}");
 
             //sorting
             if (request.order != null && request.order.Count > 0)
@@ -98,7 +97,7 @@ namespace SdWP.Data.Repositories
             var data = await projects.AsNoTracking()
                 .Skip(request.start)
                 .Take(request.length)
-                .Select(project => new ProjectUpsertResponseDTO
+                .Select(project => new ProjectResponse
                 {
                     Id = project.Id,
                     Title = project.Title,
@@ -108,7 +107,7 @@ namespace SdWP.Data.Repositories
                 })
                 .ToListAsync();
 
-            var projectListResponse = new ProjectListResponse<ProjectUpsertResponseDTO>
+            var projectListResponse = new ProjectListResponse<ProjectResponse>
             {
                 Projects = data,
                 TotalCount = totalRecords,
@@ -123,14 +122,5 @@ namespace SdWP.Data.Repositories
             var direction = ascending ? "ascending" : "descending";
             return query.OrderBy($"{sortColumn} {direction}");
         }
-
-        public static string FirstCharToUpper(string input)
-        {
-            if (string.IsNullOrEmpty(input))
-                return input;
-            return char.ToUpper(input[0]) + input.Substring(1);
-        }
-
-        
     }
 }

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SdWP.DTO.Requests
+namespace SdWP.DTO.Requests.ProjectRequests
 {
-    public class ProjectDeleteRequestDTO
+    public class ProjectDeleteRequest
     {
         public Guid Id { get; set; }
         //public Guid RequestingUserId { get; set; } // rulescheck

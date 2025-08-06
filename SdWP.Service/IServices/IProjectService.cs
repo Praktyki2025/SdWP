@@ -1,6 +1,6 @@
-﻿using SdWP.DTO.Requests;
-using SdWP.DTO.Requests.Datatable;
-using SdWP.DTO.Responses;
+﻿using SdWP.DTO.Requests.Datatable;
+using SdWP.DTO.Requests.ProjectRequests;
+using SdWP.DTO.Responses.ProjectRequests;
 using SdWP.Service.Services;
 using System;
 using System.Collections.Generic;
@@ -12,10 +12,10 @@ namespace SdWP.Service.IServices
 {
     public interface IProjectService
     {
-        Task<ResultService<ProjectUpsertResponseDTO>> CreateProjectAsync(ProjectUpsertRequestDTO project);
-        Task<ResultService<ProjectUpsertResponseDTO>> EditProjectAsync(ProjectUpsertRequestDTO project);
-        Task<ResultService<ProjectDeleteResponseDTO>> DeleteProjectAsync(Guid project);
-        Task<ResultService<ProjectUpsertResponseDTO>> GetByIdAsync(Guid id);
-        Task<ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>> GetProjects(DataTableRequest request);
+        Task<ResultService<ProjectResponse>> CreateProjectAsync(ProjectCreateRequest project);
+        Task<ResultService<ProjectResponse>> EditProjectAsync(ProjectEditRequest project);
+        Task<ResultService<ProjectDeleteResponse>> DeleteProjectAsync(Guid project); 
+        Task<ResultService<ProjectResponse>> GetProjectAsync(Guid id);
+        Task<ResultService<ProjectListResponse<ProjectResponse>>> GetProjects(DataTableRequest request);
     }
 }

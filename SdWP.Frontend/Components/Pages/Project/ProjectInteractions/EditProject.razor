@@ -1,25 +1,30 @@
 ﻿@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
 @using SdWP.DTO.Requests
-@using SdWP.Service.IServices
+@using SdWP.DTO.Requests.ProjectRequests
 @using SdWP.DTO.Responses
+@using SdWP.Service.IServices
+@inject ToastService ToastService
+@inject NavigationManager Navigation
 @inject IHttpClientFactory HttpClientFactory
 @inject IProjectService ProjectService
 
 @page "/projects/edit"
 
 @attribute [StreamRendering]
+@attribute [Authorize]
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Edit Project</PageTitle>
 
 @if (!string.IsNullOrEmpty(message))
 {
-    <div class="alert alert-danger" role="alert">
-        @message
-    </div>
+    <div class="alert alert-danger">@message</div>
+    <button class="btn btn-secondary" @onclick='() => Navigation.NavigateTo("/projects")'>Back</button>
 }
-
-<EditForm Model="project" OnValidSubmit="EditProjectToDbAsync" FormName="EditProjectForm">
+else
+{
+    <EditForm Model="project" OnValidSubmit="EditProjectToDbAsync" FormName="EditProjectForm">
     <DataAnnotationsValidator />
     <ValidationSummary class="alert alert-danger" />
 
@@ -36,8 +41,11 @@
             <InputText id="descriptionInput" class="form-control" @bind-Value="project.Description" placeholder="Description" />
         </div>
     </div>
-    <button class="btn btn-primary" type="submit">Apply</button>
+    <button class="btn btn-primary" type="submit">Save</button>
+    <button class="btn btn-secondary" type="button" @onclick='() => Navigation.NavigateTo("/projects")'>Cancel</button>
 </EditForm>
+}
+
 
 @code {
     [Parameter]
@@ -46,23 +54,38 @@
     private string message = string.Empty;
     private bool _initialized = false;
 
-    [Inject] protected ToastService ToastService { get; set; } = default!;
-    [Inject] NavigationManager Navigation { get; set; } = default!;
     private HttpClient Http => HttpClientFactory.CreateClient("ApiClient");
 
-    private ProjectUpsertRequestDTO project = new();
+    private ProjectEditRequest project = new();
 
     protected override async Task OnInitializedAsync()
     {
-        if (!string.IsNullOrEmpty(id) && Guid.TryParse(id, out var guid))
+        Console.WriteLine($"PARAM id: {id}");
+        if (string.IsNullOrEmpty(id))
         {
-            project.Id = guid;
-            var loadedProject = await ProjectService.GetByIdAsync(guid);
-            if (loadedProject.Success)
-            {
-                project = loadedProject.Data.MapToRequest();
-            }
+            message = "Provided id is empty.";
+            return;
         }
+        Guid guid = Guid.Empty;
+        Guid.TryParse(id, out guid);
+
+        if (guid == Guid.Empty)
+        {
+            message = "Provided id has wrong fromat.";
+            return;
+        }
+
+        project.Id = guid;
+        var loadedProject = await ProjectService.GetProjectAsync(guid);
+        if (loadedProject.Success == true)
+        {
+            project = loadedProject.Data.MapToRequest();
+        }
+        else
+        {
+            message = loadedProject.Message ?? "Editing the project failed. Try again.";
+        }
+
     }
 
     private async Task EditProjectToDbAsync()
@@ -71,9 +94,8 @@
 
         if (response != null && response.Success)
         {
-            ToastService.Notify(new ToastMessage(response.Success && response.Message != null ? ToastType.Success :
-                ToastType.Secondary, response.Data.Message));
-            Navigation.NavigateTo("/projects", true);
+            ToastService.Notify(new ToastMessage(ToastType.Success, response.Message));
+            Navigation.NavigateTo("/projects");
         }
         else
         {

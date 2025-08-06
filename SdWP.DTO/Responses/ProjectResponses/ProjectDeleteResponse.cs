@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SdWP.DTO.Responses
+namespace SdWP.DTO.Responses.ProjectRequests
 {
-    public class ProjectDeleteResponseDTO
+    public class ProjectDeleteResponse
     {
         public bool Success { get; set; }
     }

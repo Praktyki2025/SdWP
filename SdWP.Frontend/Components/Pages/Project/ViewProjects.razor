@@ -1,12 +1,14 @@
 ﻿@page "/projects"
 @rendermode InteractiveServer
 
+@using Microsoft.AspNetCore.Authorization
 @using ProjectInteractions
 @using Microsoft.AspNetCore.Components.Authorization
 
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JS
+@attribute [Authorize]
 
 <div class="d-flex justify-content-end mb-12">
     <Button Class="add-project-btn" Color="ButtonColor.Success" @onclick='() => NavigationManager.NavigateTo("/projects/add")'>Add project</Button>
@@ -51,13 +53,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        if (!user.Identity.IsAuthenticated)
-        {
-            NavigationManager.NavigateTo("/login");
-            return;
-        }
+        // var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        // var user = authState.User;
+        // if (!user.Identity.IsAuthenticated)
+        // {
+        //     NavigationManager.NavigateTo("/login");
+        //     return;
+        // }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

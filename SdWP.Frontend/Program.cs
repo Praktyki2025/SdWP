@@ -1,4 +1,3 @@
-using BlazorBootstrap;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Identity;
@@ -10,9 +9,9 @@ using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
-using BlazorBootstrap;
 using Serilog;
 using SdWP.Service.Helpers;
+using SdWP.Service.Services.Mailing;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -95,6 +94,9 @@ builder.Services.AddScoped<HttpClient>(sp =>
     return httpClient;
 });
 
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<EmailService>();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -118,6 +120,19 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred during database initialization.");
+    }
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
+        await emailService.SendTestEmailAsync("user@example.pl");
+    }
+    catch (Exception e)
+    {
+        Log.Error(e.Message);
     }
 }
 

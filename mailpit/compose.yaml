@@ -1,0 +1,8 @@
+services:
+  mailpit:
+        image: axllent/mailpit:v1.24.0
+        container_name: SdWP-mailpit-dev
+        ports:
+          - ${DOCKER_MAILPIT_DASHBOARD_HOST_PORT:-63854}:8025
+          - "1025:1025"
+        restart: unless-stopped

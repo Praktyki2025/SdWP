@@ -26,43 +26,9 @@
     <tbody></tbody>
 </table>
 
-<!-- Delete Modal -->
-<div class="modal fade" id="DeleteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
+<SdWP.Frontend.Components.Pages.Project.ProjectInteractions.DeleteModal/>
 
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmation</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <div class="modal-body">
-                Are you sure?
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="confirmButton">Confirm</button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-
-<!-- JS Toast, ShowToast(message, type), 
-tak samo można zmodyfikować Delete Modal i korzystać z 1 bloku kodu dla wszystkich modali-->
-
-<div class="toast-container position-fixed top-0 end-0 p-3">
-    <div id="deleteToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive"
-    aria-atomic="true" data-bs-delay="3000" data-bs-autohide="true">
-        <div class="d-flex">
-          <div class="toast-body"></div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-  </div>
-</div>
-
+<SdWP.Frontend.Components.Pages.Project.ProjectInteractions.Toast/>
 
 @code {
     private ConfirmDialog dialog = default!;

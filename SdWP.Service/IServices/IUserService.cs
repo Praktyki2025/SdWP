@@ -11,6 +11,6 @@ namespace SdWP.Service.IServices
     {
         Task<ResultService<RegisterResponseDTO>> RegisterAsync(RegisterRequestDTO dto);
         Task<ResultService<User>> GetCurrentUser(ClaimsPrincipal userPrincipal);
-        Task<ResultService<RegisterResponseDTO>> ChangePasswordAsync(User user, ChangePasswordRequest dto);
+        Task<ResultService<User>> ChangePasswordAsync(User user, ChangePasswordRequest dto);
     }
 }

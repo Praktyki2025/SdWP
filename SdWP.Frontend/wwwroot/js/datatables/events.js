@@ -11,8 +11,7 @@ window.projectsEvents = {
         $(tableSelector).on('click', '.delete-project', function (e) {
             e.preventDefault();
             selectedProjectId = $(this).data('id');
-            const myModal = new bootstrap.Modal(document.getElementById('DeleteModal'));
-            myModal.show();
+            const myModal = new bootstrap.Modal(document.getElementById('DeleteModal')).show();
         });
 
         $('#confirmButton').on('click', async function () {
@@ -21,6 +20,7 @@ window.projectsEvents = {
             try {
                 await window.projectsApi.deleteProject(selectedProjectId);
                 tableInstance.ajax.reload(null, false);
+                new bootstrap.Toast(document.getElementById('deleteToast')).show();
             } catch {
                 alert('Failed to delete project');
             }
@@ -39,8 +39,8 @@ window.projectsEvents = {
             }
             const id = $(this).data('id');
             if ($(e.target).closest('.dropdown, .dropdown-menu').length === 0) {
-                //window.location.href = `/projects/valutaions?id=${id}`;
-                window.location.href = `/projects/valutaions`;
+                //window.location.href = `/projects/valuations?id=${id}`;
+                window.location.href = `/projects/valuations`;
             }
         });
     }

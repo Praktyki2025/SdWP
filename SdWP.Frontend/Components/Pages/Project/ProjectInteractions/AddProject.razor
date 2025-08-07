@@ -16,13 +16,6 @@
 @rendermode InteractiveServer
 
 <PageTitle>Add Project</PageTitle>
-
-@if (!string.IsNullOrEmpty(message))
-{
-    <div class="alert alert-danger" role="alert">
-        @message
-    </div>
-}
     
 <EditForm Model="project" OnValidSubmit="AddProjectToDbAsync" FormName="AddProjectForm">
     <DataAnnotationsValidator />
@@ -60,7 +53,7 @@
         }
         else
         {
-			message = response?.Message ?? "Adding the project failed. Try again.";
+            ToastService.Notify(new ToastMessage(ToastType.Danger, response?.Message ?? "Adding the project failed. Try again."));
         }
     }
 }

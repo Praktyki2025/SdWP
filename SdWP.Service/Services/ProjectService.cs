@@ -161,7 +161,7 @@ namespace SdWP.Service.Services
                 {
                     return ResultService<ProjectDeleteResponse>.BadResult(
                         message: "Project not found.",
-                        statusCode: StatusCodes.Status204NoContent
+                        statusCode: StatusCodes.Status404NotFound
                         );
                 }
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SdWP.DTO.Requests.Datatable
 {
-    public class DataTableSearchRequestDTO
+    public class DataTableSearchRequest
     {
         public string? value { get; set; }
         public bool regex { get; set; }

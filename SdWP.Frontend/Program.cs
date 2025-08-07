@@ -70,6 +70,7 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<ErrorLogRepository>();
 builder.Services.AddScoped<IErrorLogHelper, ErrorLogHelper>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 builder.Services.AddHttpClient();
@@ -123,6 +124,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// testowy mail, zostawam aby wiedzieæ ¿e dzia³a
 using (var scope = app.Services.CreateScope())
 {
     try

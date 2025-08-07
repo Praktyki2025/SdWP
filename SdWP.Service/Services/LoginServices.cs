@@ -27,7 +27,7 @@ namespace SdWP.Service.Services
             _errorLogServices = errorLogServices;
         }
 
-        public async Task<ResultService<LoginResponseDTO>> HandleLoginAsync(LoginRequestDTO dto)
+        public async Task<ResultService<LoginResponse>> HandleLoginAsync(LoginRequest dto)
         {
             try
             {
@@ -37,18 +37,18 @@ namespace SdWP.Service.Services
                     message = $"Login attempt with invalid email: {dto.Email}";
                     Log.Warning(message);
 
-                    var errorLogDTO = new ErrorLogResponseDTO
+                    var errorLogDTO = new ErrorLogResponse
                     {
                         Id = Guid.NewGuid(),
                         Message = message,
                         StackTrace = "Backend",
                         Source = "LoginServices.HandleLoginAsync",
                         TimeStamp = DateTime.UtcNow,
-                        TypeOfLog = TypeOfLogEnum.Warning
+                        TypeOfLog = TypeOfLog.Warning
                     };
 
                     return await _errorLogServices.LoggEvent(errorLogDTO)
-                        .ContinueWith(_ => ResultService<LoginResponseDTO>.BadResult(
+                        .ContinueWith(_ => ResultService<LoginResponse>.BadResult(
                             message,
                             StatusCodes.Status401Unauthorized
                         ));
@@ -59,10 +59,10 @@ namespace SdWP.Service.Services
                 if (result.Succeeded)
                 {
                     var roles = await _userManager.GetRolesAsync(user);
-                    return ResultService<LoginResponseDTO>.GoodResult(
+                    return ResultService<LoginResponse>.GoodResult(
                         "Login successful",
                         StatusCodes.Status200OK,
-                        new LoginResponseDTO
+                        new LoginResponse
                         {
                             Success = true,
                             Id = user.Id,
@@ -79,20 +79,20 @@ namespace SdWP.Service.Services
 
                     Log.Error(message);
 
-                    var errorLogDTO = new ErrorLogResponseDTO
+                    var errorLogDTO = new ErrorLogResponse
                     {
                         Id = Guid.NewGuid(),
                         Message = message,
                         StackTrace = "Backend",
                         Source = "LoginServices.HandleLoginAsync",
                         TimeStamp = DateTime.UtcNow,
-                        TypeOfLog = TypeOfLogEnum.Error
+                        TypeOfLog = TypeOfLog.Error
                     };
 
                     await _errorLogServices.LoggEvent(errorLogDTO);
                 }
 
-                return ResultService<LoginResponseDTO>.BadResult(
+                return ResultService<LoginResponse>.BadResult(
                     "Invalid email or password",
                     StatusCodes.Status401Unauthorized
                 );
@@ -102,18 +102,18 @@ namespace SdWP.Service.Services
                 message = $"Error: {e.Message}";
                 Log.Error(message);
 
-                var errorLogDTO = new ErrorLogResponseDTO
+                var errorLogDTO = new ErrorLogResponse
                 {
                     Id = Guid.NewGuid(),
                     Message = message,
                     StackTrace = e.StackTrace,
-                    Source = "LoginServices.HandleLoginAsync",
+                    Source = e.Source,
                     TimeStamp = DateTime.UtcNow,
-                    TypeOfLog = TypeOfLogEnum.Error
+                    TypeOfLog = TypeOfLog.Error
                 };
 
                 return await _errorLogServices.LoggEvent(errorLogDTO)
-                    .ContinueWith (_ => ResultService<LoginResponseDTO>.BadResult(
+                    .ContinueWith (_ => ResultService<LoginResponse>.BadResult(
                         message,
                         StatusCodes.Status500InternalServerError
                     ));
@@ -135,14 +135,14 @@ namespace SdWP.Service.Services
             {
                 message = $"Error during logout: {e.Message}";
                 Log.Error(message);
-                var errorLogDTO = new ErrorLogResponseDTO
+                var errorLogDTO = new ErrorLogResponse
                 {
                     Id = Guid.NewGuid(),
                     Message = message,
                     StackTrace = e.StackTrace,
                     Source = "LoginServices.HandleLogoutAsync",
                     TimeStamp = DateTime.UtcNow,
-                    TypeOfLog = TypeOfLogEnum.Error
+                    TypeOfLog = TypeOfLog.Error
                 };
 
                 return await _errorLogServices.LoggEvent(errorLogDTO)

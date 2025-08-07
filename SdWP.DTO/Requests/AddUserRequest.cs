@@ -2,7 +2,7 @@
 
 namespace SdWP.DTO.Requests
 {
-    public class AddUserRequestDTO
+    public class AddUserRequest
     {
         [Required(ErrorMessage = "Name is requried")]
         [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters")]

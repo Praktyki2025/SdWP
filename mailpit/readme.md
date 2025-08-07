@@ -12,3 +12,5 @@ docker-compose build
 docker-compose run
 ```
 Mailpit będzie dostępny pod adresem `http://localhost:63854/`
+
+W Program.cs umieściłem prosty Test do sprawdzania czy maile działają. Jak uruchomicie Mailpit a po tym aplikacje to będzie go widać. 

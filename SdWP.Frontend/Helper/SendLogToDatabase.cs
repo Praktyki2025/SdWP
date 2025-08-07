@@ -11,17 +11,17 @@ namespace SdWP.Frontend.Functions
             string errorMessage,
             string source,
             string stackTrace,
-            TypeOfLogEnum typeOfLog)
+            TypeOfLog typeOfLog)
         {
-            if (typeOfLog == TypeOfLogEnum.Info)
+            if (typeOfLog == TypeOfLog.Info)
             {
                 Log.Information(errorMessage);
             }
-            else if (typeOfLog == TypeOfLogEnum.Warning)
+            else if (typeOfLog == TypeOfLog.Warning)
             {
                 Log.Warning(errorMessage);
             }
-            else if (typeOfLog == TypeOfLogEnum.Error)
+            else if (typeOfLog == TypeOfLog.Error)
             {
                 Log.Error(errorMessage);
             }

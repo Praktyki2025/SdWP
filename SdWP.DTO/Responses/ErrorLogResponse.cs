@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SdWP.DTO.Responses
 {
-    public class ErrorLogResponseDTO
+    public class ErrorLogResponse
     {
         public Guid Id { get; set; }
         public string Message { get; set; }
@@ -16,6 +16,6 @@ namespace SdWP.DTO.Responses
         public DateTime TimeStamp { get; set; }
         public Guid? UserId { get; set; }
 
-       public TypeOfLogEnum TypeOfLog { get; set; }
+       public TypeOfLog TypeOfLog { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace SdWP.Frontend.Enum
 {
-    public enum TypeOfLogEnum
+    public enum TypeOfLog
     {
         Info,
         Warning,

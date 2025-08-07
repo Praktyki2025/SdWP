@@ -14,7 +14,7 @@ namespace SdWP.Service.Services
             _errorLogServices = errorLogServices;
         }
 
-        public async Task<ResultService<ErrorLogResponseDTO>> GetLogToDatabase(
+        public async Task<ResultService<ErrorLogResponse>> GetLogToDatabase(
             string? errorMessage,
             string? stackTrace,
             string? source,
@@ -26,26 +26,26 @@ namespace SdWP.Service.Services
                 if (string.IsNullOrEmpty(stackTrace)) stackTrace = "No stack trace provided.";
                 if (string.IsNullOrEmpty(source)) source = "No source provided.";
 
-                TypeOfLogEnum typeOfLogEnum;
+                TypeOfLog typeOfLogEnum;
 
                 if (typeOfLog == "Error")
                 {
-                    typeOfLogEnum = TypeOfLogEnum.Error;
+                    typeOfLogEnum = TypeOfLog.Error;
                 }
                 else if (typeOfLog == "Warning")
                 {
-                    typeOfLogEnum = TypeOfLogEnum.Warning;
+                    typeOfLogEnum = TypeOfLog.Warning;
                 }
                 else if (typeOfLog == "Info")
                 {
-                    typeOfLogEnum = TypeOfLogEnum.Info;
+                    typeOfLogEnum = TypeOfLog.Info;
                 }
                 else
                 {
-                    typeOfLogEnum = TypeOfLogEnum.Info;
+                    typeOfLogEnum = TypeOfLog.Info;
                 }
 
-                var errorLogDTO = new ErrorLogResponseDTO
+                var errorLogDTO = new ErrorLogResponse
                 {
                     Id = Guid.NewGuid(),
                     Message = errorMessage,
@@ -58,7 +58,7 @@ namespace SdWP.Service.Services
 
 
                 return await _errorLogServices.LoggEvent(errorLogDTO)
-                    .ContinueWith(_ => ResultService<ErrorLogResponseDTO>.GoodResult(
+                    .ContinueWith(_ => ResultService<ErrorLogResponse>.GoodResult(
                         errorMessage,
                         StatusCodes.Status200OK
                     ));
@@ -66,17 +66,17 @@ namespace SdWP.Service.Services
             catch (Exception e)
             {
                 Log.Error(e.Message);
-                var errorLogDTO = new ErrorLogResponseDTO
+                var errorLogDTO = new ErrorLogResponse
                 {
                     Id = Guid.NewGuid(),
                     Message = e.Message,
                     StackTrace = e.StackTrace,
                     Source = e.Source,
                     TimeStamp = DateTime.UtcNow,
-                    TypeOfLog = TypeOfLogEnum.Error
+                    TypeOfLog = TypeOfLog.Error
                 };
                 return await _errorLogServices.LoggEvent(errorLogDTO)
-                    .ContinueWith(_ => ResultService<ErrorLogResponseDTO>.BadResult(
+                    .ContinueWith(_ => ResultService<ErrorLogResponse>.BadResult(
                         e.Message,
                         StatusCodes.Status500InternalServerError
                         ));

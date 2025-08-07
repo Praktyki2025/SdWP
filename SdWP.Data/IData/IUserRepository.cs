@@ -6,8 +6,8 @@ namespace SdWP.Data.IData
 {
     public interface IUserRepository
     {
-        Task<UserListResponseDTO> FiltredAsync(DataTableRequestDTO request, Guid userId);
-        Task<List<UserListResponseDTO>> GetUserAsync(DataTableRequestDTO request);
+        Task<UserListResponse> FiltredAsync(DataTableRequest request, Guid userId);
+        Task<List<UserListResponse>> GetUserAsync(DataTableRequest request);
         Task<User?> FindByIdAsync(string userId);
     }
 }

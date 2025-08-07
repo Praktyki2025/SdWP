@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SdWP.DTO.Requests
+namespace SdWP.Service.Enums
 {
-    public class DeleteUserRequestDTO
+    public enum TypeOfLog
     {
-        public Guid Id { get; set; }
+        Info,
+        Warning,
+        Error,
     }
 }

@@ -6,6 +6,6 @@ namespace SdWP.Service.IServices
 {
     public interface IErrorLogHelper
     {
-        Task LoggEvent(ErrorLogResponseDTO dto);
+        Task LoggEvent(ErrorLogResponse dto);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace SdWP.DTO.Requests
 {
-    public class EditUserRequestDTO
+    public class EditUserRequest
     {
         public Guid Id { get; set; }
 

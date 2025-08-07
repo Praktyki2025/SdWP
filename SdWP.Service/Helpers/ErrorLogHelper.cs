@@ -13,7 +13,7 @@ namespace SdWP.Service.Helpers
             _errorLogRepository = errorLogRepository;
         }
 
-        public async Task LoggEvent(ErrorLogResponseDTO dto)
+        public async Task LoggEvent(ErrorLogResponse dto)
         {
             var errorLog = new ErrorLog
             {

@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
-using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace SdWP.Service.Services
 {
@@ -17,6 +18,68 @@ namespace SdWP.Service.Services
         {
             _userManager = userManager;
         }
+
+        public async Task<ResultService<User>> ChangePasswordAsync(User user, ChangePasswordRequest dto)
+        {
+            if (user == null)
+            {
+                return new ResultService<User>
+                {
+                    Success = false,
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "User not found.",
+                };
+            }
+
+            await _userManager.ChangePasswordAsync(user, dto.PrevPassword, dto.NewPassword);
+
+            return new ResultService<User>
+            {
+                Success = true,
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Password changed successfully.",
+            };
+        }
+
+        public async Task<ResultService<User>> GetCurrentUser(ClaimsPrincipal userPrincipal)
+        {
+            var emailClaim = userPrincipal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
+
+            var email = emailClaim?.Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return new ResultService<User>
+                {
+                    Success = false,
+                    StatusCode = StatusCodes.Status401Unauthorized,
+                    Message = "User is not authenticated."
+                };
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return new ResultService<User>
+                {
+                    Success = false,
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "User not found."
+                };
+            }
+
+            // Возвращаем полный объект пользователя, а не DTO, если нужен полный доступ
+            return new ResultService<User>
+            {
+                Success = true,
+                StatusCode = StatusCodes.Status200OK,
+                Data = user,
+                Message = "User retrieved successfully."
+            };
+        }
+
+
 
         public async Task<ResultService<RegisterResponseDTO>> RegisterAsync(RegisterRequestDTO dto)
         {
@@ -103,5 +166,7 @@ namespace SdWP.Service.Services
                 );
             }
         }
+
+
     }
 }

@@ -47,9 +47,9 @@ window.projectsEvents = {
     }
 }
 
-//bgclass - bg-success or bg-danger
+//bgclass - bg-success or bg-danger example: showToast("Project deleted successfully", 'bg-success');
 function showToast(message, bgClass) {
-    const toastElement = document.getElementById('deleteToast');
+    const toastElement = document.getElementById('toast');
     const toastBody = toastElement.querySelector('.toast-body');
     toastBody.textContent = message;
 

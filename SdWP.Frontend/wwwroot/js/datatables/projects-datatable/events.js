@@ -20,9 +20,9 @@ window.projectsEvents = {
             try {
                 await window.projectsApi.deleteProject(selectedProjectId);
                 tableInstance.ajax.reload(null, false);
-                new bootstrap.Toast(document.getElementById('deleteToast')).show();
+                showToast("Project deleted successfully", 'bg-success');
             } catch {
-                alert('Failed to delete project');
+                showToast("Operation failed", "bg-danger");
             }
 
             const modalEl = document.getElementById('DeleteModal');
@@ -43,6 +43,27 @@ window.projectsEvents = {
                 window.location.href = `/projects/valuations`;
             }
         });
+
     }
-};
+}
+
+//bgclass - bg-success or bg-danger
+function showToast(message, bgClass) {
+    const toastElement = document.getElementById('deleteToast');
+    const toastBody = toastElement.querySelector('.toast-body');
+    toastBody.textContent = message;
+
+    toastElement.className = toastElement.className
+        .split(' ')
+        .filter(cls => !cls.startsWith('bg-'))
+        .join(' ');
+
+    toastElement.classList.add(bgClass);
+
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+}
+
+
+
 

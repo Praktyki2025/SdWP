@@ -1,8 +1,10 @@
+using BlazorBootstrap;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SdWP.Data.Context;
+using SdWP.Data.IData;
 using SdWP.Data.Models;
 using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
@@ -16,6 +18,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +70,7 @@ builder.Services.AddScoped<ILoginService, LoginServices>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<ErrorLogRepository>();
 builder.Services.AddScoped<IErrorLogHelper, ErrorLogHelper>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 builder.Services.AddHttpClient();

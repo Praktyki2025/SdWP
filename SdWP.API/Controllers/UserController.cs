@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SdWP.DTO.Requests;
+using SdWP.DTO.Requests.Datatable;
+using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
 
 
@@ -31,10 +33,10 @@ namespace SdWP.API.Controllers
                 });
         }
 
-        [HttpGet("list")]
-        public async Task<IActionResult> GetUserListAsync()
+        [HttpPost("list")]
+        public async Task<IActionResult> GetUserListAsync([FromBody] DataTableRequestDTO request)
         {
-            var result = await _userService.GetUserListAsync();
+            var result = await _userService.GetUserListAsync(request);
 
             return result.Success
                 ? StatusCode(result.StatusCode, result.Data)

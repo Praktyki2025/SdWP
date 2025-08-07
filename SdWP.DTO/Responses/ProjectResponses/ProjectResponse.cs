@@ -20,7 +20,7 @@ namespace SdWP.DTO.Responses.ProjectRequests
         public DateTime CreatedAt { get; set; }
         public DateTime LastModified { get; set; }
 
-        public ProjectEditRequest MapToRequest()
+        public ProjectEditRequest MapToEditRequest()
         {
             return new ProjectEditRequest
             {
@@ -28,6 +28,14 @@ namespace SdWP.DTO.Responses.ProjectRequests
                 Title = Title,
                 Description = Description,
                 LastModified = LastModified
+            };
+        }
+
+        public ProjectDeleteRequest MapToDeleteRequest()
+        {
+            return new ProjectDeleteRequest
+            {
+                Id = Id
             };
         }
     }

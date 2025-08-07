@@ -57,18 +57,34 @@ namespace SdWP.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var result = await _projectService.DeleteProjectAsync(id);
-            if (result.Success)
+            var project = await _projectService.GetProjectAsync(id);
+            if (project.Success)
             {
-                return StatusCode(result.StatusCode, result.Data);
-            }
+                var result = await _projectService.DeleteProjectAsync(project.Data.MapToDeleteRequest());
+                if (result.Success)
+                {
+                    return StatusCode(result.StatusCode, result.Data);
+                }
+                else
+                {
 
-            return StatusCode(result.StatusCode, new
+                    return StatusCode(result.StatusCode, new
+                    {
+                        success = false,
+                        message = result.Message,
+                        errors = result.Errors
+                    });
+                }
+            }
+            else
             {
-                success = false,
-                message = result.Message,
-                errors = result.Errors
-            });
+                return StatusCode(project.StatusCode, new
+                {
+                    success = false,
+                    message = project.Message,
+                    errors = project.Errors
+                });
+            }
         }
 
         [HttpGet("{id}")]

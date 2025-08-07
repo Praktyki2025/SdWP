@@ -142,7 +142,7 @@ namespace SdWP.Service.Services
 
         }
 
-        public async Task<ResultService<ProjectDeleteResponse>> DeleteProjectAsync(Guid projectId)
+        public async Task<ResultService<ProjectDeleteResponse>> DeleteProjectAsync(ProjectDeleteRequest project)
         {
             try {                
                 var user = _httpContextAccessor.HttpContext?.User;
@@ -155,9 +155,9 @@ namespace SdWP.Service.Services
                         statusCode: StatusCodes.Status401Unauthorized);
                 }
 
-                var project = await _projectRepository.GetProjectByIdAsync(projectId);
+                var projectToDelete = await _projectRepository.GetProjectByIdAsync(project.Id);
 
-                if (project == null)
+                if (projectToDelete == null)
                 {
                     return ResultService<ProjectDeleteResponse>.BadResult(
                         message: "Project not found.",
@@ -165,14 +165,14 @@ namespace SdWP.Service.Services
                         );
                 }
 
-                if (!user.IsInRole("Admin") && Guid.Parse(userId) != project.CreatorUserId)
+                if (!user.IsInRole("Admin") && Guid.Parse(userId) != projectToDelete.CreatorUserId)
                 {
                     return ResultService<ProjectDeleteResponse>.BadResult(
                         message: "You don't have permissions to delete this project.",
                         statusCode: StatusCodes.Status403Forbidden);
                 }
 
-                await _projectRepository.DeleteAsync(projectId);
+                await _projectRepository.DeleteAsync(projectToDelete.Id);
 
                 return ResultService<ProjectDeleteResponse>.GoodResult(
                     message: "Project was deleted.",

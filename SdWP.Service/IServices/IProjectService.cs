@@ -14,7 +14,7 @@ namespace SdWP.Service.IServices
     {
         Task<ResultService<ProjectResponse>> CreateProjectAsync(ProjectCreateRequest project);
         Task<ResultService<ProjectResponse>> EditProjectAsync(ProjectEditRequest project);
-        Task<ResultService<ProjectDeleteResponse>> DeleteProjectAsync(Guid project); 
+        Task<ResultService<ProjectDeleteResponse>> DeleteProjectAsync(ProjectDeleteRequest project); 
         Task<ResultService<ProjectResponse>> GetProjectAsync(Guid id);
         Task<ResultService<ProjectListResponse<ProjectResponse>>> GetProjects(DataTableRequest request);
     }

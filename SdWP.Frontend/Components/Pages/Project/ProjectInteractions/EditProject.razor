@@ -71,7 +71,7 @@
         var loadedProject = await ProjectService.GetProjectAsync(guid);
         if (loadedProject.Success == true)
         {
-            project = loadedProject.Data.MapToRequest();
+            project = loadedProject.Data.MapToEditRequest();
         }
         else
         {

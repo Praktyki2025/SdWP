@@ -46,6 +46,15 @@ namespace SdWP.Data.Repositories
                                          u.Email.ToLower().Contains(searchValue));
             }
 
+            var baseQuery = users.Select(u => new
+            {
+                u.Id,
+                u.Email,
+                u.UserName,
+                u.CreatedAt,
+                u.IsActive
+            });
+
             if (request.order != null && request.order.Count > 0)
             {
                 var orderColumn = request.order[0];
@@ -53,45 +62,73 @@ namespace SdWP.Data.Repositories
                 string? sortColumn = null;
                 if (request.columns != null && request.columns.Count > orderColumn.column)
                     sortColumn = request.columns[orderColumn.column].data;
+                
                 if (!string.IsNullOrEmpty(sortColumn))
-                    users = ApplyOrdering(users, sortColumn, ascending);
+                {
+                    if (sortColumn.ToLower() != "roles") baseQuery = ApplyOrderingToBase(baseQuery, sortColumn, ascending);
+                }
             }
             else
             {
-                users = users.OrderBy(u => u.UserName);
+                baseQuery = baseQuery.OrderBy(u => u.UserName);
             }
 
-            users = users
+            var pagedUsers = baseQuery
                 .Skip(request.start)
-                .Take(request.length);
-
-            var userList = await users.AsNoTracking()
-                .Select(u => new UserListResponse
-                {
-                    Id = u.Id,
-                    Email = u.Email,
-                    Name = u.UserName,
-                    CreatedAt = u.CreatedAt,
-                    Roles = _context.UserRoles
-                        .Where(ur => ur.UserId == u.Id)
-                        .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
-                        .Where(role => role != null)
-                        .Select(role => role!.Name)
-                        .ToList(),
-                    Success = true,
-                    IsActive = u.IsActive
-                })
+                .Take(request.length)
                 .ToListAsync();
 
-            return userList;
+            var userList = new List<UserListResponse>();
 
+            foreach (var user in await pagedUsers)
+            {
+                var roles = await _context.UserRoles
+                    .Where(ur => ur.UserId == user.Id)
+                    .Join(_context.Roles,
+                        ur => ur.RoleId,
+                        r => r.Id,
+                        (ur, r) => r.Name)
+                    .ToListAsync();
+
+                userList.Add(new UserListResponse
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Name = user.UserName,
+                    CreatedAt = user.CreatedAt,
+                    Roles = roles,
+                    Success = true,
+                    IsActive = user.IsActive
+                });
+
+                if (request.order != null && request.order.Count > 0)
+                {
+                    var orderColumn = request.order[0];
+                    bool ascending = orderColumn.dir == "asc";
+                    string? sortColumn = null;
+
+                    if (request.columns != null && request.columns.Count > orderColumn.column) sortColumn = request.columns[orderColumn.column].data;
+
+                    if (!string.IsNullOrEmpty(sortColumn) && sortColumn.ToLower() == "roles")
+                    {
+                        if (ascending)
+                        {
+                            userList = userList.OrderBy(u => u.Roles.FirstOrDefault() ?? "").ToList();
+                        }
+                        else
+                        {
+                            userList = userList.OrderByDescending(u => u.Roles.FirstOrDefault() ?? "").ToList();
+                        }
+                    }
+                }
+            }
+
+            return userList;
         }
 
         public async Task<UserListResponse> FiltredAsync(DataTableRequest request, Guid userId)
         {
-            IQueryable<User> users;
-
-            users = _context.Users.AsQueryable();
+            IQueryable<User> users = _context.Users.AsQueryable();
 
             if (!string.IsNullOrEmpty(request.search.value))
             {
@@ -101,6 +138,7 @@ namespace SdWP.Data.Repositories
             }
 
             var totalRecords = await users.CountAsync();
+
             if (request.order != null && request.order.Count > 0)
             {
                 var orderColumn = request.order[0];
@@ -111,34 +149,41 @@ namespace SdWP.Data.Repositories
                 if (!string.IsNullOrEmpty(sortColumn)) users = ApplyOrdering(users, sortColumn, ascending);
             }
 
-            var data = await users.AsNoTracking()
+            var userData = await users
+                .AsNoTracking()
                 .Skip(request.start)
                 .Take(request.length)
-                .Select(u => new UserListResponse
+                .Select(u => new
                 {
-                    Id = u.Id,
-                    Name = u.UserName,
-                    Email = u.Email,
-                    CreatedAt = u.CreatedAt,
-                    Roles = _context.UserRoles
-                        .Where(ur => ur.UserId == u.Id)
-                        .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
-                        .Where(role => role != null)
-                        .Select(role => role.Name)
-                        .ToList()!
+                    u.Id,
+                    u.Email,
+                    u.UserName,
+                    u.CreatedAt,
+                    u.IsActive
                 })
+                .FirstOrDefaultAsync();
+
+            if (userData == null) return new UserListResponse { Success = false };
+
+            var roles = await _context.UserRoles
+                .Where(ur => ur.UserId == userData.Id)
+                .Join(
+                    _context.Roles,
+                    ur => ur.RoleId,
+                    r => r.Id,
+                    (ur, r) => r.Name
+                )
                 .ToListAsync();
-
-            var firstUser = data.FirstOrDefault();
-
+            
             var response = new UserListResponse
             {
-                Id = firstUser.Id,
-                Email = firstUser?.Email ?? string.Empty,
-                Name = firstUser?.Name,
-                Roles = firstUser?.Roles ?? new List<string>(),
-                CreatedAt = firstUser?.CreatedAt,
-                Success = true
+                Id = userData.Id,
+                Email = userData.Email,
+                Name = userData.UserName,
+                CreatedAt = userData.CreatedAt,
+                Roles = roles,
+                Success = true,
+                IsActive = userData.IsActive
             };
 
             return response;
@@ -195,5 +240,19 @@ namespace SdWP.Data.Repositories
 
         public async Task SignOutAsync()
             => await _signInManager.SignOutAsync();
+
+        private IQueryable<T> ApplyOrderingToBase<T>(IQueryable<T> query, string sortColumn, bool ascending)
+        {
+            var sortExpression = sortColumn.ToLower() switch
+            {
+                "name" => ascending ? "UserName ascending" : "UserName descending",
+                "email" => ascending ? "Email ascending" : "Email descending",
+                "createdat" => ascending ? "CreatedAt ascending" : "CreatedAt descending",
+                "isactive" => ascending ? "IsActive ascending" : "IsActive descending",
+                _ => ascending ? "UserName ascending" : "UserName descending"
+            };
+
+            return query.OrderBy(sortExpression);
+        }
     }
 }

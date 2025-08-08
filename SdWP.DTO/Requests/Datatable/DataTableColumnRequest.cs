@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace SdWP.DTO.Requests.Datatable
 {
-    public class DataTableColumnRequestDTO
+    public class DataTableColumnRequest
     {
         public string? data { get; set; }
         public string? name { get; set; }
         public bool searchable { get; set; }
         public bool orderable { get; set; }
-        public DataTableSearchRequestDTO? search { get; set; }
+        public DataTableSearchRequest? search { get; set; }
     }
 }

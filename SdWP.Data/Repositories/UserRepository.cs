@@ -26,7 +26,7 @@ namespace SdWP.Data.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        public async Task<List<UserListResponseDTO>> GetUserAsync(DataTableRequestDTO request)
+        public async Task<List<UserListResponse>> GetUsersAsync(DataTableRequest request)
         {
             IQueryable<User> users = _context.Users.AsQueryable();
 
@@ -57,7 +57,7 @@ namespace SdWP.Data.Repositories
                 .Take(request.length);
 
             var userList = await users.AsNoTracking()
-                .Select(u => new UserListResponseDTO
+                .Select(u => new UserListResponse
                 {
                     Id = u.Id,
                     Email = u.Email,
@@ -77,7 +77,7 @@ namespace SdWP.Data.Repositories
 
         }
 
-        public async Task<UserListResponseDTO> FiltredAsync(DataTableRequestDTO request, Guid userId)
+        public async Task<UserListResponse> FiltredAsync(DataTableRequest request, Guid userId)
         {
             IQueryable<User> users;
 
@@ -104,7 +104,7 @@ namespace SdWP.Data.Repositories
             var data = await users.AsNoTracking()
                 .Skip(request.start)
                 .Take(request.length)
-                .Select(u => new UserListResponseDTO
+                .Select(u => new UserListResponse
                 {
                     Id = u.Id,
                     Name = u.UserName,
@@ -121,7 +121,7 @@ namespace SdWP.Data.Repositories
 
             var firstUser = data.FirstOrDefault();
 
-            var response = new UserListResponseDTO
+            var response = new UserListResponse
             {
                 Id = firstUser.Id,
                 Email = firstUser?.Email ?? string.Empty,

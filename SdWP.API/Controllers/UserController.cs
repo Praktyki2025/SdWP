@@ -19,7 +19,7 @@ namespace SdWP.API.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult> RegisterAsync([FromBody] AddUserRequestDTO dto)
+        public async Task<ActionResult> RegisterAsync([FromBody] AddUserRequest dto)
         {
             var result = await _userService.RegisterAsync(dto);
 
@@ -34,7 +34,7 @@ namespace SdWP.API.Controllers
         }
 
         [HttpPost("list")]
-        public async Task<IActionResult> GetUserListAsync([FromBody] DataTableRequestDTO request)
+        public async Task<IActionResult> GetUserListAsync([FromBody] DataTableRequest request)
         {
             var result = await _userService.GetUserListAsync(request);
 
@@ -51,7 +51,7 @@ namespace SdWP.API.Controllers
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteUserAsync(Guid id)
         {
-            var dto = new DeleteUserRequestDTO { Id = id };
+            var dto = new DeleteUserRequest { Id = id };
             var result = await _userService.DeleteUserAsync(dto);
 
             return result.Success
@@ -65,7 +65,7 @@ namespace SdWP.API.Controllers
         }
 
         [HttpPut("update")]
-        public async Task<IActionResult> EditUserAsync([FromBody] EditUserRequestDTO dto)
+        public async Task<IActionResult> EditUserAsync([FromBody] EditUserRequest dto)
         {
             var result = await _userService.EditUserAsync(dto);
 

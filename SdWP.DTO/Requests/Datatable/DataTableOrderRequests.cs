@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SdWP.DTO.Requests.Datatable
 {
-    public class DataTableOrderRequestsDTO
+    public class DataTableOrderRequests
     {
         public int column { get; set; }
         public string? dir { get; set; } // "asc" or "desc"

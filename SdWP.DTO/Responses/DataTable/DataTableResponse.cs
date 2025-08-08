@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SdWP.DTO.Responses.DataTable
 {
-    public class DataTableResponseDTO<T>
+    public class DataTableResponse<T>
     {
         public int Draw { get; set; }
         public int RecordsTotal { get; set; }

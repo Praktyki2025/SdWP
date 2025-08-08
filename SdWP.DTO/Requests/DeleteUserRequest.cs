@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SdWP.DTO.Requests
 {
-    public class DeleteUserRequestDTO
+    public class DeleteUserRequest
     {
         public Guid Id { get; set; }
     }

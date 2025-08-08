@@ -1,6 +1,6 @@
-﻿@inherits LayoutComponentBase
-
-<SdWP.Frontend.Components.Pages.User.ChangePasswordModal/>
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
+@inject IJSRuntime JS
 
 <Toasts class="p-3" @rendermode=InteractiveServer AutoHide="true" Delay="4000" Placement="ToastsPlacement.TopRight" />
 
@@ -10,9 +10,13 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a id="resetPasswordBtn">Forgot password?</a>
-        </div>
+       <AuthorizeView>
+            <Authorized>
+                <div class="top-row px-4">
+                    <a href="/user/changepassword" id="resetPasswordBtn">Change password</a>
+                </div>
+            </Authorized>
+        </AuthorizeView>
 
         <article class="content px-4">
             @Body

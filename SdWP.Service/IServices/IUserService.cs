@@ -10,6 +10,6 @@ namespace SdWP.Service.IServices
     public interface IUserService
     {
         Task<ResultService<RegisterResponseDTO>> RegisterAsync(RegisterRequestDTO dto);
-        Task<ResultService<User>> ChangePasswordAsync(ClaimsPrincipal userPrincipal, ChangePasswordRequest dto);
+        Task<ResultService<User>> ChangePasswordAsync(ChangePasswordRequest dto);
     }
 }

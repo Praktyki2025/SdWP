@@ -21,7 +21,6 @@
 @code {
     private bool showModal = false;
 
-
     private void ShowModal() => showModal = true;
 
     private async Task Logout() => await JSRuntime.InvokeVoidAsync("apiLogout");

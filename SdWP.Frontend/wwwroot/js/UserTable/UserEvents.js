@@ -46,8 +46,20 @@ window.usersModals = {
 
             try {
                 await window.userApi.registerUser(data);
-                $('#registerUserModal').modal('hide');
-                window.initializeUserTable();
+                const modalEl = document.getElementById('registerUserModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+
+                setTimeout(() => {
+                    const table = $('#userTable').DataTable();
+                    if (table) {
+                        table.ajax.reload(null, false);
+                    }
+                }, 300);
+
             } catch (err) {
                 alert(`Error registering user: ${err.message}`);
             }
@@ -84,8 +96,21 @@ window.usersModals = {
 
             try {
                 await window.userApi.updateUser(data);
-                $('#editUserModal').modal('hide');
-                window.initializeUserTable();
+                const modalEl = document.getElementById('editUserModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+
+                if (modalInstance) modalInstance.hide();
+
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open');
+
+                setTimeout(() => {
+                    const table = $('#userTable').DataTable();
+                    if (table) {
+                        table.ajax.reload(null, false);
+                    }
+                }, 300);
+
             } catch (e) {
                 $('#editUserMessage').removeClass('d-none alert-success').addClass('alert-danger').text(e.message);
             }

@@ -6,17 +6,26 @@ using SdWP.Data.Models;
 using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
 using System.Linq.Dynamic.Core;
-using System.Threading;
 
 namespace SdWP.Data.Repositories
 {
     public class UserRepository : IUserRepository
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+        private readonly SignInManager<User> _signInManager;
 
-        public UserRepository(ApplicationDbContext context)
+        public UserRepository(
+            ApplicationDbContext context,
+            UserManager<User> userManager,
+            RoleManager<IdentityRole<Guid>> roleManager,
+            SignInManager<User> signInManager)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _context = context;
+            _userManager = userManager;
+            _roleManager = roleManager;
+            _signInManager = signInManager;
         }
 
         public async Task<User?> FindByIdAsync(string userId)
@@ -137,6 +146,53 @@ namespace SdWP.Data.Repositories
         private IQueryable<User> ApplyOrdering(IQueryable<User> query, string sortColumn, bool ascending)
             => query.OrderBy($"{sortColumn} {(ascending ? "ascending" : "descending")}");
 
+        public async Task<User?> FindByEmailAsync(string email)
+            => await _userManager.FindByEmailAsync(email);
 
+        public async Task<IdentityResult> CreateAsync(User user, string password)
+            => await _userManager.CreateAsync(user, password);
+
+        public async Task<bool> RoleExistsAsync(string role)
+            => await _roleManager.RoleExistsAsync(role);
+
+        public async Task<IdentityResult> AddToRoleAsync(User user, string role)
+            => await _userManager.AddToRoleAsync(user, role);
+
+        public async Task<IList<string>> GetRolesAsync(User user)
+            => await _userManager.GetRolesAsync(user);
+
+        public async Task<IdentityResult> DeleteAsync(User user)
+            => await _userManager.DeleteAsync(user);
+
+        public async Task<IdentityResult> UpdateAsync(User user)
+            => await _userManager.UpdateAsync(user);
+
+        public async Task<User?> FindByNameAsync(string name)
+            => await _userManager.FindByNameAsync(name);
+
+        public async Task<string> GeneratePasswordResetTokenAsync(User user)
+            => await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        public async Task<IdentityResult> ResetPasswordAsync(User user, string token, string password)
+            => await _userManager.ResetPasswordAsync(user, token, password);
+
+        public async Task<IdentityResult> RemoveFromRolesAsync(User user, IEnumerable<string> roles)
+        {
+            if (roles == null || !roles.Any())
+                return IdentityResult.Failed();
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            var rolesToRemove = currentRoles.Intersect(roles).ToList();
+            if (rolesToRemove.Any())
+            {
+                return await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
+            }
+            return IdentityResult.Success;
+        }
+
+        public async Task<SignInResult> PasswordSignInAsync(User user, string password, bool? isPersistent, bool? lockoutOnFailure)
+            => await _signInManager.PasswordSignInAsync(user, password, isPersistent ?? false, lockoutOnFailure ?? false);
+
+        public async Task SignOutAsync()
+            => await _signInManager.SignOutAsync();
     }
 }

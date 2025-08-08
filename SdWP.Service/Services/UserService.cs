@@ -15,27 +15,20 @@ namespace SdWP.Service.Services
     {
         // In this services class, we handle user registration, delete, and edit user data.
 
-        private readonly UserManager<User> _userManager;
         private readonly IUserRepository _userRepository;
-        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
 
         private readonly List<string> _roles = new();
 
-        public UserService(
-            UserManager<User> userManager,
-            IUserRepository userRepository,
-            RoleManager<IdentityRole<Guid>> roleManager)
+        public UserService(IUserRepository userRepository)
         {
-            _userManager = userManager;
             _userRepository = userRepository;
-            _roleManager = roleManager;
         }
 
         public async Task<ResultService<AddUserResponse>> RegisterAsync(AddUserRequest dto)
         {
             try
             {
-                var exist = await _userManager.FindByEmailAsync(dto.Email);
+                var exist = await _userRepository.FindByEmailAsync(dto.Email);
                 if (exist != null)
                 {
                     return ResultService<AddUserResponse>.BadResult(
@@ -52,7 +45,7 @@ namespace SdWP.Service.Services
                     );
                 }
 
-                if (!await _roleManager.RoleExistsAsync(dto.Role))
+                if (!await _userRepository.RoleExistsAsync(dto.Role))
                 {
                     return ResultService<AddUserResponse>.BadResult(
                         "Role does not exist",
@@ -74,7 +67,7 @@ namespace SdWP.Service.Services
                     ConcurrencyStamp = Guid.NewGuid().ToString(),
                 };
 
-                var result = await _userManager.CreateAsync(user, dto.Password);
+                var result = await _userRepository.CreateAsync(user, dto.Password);
                 if (!result.Succeeded)
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
@@ -85,7 +78,7 @@ namespace SdWP.Service.Services
                     );
                 }
 
-                var createdUser = await _userManager.FindByEmailAsync(dto.Email);
+                var createdUser = await _userRepository.FindByEmailAsync(dto.Email);
                 if (createdUser == null)
                 {
                     return ResultService<AddUserResponse>.BadResult(
@@ -94,7 +87,7 @@ namespace SdWP.Service.Services
                     );
                 }
 
-                var roleResult = await _userManager.AddToRoleAsync(createdUser, dto.Role);
+                var roleResult = await _userRepository.AddToRoleAsync(createdUser, dto.Role);
                 if (!roleResult.Succeeded)
                 {
                     var errors = roleResult.Errors.Select(e => e.Description).ToList();
@@ -105,7 +98,7 @@ namespace SdWP.Service.Services
                     );
                 }
 
-                var roles = await _userManager.GetRolesAsync(createdUser);
+                var roles = await _userRepository.GetRolesAsync(createdUser);
 
                 var responseDto = new AddUserResponse
                 {
@@ -185,7 +178,7 @@ namespace SdWP.Service.Services
                     );
                 }
 
-                var roles = await _userManager.GetRolesAsync(user);
+                var roles = await _userRepository.GetRolesAsync(user); ;
 
                 if (roles != null && roles.Contains("Admin"))
                 {
@@ -205,7 +198,7 @@ namespace SdWP.Service.Services
                     Success = true
                 };
 
-                var result = await _userManager.DeleteAsync(user);
+                var result = await _userRepository.DeleteAsync(user);
 
                 if (result.Succeeded)
                 {
@@ -239,7 +232,7 @@ namespace SdWP.Service.Services
         {
             try
             {
-                var exist = await _userManager.FindByIdAsync(dto.Id.ToString());
+                var exist = await _userRepository.FindByIdAsync(dto.Id.ToString());
                 if (exist == null)
                 {
                     return ResultService<EditUserRequest>.BadResult(
@@ -250,7 +243,7 @@ namespace SdWP.Service.Services
 
                 if (!string.IsNullOrEmpty(dto.Email) && dto.Email != exist.Email)
                 {
-                    var userWithEmail = await _userManager.FindByEmailAsync(dto.Email);
+                    var userWithEmail = await _userRepository.FindByEmailAsync(dto.Email);
                     if (userWithEmail != null && userWithEmail.Id != exist.Id)
                     {
                         return ResultService<EditUserRequest>.BadResult(
@@ -262,7 +255,7 @@ namespace SdWP.Service.Services
 
                 if (!string.IsNullOrEmpty(dto.Name) && dto.Name != exist.Name)
                 {
-                    var userWithName = await _userManager.FindByNameAsync(dto.Name);
+                    var userWithName = await _userRepository.FindByNameAsync(dto.Name);
                     if (userWithName != null && userWithName.Id != exist.Id)
                     {
                         return ResultService<EditUserRequest>.BadResult(
@@ -272,7 +265,7 @@ namespace SdWP.Service.Services
                     }
                 }
 
-                if (!string.IsNullOrEmpty(dto.Role) && !await _roleManager.RoleExistsAsync(dto.Role))
+                if (!string.IsNullOrEmpty(dto.Role) && !await _userRepository.RoleExistsAsync(dto.Role))
                 {
                     return ResultService<EditUserRequest>.BadResult(
                         "Role does not exist",
@@ -298,8 +291,8 @@ namespace SdWP.Service.Services
 
                 if (!string.IsNullOrEmpty(dto.Password) && !string.IsNullOrWhiteSpace(dto.Password))
                 {
-                    var token = await _userManager.GeneratePasswordResetTokenAsync(exist);
-                    var editPassword = await _userManager.ResetPasswordAsync(exist, token, dto.Password);
+                    var token = await _userRepository.GeneratePasswordResetTokenAsync(exist);
+                    var editPassword = await _userRepository.ResetPasswordAsync(exist, token, dto.Password);
 
                     if (!editPassword.Succeeded)
                     {
@@ -312,7 +305,7 @@ namespace SdWP.Service.Services
                     }
                 }
 
-                var updateResult = await _userManager.UpdateAsync(exist);
+                var updateResult = await _userRepository.UpdateAsync(exist);
 
                 if (!updateResult.Succeeded)
                 {
@@ -326,10 +319,10 @@ namespace SdWP.Service.Services
 
                 if (!string.IsNullOrEmpty(dto.Role))
                 {
-                    var currentRole = await _userManager.GetRolesAsync(exist);
+                    var currentRole = await _userRepository.GetRolesAsync(exist);
                     if (currentRole.Any())
                     {
-                        var removeRole = await _userManager.RemoveFromRolesAsync(exist, currentRole);
+                        var removeRole = await _userRepository.RemoveFromRolesAsync(exist, currentRole);
                         if (!removeRole.Succeeded)
                         {
                             var errors = removeRole.Errors.Select(e => e.Description).ToList();
@@ -341,7 +334,7 @@ namespace SdWP.Service.Services
                         }
                     }
 
-                    var updateRole = await _userManager.AddToRoleAsync(exist, dto.Role);
+                    var updateRole = await _userRepository.AddToRoleAsync(exist, dto.Role);
                     if (!updateRole.Succeeded)
                     {
                         var errors = updateRole.Errors.Select(e => e.Description).ToList();
@@ -353,7 +346,7 @@ namespace SdWP.Service.Services
                     }
                 }
 
-                var currentRoles = await _userManager.GetRolesAsync(exist);
+                var currentRoles = await _userRepository.GetRolesAsync(exist);
 
                 var responseDto = new EditUserRequest
                 {

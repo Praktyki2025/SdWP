@@ -4,24 +4,23 @@ using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
 using Microsoft.AspNetCore.Http;
+using SdWP.Data.IData;
 
 namespace SdWP.Service.Services
 {
     public class LoginServices : ILoginService
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
-        public LoginServices(UserManager<User> userManager, SignInManager<User> signInManager)
+        private readonly IUserRepository _userRepository;
+        public LoginServices(IUserRepository userRepository)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            _userRepository = userRepository;
         }
 
         public async Task<ResultService<LoginResponse>> HandleLoginAsync(LoginRequest dto)
         {
             try
             {
-                var user = await _userManager.FindByEmailAsync(dto.Email);
+                var user = await _userRepository.FindByEmailAsync(dto.Email);
                 if (user == null)
                 {
                     return ResultService<LoginResponse>.BadResult(
@@ -30,11 +29,11 @@ namespace SdWP.Service.Services
                     );
                 }
 
-                var result = await _signInManager.PasswordSignInAsync(user, dto.Password, isPersistent: true, lockoutOnFailure: false);
+                var result = await _userRepository.PasswordSignInAsync(user, dto.Password, isPersistent: true, lockoutOnFailure: false);
 
                 if (result.Succeeded)
                 {
-                    var roles = await _userManager.GetRolesAsync(user);
+                    var roles = await _userRepository.GetRolesAsync(user);
 
                     return ResultService<LoginResponse>.GoodResult(
                         "Login successful",
@@ -69,7 +68,7 @@ namespace SdWP.Service.Services
         {
             try
             {
-                await _signInManager.SignOutAsync();
+                await _userRepository.SignOutAsync();
 
                 return ResultService<string>.GoodResult(
                     "Logout successful",

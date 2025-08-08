@@ -13,7 +13,8 @@ namespace SdWP.Data.Models
         public string Name { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastUpdate { get; set; }
-        
+        public bool IsActive { get; set; } = true;
+
         public virtual ICollection<Valuation> Valuations { get; set; }
         public virtual ICollection<Project> Projects { get; set; }
         public virtual ICollection<ErrorLog> ErrorLogs { get; set; }

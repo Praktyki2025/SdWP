@@ -27,6 +27,13 @@
                     }
                 },
                 {
+                    data: "isActive",
+                    render: function (data) {
+                        console.log('isActive raw value:', data);
+                        return data ? "true" : "false";
+                    }
+                },
+                {
                     data: "createdAt",
                     render: function (data) {
                         if (!data) return '';

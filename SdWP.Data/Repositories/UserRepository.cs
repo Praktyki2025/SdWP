@@ -78,7 +78,8 @@ namespace SdWP.Data.Repositories
                         .Where(role => role != null)
                         .Select(role => role!.Name)
                         .ToList(),
-                    Success = true
+                    Success = true,
+                    IsActive = u.IsActive
                 })
                 .ToListAsync();
 

@@ -13,6 +13,7 @@ namespace SdWP.DTO.Responses
         public string? Name { get; set; }
         public List<string> Roles { get; set; }
         public DateTime? CreatedAt { get; set; }
+        public bool IsActive { get; set; }
         public bool Success { get; set; }
     }
 }

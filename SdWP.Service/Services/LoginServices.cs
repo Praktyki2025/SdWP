@@ -27,6 +27,14 @@ namespace SdWP.Service.Services
                     );
                 }
 
+                if (!user.IsActive)
+                {
+                    return ResultService<LoginResponse>.BadResult(
+                        "User isn't active",
+                        StatusCodes.Status401Unauthorized
+                    );
+                }
+
                 var result = await _userRepository.PasswordSignInAsync(user, dto.Password, isPersistent: true, lockoutOnFailure: false);
 
                 if (result.Succeeded)

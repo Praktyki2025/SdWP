@@ -12,8 +12,8 @@ using SdWP.Data.Context;
 namespace SdWP.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250724145332_Init")]
-    partial class Init
+    [Migration("20250808085728_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -306,6 +306,9 @@ namespace SdWP.Data.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("LastUpdate")

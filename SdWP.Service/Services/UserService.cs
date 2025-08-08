@@ -65,6 +65,7 @@ namespace SdWP.Service.Services
                     EmailConfirmed = true,
                     SecurityStamp = Guid.NewGuid().ToString(),
                     ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    IsActive = true
                 };
 
                 var result = await _userRepository.CreateAsync(user, dto.Password);
@@ -288,6 +289,7 @@ namespace SdWP.Service.Services
                 }
 
                 exist.LastUpdate = DateTime.UtcNow;
+                exist.IsActive = dto.IsActive;
 
                 var updateResult = await _userRepository.UpdateAsync(exist);
 
@@ -339,6 +341,7 @@ namespace SdWP.Service.Services
                     Name = exist.Name,
                     Role = currentRoles.ToString(),
                     LastUpdate = exist.LastUpdate,
+                    IsActive = exist.IsActive,
 
                 };
 

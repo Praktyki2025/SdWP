@@ -35,7 +35,8 @@ public static class SeedData
                 LastUpdate = DateTime.UtcNow,
                 EmailConfirmed = true,
                 ConcurrencyStamp = Guid.NewGuid().ToString(),
-                SecurityStamp = Guid.NewGuid().ToString()
+                SecurityStamp = Guid.NewGuid().ToString(),
+                IsActive = true
             };
 
             var result = await userManager.CreateAsync(adminUser, "Admin123!");
@@ -60,7 +61,8 @@ public static class SeedData
                 LastUpdate = DateTime.UtcNow,
                 EmailConfirmed = true,
                 ConcurrencyStamp = Guid.NewGuid().ToString(),
-                SecurityStamp = Guid.NewGuid().ToString()
+                SecurityStamp = Guid.NewGuid().ToString(),
+                IsActive = true
             };
 
             var result = await userManager.CreateAsync(normalUser, "User123!");

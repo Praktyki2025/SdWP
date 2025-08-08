@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using SdWP.Data.Models;
-using SdWP.DTO.Requests;
+﻿using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
 using Microsoft.AspNetCore.Http;

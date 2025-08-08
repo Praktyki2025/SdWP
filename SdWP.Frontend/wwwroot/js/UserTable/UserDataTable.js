@@ -10,7 +10,7 @@
                 url: '/api/admin/user/list',
                 type: 'POST',
                 contentType: 'application/json',
-                data : function (d) {
+                data: function (d) {
                     return JSON.stringify(d);
                 },
                 dataSrc: function (json) {
@@ -26,7 +26,28 @@
                         return Array.isArray(data) ? data.join(', ') : 'No roles';
                     }
                 },
-                { data: "createdAt" },
+                {
+                    data: "createdAt",
+                    render: function (data) {
+                        if (!data) return '';
+
+                        try {
+                            const date = new Date(data);
+                            if (isNaN(date.getTime())) return data;
+
+
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const year = date.getFullYear();
+                            const hours = String(date.getHours()).padStart(2, '0');
+                            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+                            return `${day}.${month}.${year} ${hours}:${minutes}`;
+                        } catch (error) {
+                            return data;
+                        }
+                    }
+                },
                 {
                     data: "id",
                     orderable: false,
@@ -45,7 +66,7 @@
                         `;
                     }
                 }
-            ],
+            ]
         });
     }
 }

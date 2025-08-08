@@ -39,8 +39,6 @@ window.usersModals = {
             const data = {
                 name: $('#registerName').val(),
                 email: $('#registerEmail').val(),
-                password: $('#registerPassword').val(),
-                confirmPassword: $('#registerConfirmPassword').val(),
                 role: $('#registerRole').val()
             };
 
@@ -74,8 +72,6 @@ window.usersModals = {
             $('#editUserId').val(rowData.id);
             $('#editName').val(rowData.name);
             $('#editEmail').val(rowData.email);
-            $('#editPassword').val('');
-            $('#editConfirmPassword').val('');
             $('#editRole').val(rowData.roles?.[0] ?? '');
 
             const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
@@ -89,8 +85,6 @@ window.usersModals = {
                 id: $('#editUserId').val(),
                 name: $('#editName').val(),
                 email: $('#editEmail').val(),
-                password: $('#editPassword').val(),
-                confirmPassword: $('#editConfirmPassword').val(),
                 role: $('#editRole').val()
             };
 

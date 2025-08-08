@@ -289,22 +289,6 @@ namespace SdWP.Service.Services
 
                 exist.LastUpdate = DateTime.UtcNow;
 
-                if (!string.IsNullOrEmpty(dto.Password) && !string.IsNullOrWhiteSpace(dto.Password))
-                {
-                    var token = await _userRepository.GeneratePasswordResetTokenAsync(exist);
-                    var editPassword = await _userRepository.ResetPasswordAsync(exist, token, dto.Password);
-
-                    if (!editPassword.Succeeded)
-                    {
-                        var errors = editPassword.Errors.Select(e => e.Description).ToList();
-                        return ResultService<EditUserRequest>.BadResult(
-                            "Failed to update password",
-                            StatusCodes.Status400BadRequest,
-                            errors
-                        );
-                    }
-                }
-
                 var updateResult = await _userRepository.UpdateAsync(exist);
 
                 if (!updateResult.Succeeded)

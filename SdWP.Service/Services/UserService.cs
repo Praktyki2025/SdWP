@@ -19,45 +19,9 @@ namespace SdWP.Service.Services
             _userManager = userManager;
         }
 
-        public async Task<ResultService<User>> ChangePasswordAsync(User user, ChangePasswordRequest dto)
+        public async Task<ResultService<User>> ChangePasswordAsync(ClaimsPrincipal userPrincipal, ChangePasswordRequest dto)
         {
-            if (user == null)
-            {
-                return new ResultService<User>
-                {
-                    Success = false,
-                    StatusCode = StatusCodes.Status404NotFound,
-                    Message = "User not found.",
-                };
-            }
-
-            await _userManager.ChangePasswordAsync(user, dto.PrevPassword, dto.NewPassword);
-
-            return new ResultService<User>
-            {
-                Success = true,
-                StatusCode = StatusCodes.Status200OK,
-                Message = "Password changed successfully.",
-            };
-        }
-
-        public async Task<ResultService<User>> GetCurrentUser(ClaimsPrincipal userPrincipal)
-        {
-            var emailClaim = userPrincipal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
-
-            var email = emailClaim?.Value;
-
-            if (string.IsNullOrEmpty(email))
-            {
-                return new ResultService<User>
-                {
-                    Success = false,
-                    StatusCode = StatusCodes.Status401Unauthorized,
-                    Message = "User is not authenticated."
-                };
-            }
-
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.GetUserAsync(userPrincipal);
 
             if (user == null)
             {
@@ -69,17 +33,39 @@ namespace SdWP.Service.Services
                 };
             }
 
-            // Возвращаем полный объект пользователя, а не DTO, если нужен полный доступ
+            Console.WriteLine($"{dto.PrevPassword}, {user.Name}");
+
+            var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, dto.PrevPassword);
+            if (!isPasswordCorrect)
+            {
+                return new ResultService<User>
+                {
+                    Success = false,
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Incorrect current password (checked manually)."
+                };
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, dto.PrevPassword, dto.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                return new ResultService<User>
+                {
+                    Success = false,
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Password change failed.",
+                    Errors = result.Errors.Select(e => e.Description).ToList()
+                };
+            }
+
             return new ResultService<User>
             {
                 Success = true,
                 StatusCode = StatusCodes.Status200OK,
-                Data = user,
-                Message = "User retrieved successfully."
+                Message = "Password changed successfully."
             };
         }
-
-
 
         public async Task<ResultService<RegisterResponseDTO>> RegisterAsync(RegisterRequestDTO dto)
         {

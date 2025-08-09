@@ -46,6 +46,7 @@ namespace SdWP.Service.Services
                 }
 
                 var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, dto.PrevPassword);
+                Console.WriteLine($"Password: {isPasswordCorrect}");
                 if (!isPasswordCorrect)
                 {
                     return ResultService<User>.BadResult(
@@ -61,7 +62,7 @@ namespace SdWP.Service.Services
                     return ResultService<User>.BadResult(
                     statusCode: StatusCodes.Status400BadRequest,
                     message: "Wrong previous password",
-                    errors: result.Errors.Select(e => e.Description).ToList(),
+                    errors: result.Errors.Select(e => e.Description).ToList()
                     );
                 }
 
@@ -74,7 +75,7 @@ namespace SdWP.Service.Services
             catch (Exception e)
             {
                 return ResultService<User>.BadResult(
-                    message: $"An error occurred during registration: {e.Message}",
+                    message: $"An error occurred during changing password: {e.Message}",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }

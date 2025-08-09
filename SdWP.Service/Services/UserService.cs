@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
-using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace SdWP.Service.Services
 {
@@ -12,10 +13,73 @@ namespace SdWP.Service.Services
         // In this services class, we handle user registration, delete, and edit user data.
 
         private readonly UserManager<User> _userManager;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserService(UserManager<User> userManager)
+        public UserService(UserManager<User> userManager, IHttpContextAccessor httpContextAccessor)
         {
             _userManager = userManager;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        public async Task<ResultService<User>> ChangePasswordAsync(ChangePasswordRequest dto)
+        {
+            try
+            {
+                var principal = _httpContextAccessor.HttpContext?.User;
+
+                if (principal == null || !principal.Identity.IsAuthenticated)
+                {
+                    return ResultService<User>.BadResult(
+                        statusCode: StatusCodes.Status401Unauthorized,
+                        message: "User is not authenticated."
+                        );
+                }
+
+                var user = await _userManager.GetUserAsync(principal);
+
+                if (user == null)
+                {
+                    return ResultService<User>.BadResult(
+                        statusCode: StatusCodes.Status404NotFound,
+                        message: "User not found."
+                        );
+                }
+
+                var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, dto.PrevPassword);
+                Console.WriteLine($"Password: {isPasswordCorrect}");
+                if (!isPasswordCorrect)
+                {
+                    return ResultService<User>.BadResult(
+                        statusCode: StatusCodes.Status400BadRequest,
+                        message: "Wrong previous password"
+                        );
+                }
+
+                var result = await _userManager.ChangePasswordAsync(user, dto.PrevPassword, dto.NewPassword);
+
+                if (!result.Succeeded)
+                {
+                    return ResultService<User>.BadResult(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    message: "Wrong previous password",
+                    errors: result.Errors.Select(e => e.Description).ToList()
+                    );
+                }
+
+                return ResultService<User>.GoodResult(
+                    statusCode: StatusCodes.Status200OK,
+                    message: "Password changed successfully."
+                    );
+
+            }
+            catch (Exception e)
+            {
+                return ResultService<User>.BadResult(
+                    message: $"An error occurred during changing password: {e.Message}",
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+
         }
 
         public async Task<ResultService<RegisterResponseDTO>> RegisterAsync(RegisterRequestDTO dto)

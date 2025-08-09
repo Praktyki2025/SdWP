@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SdWP.DTO.Responses
+namespace SdWP.DTO.Requests.ProjectRequests
 {
-    public class ProjectDeleteResponseDTO
+    public class ProjectDeleteRequest
     {
-        public bool Success { get; set; }
+        public Guid Id { get; set; }
     }
 }

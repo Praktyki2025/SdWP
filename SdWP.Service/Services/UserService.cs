@@ -29,63 +29,53 @@ namespace SdWP.Service.Services
 
                 if (principal == null || !principal.Identity.IsAuthenticated)
                 {
-                    return new ResultService<User>
-                    {
-                        Success = false,
-                        StatusCode = StatusCodes.Status401Unauthorized,
-                        Message = "User is not authenticated."
-                    };
+                    return ResultService<User>.BadResult(
+                        statusCode: StatusCodes.Status401Unauthorized,
+                        message: "User is not authenticated."
+                        );
                 }
 
                 var user = await _userManager.GetUserAsync(principal);
 
                 if (user == null)
                 {
-                    return new ResultService<User>
-                    {
-                        Success = false,
-                        StatusCode = StatusCodes.Status404NotFound,
-                        Message = "User not found."
-                    };
+                    return ResultService<User>.BadResult(
+                        statusCode: StatusCodes.Status404NotFound,
+                        message: "User not found."
+                        );
                 }
 
                 var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, dto.PrevPassword);
                 if (!isPasswordCorrect)
                 {
-                    return new ResultService<User>
-                    {
-                        Success = false,
-                        StatusCode = StatusCodes.Status400BadRequest,
-                        Message = "Incorrect previous password."
-                    };
+                    return ResultService<User>.BadResult(
+                        statusCode: StatusCodes.Status400BadRequest,
+                        message: "Wrong previous password"
+                        );
                 }
 
                 var result = await _userManager.ChangePasswordAsync(user, dto.PrevPassword, dto.NewPassword);
 
                 if (!result.Succeeded)
                 {
-                    return new ResultService<User>
-                    {
-                        Success = false,
-                        StatusCode = StatusCodes.Status400BadRequest,
-                        Message = "Password change failed.",
-                        Errors = result.Errors.Select(e => e.Description).ToList()
-                    };
+                    return ResultService<User>.BadResult(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    message: "Wrong previous password",
+                    errors: result.Errors.Select(e => e.Description).ToList(),
+                    );
                 }
 
-                return new ResultService<User>
-                {
-                    Success = true,
-                    StatusCode = StatusCodes.Status200OK,
-                    Message = "Password changed successfully."
-                };
+                return ResultService<User>.GoodResult(
+                    statusCode: StatusCodes.Status200OK,
+                    message: "Password changed successfully."
+                    );
 
             }
             catch (Exception e)
             {
                 return ResultService<User>.BadResult(
-                    $"An error occurred during registration: {e.Message}",
-                    StatusCodes.Status500InternalServerError
+                    message: $"An error occurred during registration: {e.Message}",
+                    statusCode: StatusCodes.Status500InternalServerError
                 );
             }
 

@@ -40,7 +40,7 @@ window.projectsEvents = {
             const id = $(this).data('id');
             if ($(e.target).closest('.dropdown, .dropdown-menu').length === 0) {
                 //window.location.href = `/projects/valutaions?id=${id}`;
-                window.location.href = `/projects/valutaions`;
+                window.location.href = `/projects/valuations`;
             }
         });
     }

@@ -1,158 +1,58 @@
 ﻿@page "/projects/valuations"
-@using Microsoft.AspNetCore.Authorization
-@attribute [Authorize]
+@inject HttpClient Http
 
-<h3 class="mb-4">Project Valuations</h3>
+<h3>Project Valuations</h3>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" class="form-control" placeholder="Search by name, address, or phone..."
-                           @bind="searchTerm" @bind:event="oninput" />
-                </div>
-            </div>
-        </div>
-
-        @if (filteredValuations == null)
-        {
-            <p><em>Loading data...</em></p>
-        }
-        else if (!filteredValuations.Any())
-        {
-            <p><em>No data found.</em></p>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Name</th>
-                            <th>Contact Address</th>
-                            <th>Contact Phone</th>
-                            <th>Other</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var valuation in filteredValuations)
-                        {
-                            <tr>
-                                <td>@valuation.ClientName</td>
-                                <td>@valuation.ContactAddress</td>
-                                <td>@valuation.ContactPhone</td>
-                                <td>@valuation.OtherInfo</td>
-                                <td class="text-center">
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                            <i class="fas fa-cog"></i> Actions
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li>
-                                                <a class="dropdown-item" href="#" @onclick="() => EditValuation(valuation.Id)">
-                                                    <i class="fas fa-edit me-2"></i>Edit
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item text-danger" href="#" @onclick="() => DeleteValuation(valuation.Id)">
-                                                    <i class="fas fa-trash-alt me-2"></i>Delete
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
+@if (valuations == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!valuations.Any())
+{
+    <p>No valuations found.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Created At</th>
+                    <th scope="col">Last Modified</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var valuation in valuations)
+                {
+                    <tr>
+                        <td>@valuation.Name</td>
+                        <td>@valuation.Description</td>
+                        <td>@valuation.CreatedAt.ToString("g")</td>
+                        <td>@valuation.LastModified.ToString("g")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
-</div>
+}
 
 @code {
-    private List<ValuationModel> allValuations = new();
-    private List<ValuationModel> filteredValuations;
-
-    private string _searchTerm = string.Empty;
-    private string searchTerm
-    {
-        get => _searchTerm;
-        set
-        {
-            _searchTerm = value;
-            FilterValuations();
-        }
-    }
+    private List<ValuationResponse>? valuations;
 
     protected override async Task OnInitializedAsync()
     {
-        var valuationService = new ValuationService();
-        allValuations = await valuationService.GetValuationsAsync();
-        filteredValuations = allValuations;
+        valuations = await Http.GetFromJsonAsync<List<ValuationResponse>>("api/valuation/list");
     }
 
-
-
-    private void FilterValuations()
+    public class ValuationResponse
     {
-        if (string.IsNullOrWhiteSpace(searchTerm))
-        {
-            filteredValuations = allValuations;
-        }
-        else
-        {
-            var term = searchTerm.ToLower().Trim();
-            filteredValuations = allValuations
-                .Where(v =>
-                    v.ClientName.ToLower().Contains(term) ||
-                    v.ContactAddress.ToLower().Contains(term) ||
-                    v.ContactPhone.ToLower().Contains(term)
-                ).ToList();
-        }
-    }
-
-    private void EditValuation(int valuationId)
-    {
-        Console.WriteLine($"Edit valuation ID: {valuationId}");
-    }
-
-    private void DeleteValuation(int valuationId)
-    {
-        Console.WriteLine($"Delete valuation ID: {valuationId}");
-    }
-
-    public class ValuationModel
-    {
-        public int Id { get; set; }
-        public string ClientName { get; set; }
-        public string ContactAddress { get; set; }
-        public string ContactPhone { get; set; }
-        public string OtherInfo { get; set; }
-    }
-
-    public class ValuationService
-    {
-        private readonly List<ValuationModel> _valuations;
-
-        public ValuationService()
-        {
-            _valuations = new List<ValuationModel>
-            {
-                new ValuationModel { Id = 1, ClientName = "Kowalski Sp. z o.o.", ContactAddress = "Warsaw, ul. Jasna 12", ContactPhone = "123-456-789", OtherInfo = "Corporate website" },
-                new ValuationModel { Id = 2, ClientName = "Nowak Services", ContactAddress = "Krakow, ul. Długa 7", ContactPhone = "987-654-321", OtherInfo = "Mobile app" },
-                new ValuationModel { Id = 3, ClientName = "Anna Bąk", ContactAddress = "Gdansk, ul. Wita Stwosza 21", ContactPhone = "500-501-502", OtherInfo = "CRM integration" },
-                new ValuationModel { Id = 4, ClientName = "Tech Solutions", ContactAddress = "Poznan, ul. Rynek 4", ContactPhone = "22-333-44-55", OtherInfo = "E-learning platform" },
-                new ValuationModel { Id = 5, ClientName = "Global Trade", ContactAddress = "Lodz, ul. Piotrkowska 100", ContactPhone = "111-222-333", OtherInfo = "Analytics system" }
-            };
-        }
-
-        public async Task<List<ValuationModel>> GetValuationsAsync()
-        {
-            return await Task.FromResult(_valuations);
-        }
+        public Guid Id { get; set; }
+        public Guid ProjectId { get; set; }
+        public string Name { get; set; }
+        public string? Description { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }

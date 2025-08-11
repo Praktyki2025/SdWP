@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SdWP.Service.Services
+﻿namespace SdWP.Service.Services
 {
     public class ResultService<T>
     {
@@ -15,7 +9,7 @@ namespace SdWP.Service.Services
         public int StatusCode { get; set; }
 
         public static ResultService<T> GoodResult(
-            string message, 
+            string message,
             int statusCode,
             T? data = default)
             => new ResultService<T>
@@ -31,7 +25,7 @@ namespace SdWP.Service.Services
             int statusCode,
             List<string>? errors = null,
             T? data = default)
-            => 
+            =>
             new ResultService<T>
             {
                 Message = message,

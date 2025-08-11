@@ -41,16 +41,6 @@ namespace SdWP.Data.Repositories
                 await _context.SaveChangesAsync();
             }
         }
-
-        /*  public async Task<ValuationItem?> GetValuationItemByIdAsync(Guid id)
-        {
-            return await _context.ValuationItems.FindAsync(id);
-        }
-
-        => uzywac jak zwraca jeden return + "vi" - zmienna pomocnicza 
-
-          }   */
-
         public async Task<ValuationItem?> GetValuationItemByIdAsync(Guid id) =>
             await _context.ValuationItems.FindAsync(id);
         public async Task<List<ValuationItem>> GetAllValuationItemsAsync() =>

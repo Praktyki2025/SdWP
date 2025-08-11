@@ -81,6 +81,8 @@ builder.Services.AddScoped<HttpClient>(sp =>
 });
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IValuationRepository, ValuationRepository>();
+builder.Services.AddScoped<IValuationService, ValuationService>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

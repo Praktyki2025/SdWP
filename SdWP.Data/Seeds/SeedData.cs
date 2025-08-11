@@ -3,15 +3,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SdWP.Data.Context;
 using SdWP.Data.Models;
+using System.Net.WebSockets;
 
 public static class SeedData
 {
     public static async Task Initialize(IServiceProvider serviceProvider)
     {
         await SeedUsers(serviceProvider);
-
+        await SeeduserGroupTypes(serviceProvider);
         await SeedCostTypes(serviceProvider);
         await SeedCostCategories(serviceProvider);
+        
+
 
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
         var adminUser = await userManager.FindByEmailAsync("admin@example.pl");
@@ -24,6 +27,7 @@ public static class SeedData
         if (normalUser != null)
         {
             await SeedProjects(serviceProvider, normalUser);
+            await SeedValuation(serviceProvider, normalUser);
         }
     }
 
@@ -164,6 +168,12 @@ public static class SeedData
         var costCategories = await context.CostCategories.FirstOrDefaultAsync();
         var userGroupTypes = await context.UserGroupTypes.FirstOrDefaultAsync();
 
+        if (costTypes == null || costCategories == null || userGroupTypes == null)
+        {
+            Console.WriteLine("Brakuje wymaganych danych referencyjnych: CostType, CostCategory lub UserGroupType.");
+            return;
+        }
+
         foreach (var project in projects)
         {
             if (!context.Valuations.Any(v => v.ProjectId == project.Id))
@@ -179,7 +189,7 @@ public static class SeedData
                     LastModified = DateTime.UtcNow
                 };
 
-                await context.Valuations.AddAsync(valuation);
+                await context.Valuations.AddRangeAsync(valuation);
                 await context.SaveChangesAsync();
 
                 var valutaionItem = new List<ValuationItem>
@@ -200,7 +210,7 @@ public static class SeedData
                         UnitPrice = 20,
                         TotalAmount = 200,
                         RecurrencePeriod = 0,
-                        RecurrenceUnit = null
+                        RecurrenceUnit = "Month"
                     },
 
                     new ValuationItem
@@ -226,6 +236,24 @@ public static class SeedData
                 await context.ValuationItems.AddRangeAsync(valutaionItem);
                 await context.SaveChangesAsync();
             }
+        }
+    }
+
+    public static async Task SeeduserGroupTypes(IServiceProvider serviceProvider)
+    {
+        var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+        if (!await context.UserGroupTypes.AnyAsync())
+        {
+            var userGroupTypes = new List<UserGroupType>
+            {
+                new UserGroupType { Id = Guid.NewGuid(), Name = "GroupType1", UnitOFWork = "default 1" },
+                new UserGroupType { Id = Guid.NewGuid(), Name = "GroupType2", UnitOFWork = "default 2" },
+                new UserGroupType { Id = Guid.NewGuid(), Name = "GroupType3", UnitOFWork = "default 3" }
+            };
+
+            await context.UserGroupTypes.AddRangeAsync(userGroupTypes);
+            await context.SaveChangesAsync();
         }
     }
 }

@@ -73,6 +73,7 @@ window.usersModals = {
             $('#editName').val(rowData.name);
             $('#editEmail').val(rowData.email);
             $('#editRole').val(rowData.roles?.[0] ?? '');
+            $('#editIsLocked').prop('checked', rowData.isLocked === true);
 
             const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
             modal.show();
@@ -85,7 +86,8 @@ window.usersModals = {
                 id: $('#editUserId').val(),
                 name: $('#editName').val(),
                 email: $('#editEmail').val(),
-                role: $('#editRole').val()
+                role: $('#editRole').val(),
+                isLocked: $('#editIsLocked').is(':checked')
             };
 
             try {

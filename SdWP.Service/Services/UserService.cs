@@ -8,6 +8,7 @@ using SdWP.DTO.Responses;
 using SdWP.DTO.Responses.DataTable;
 using SdWP.Service.IServices;
 using SdWP.Data.IData;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace SdWP.Service.Services
 {
@@ -273,6 +274,47 @@ namespace SdWP.Service.Services
                     );
                 }
 
+                if (dto.IsLocked.HasValue)
+                {
+                    var enableResult = await _userRepository.SetLockoutEnabledAsync(exist, true);
+                    if (!enableResult.Succeeded)
+                    {
+                        var errors = enableResult.Errors.Select(e => e.Description).ToList();
+                        return ResultService<EditUserRequest>.BadResult(
+                            "Failed to lock user account",
+                            StatusCodes.Status400BadRequest,
+                            errors
+                        );
+                    }
+
+                    if (dto.IsLocked.Value)
+                    {
+                        var lockResult = await _userRepository.SetLockoutEndDateAsync(exist, DateTimeOffset.MaxValue);
+                        if (!lockResult.Succeeded)
+                        {
+                            var errors = lockResult.Errors.Select(e => e.Description).ToList();
+                            return ResultService<EditUserRequest>.BadResult(
+                                "Failed to lock user account",
+                                StatusCodes.Status400BadRequest,
+                                errors
+                            );
+                        }
+                    }
+                    else
+                    {
+                        var unlockResult = await _userRepository.SetLockoutEndDateAsync(exist, null);
+                        if (!unlockResult.Succeeded)
+                        {
+                            var errors = unlockResult.Errors.Select(e => e.Description).ToList();
+                            return ResultService<EditUserRequest>.BadResult(
+                                "Failed to unlock user account",
+                                StatusCodes.Status400BadRequest,
+                                errors
+                            );
+                        }
+                    }
+                }
+
 
                 if (!string.IsNullOrEmpty(dto.Name))
                 {
@@ -330,6 +372,7 @@ namespace SdWP.Service.Services
                     }
                 }
 
+                exist = await _userRepository.FindByIdAsync(exist.Id.ToString());
                 var currentRoles = await _userRepository.GetRolesAsync(exist);
 
                 var responseDto = new EditUserRequest
@@ -339,6 +382,7 @@ namespace SdWP.Service.Services
                     Name = exist.Name,
                     Role = currentRoles.ToString(),
                     LastUpdate = exist.LastUpdate,
+                    IsLocked = exist.LockoutEnd.HasValue && exist.LockoutEnd.Value > DateTimeOffset.UtcNow, 
 
                 };
 

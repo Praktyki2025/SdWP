@@ -49,6 +49,13 @@
                     }
                 },
                 {
+                    data: "isLocked",
+                    title: "Status",
+                    render: function (data) {
+                        return data ? '<span class="badge bg-danger">Locked</span>' : '<span class="badge bg-success">Active</span>';
+                    }
+                },
+                {
                     data: "id",
                     orderable: false,
                     searchable: false,

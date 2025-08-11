@@ -14,5 +14,6 @@ namespace SdWP.DTO.Responses
         public List<string> Roles { get; set; }
         public DateTime? CreatedAt { get; set; }
         public bool Success { get; set; }
+        public bool isLocked { get; set; }
     }
 }

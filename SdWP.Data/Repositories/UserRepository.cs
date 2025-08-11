@@ -6,6 +6,7 @@ using SdWP.Data.Models;
 using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
 using System.Linq.Dynamic.Core;
+using System.Runtime.CompilerServices;
 
 namespace SdWP.Data.Repositories
 {
@@ -72,6 +73,7 @@ namespace SdWP.Data.Repositories
                     Email = u.Email,
                     Name = u.UserName,
                     CreatedAt = u.CreatedAt,
+                    isLocked = u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow,
                     Roles = _context.UserRoles
                         .Where(ur => ur.UserId == u.Id)
                         .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
@@ -119,6 +121,7 @@ namespace SdWP.Data.Repositories
                     Name = u.UserName,
                     Email = u.Email,
                     CreatedAt = u.CreatedAt,
+                    isLocked = u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow,
                     Roles = _context.UserRoles
                         .Where(ur => ur.UserId == u.Id)
                         .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
@@ -137,6 +140,7 @@ namespace SdWP.Data.Repositories
                 Name = firstUser?.Name,
                 Roles = firstUser?.Roles ?? new List<string>(),
                 CreatedAt = firstUser?.CreatedAt,
+                isLocked = firstUser?.isLocked ?? false,
                 Success = true
             };
 
@@ -194,5 +198,11 @@ namespace SdWP.Data.Repositories
 
         public async Task SignOutAsync()
             => await _signInManager.SignOutAsync();
+
+        public async Task<IdentityResult> SetLockoutEnabledAsync(User user, bool enabled)
+            => await _userManager.SetLockoutEnabledAsync(user, enabled);
+
+        public async Task<IdentityResult> SetLockoutEndDateAsync(User user, DateTimeOffset? lockoutEnd)
+            => await _userManager.SetLockoutEndDateAsync(user, lockoutEnd);
     }
 }

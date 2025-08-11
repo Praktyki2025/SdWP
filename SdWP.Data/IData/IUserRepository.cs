@@ -24,5 +24,7 @@ namespace SdWP.Data.IData
 
         Task<SignInResult> PasswordSignInAsync(User user, string password, bool? isPersistent, bool? lockoutOnFailure);
         Task SignOutAsync();
+        Task<IdentityResult> SetLockoutEnabledAsync(User user, bool enabled);
+        Task<IdentityResult> SetLockoutEndDateAsync(User user, DateTimeOffset? lockoutEnd);
     }
 }

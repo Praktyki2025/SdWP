@@ -148,7 +148,30 @@ namespace SdWP.Data.Repositories
         }
 
         private IQueryable<User> ApplyOrdering(IQueryable<User> query, string sortColumn, bool ascending)
-            => query.OrderBy($"{sortColumn} {(ascending ? "ascending" : "descending")}");
+        {
+            return sortColumn.ToLower() switch
+            {
+                "name" => ascending ? query.OrderBy(u => u.UserName) : query.OrderByDescending(u => u.UserName),
+                "email" => ascending ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email),
+                "createdat" => ascending ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
+                "role" or "roles" => ascending 
+                    ? query.OrderBy(u => _context.UserRoles
+                        .Where(ur => ur.UserId == u.Id)
+                        .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId).Name)
+                        .OrderBy(rn => rn)
+                        .FirstOrDefault() ?? string.Empty)
+                    : query.OrderByDescending(u => _context.UserRoles
+                        .Where(ur => ur.UserId == u.Id)
+                        .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId).Name)
+                        .OrderBy(rn => rn)
+                        .FirstOrDefault() ?? string.Empty),
+                "islocked" => ascending
+                    ? query.OrderBy(u => u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow)
+                    : query.OrderByDescending(u => u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow),
+                _ => query.OrderBy($"{sortColumn} {(ascending ? "ascending" : "descending")}")
+            };
+        }
+
 
         public async Task<User?> FindByEmailAsync(string email)
             => await _userManager.FindByEmailAsync(email);
@@ -173,9 +196,6 @@ namespace SdWP.Data.Repositories
 
         public async Task<User?> FindByNameAsync(string name)
             => await _userManager.FindByNameAsync(name);
-
-        public async Task<string> GeneratePasswordResetTokenAsync(User user)
-            => await _userManager.GeneratePasswordResetTokenAsync(user);
 
         public async Task<IdentityResult> ResetPasswordAsync(User user, string token, string password)
             => await _userManager.ResetPasswordAsync(user, token, password);

@@ -18,10 +18,7 @@ namespace SdWP.Data.IData
         Task<IdentityResult> DeleteAsync(User user);
         Task<IdentityResult> UpdateAsync(User user);
         Task<User?> FindByNameAsync(string name);
-        Task<string> GeneratePasswordResetTokenAsync(User user);
-        Task<IdentityResult> ResetPasswordAsync(User user, string token, string password);
         Task<IdentityResult> RemoveFromRolesAsync(User user, IEnumerable<string> roles);
-
         Task<SignInResult> PasswordSignInAsync(User user, string password, bool? isPersistent, bool? lockoutOnFailure);
         Task SignOutAsync();
         Task<IdentityResult> SetLockoutEnabledAsync(User user, bool enabled);

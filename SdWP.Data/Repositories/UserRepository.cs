@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SdWP.Data.Context;
 using SdWP.Data.IData;
 using SdWP.Data.Models;
@@ -7,6 +8,7 @@ using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
 using System.Linq.Dynamic.Core;
 using System.Runtime.CompilerServices;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace SdWP.Data.Repositories
 {
@@ -38,13 +40,27 @@ namespace SdWP.Data.Repositories
 
         public async Task<List<UserListResponse>> GetUsersAsync(DataTableRequest request)
         {
-            IQueryable<User> users = _context.Users.AsQueryable();
+            var userWithRoles = _context.Users
+                .Select(u => new
+                {
+                    User = u,
+                    FirstRoleName = _context.UserRoles
+                        .Where(ur => ur.UserId == u.Id)
+                        .Join(_context.Roles,
+                            ur => ur.RoleId,
+                            r => r.Id,
+                            (ur, r) => r.Name)
+                        .OrderBy(roleName => roleName)
+                        .FirstOrDefault(),
+                    IsLocked = u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow
+                });
 
             if (!string.IsNullOrEmpty(request.search.value))
             {
                 var searchValue = request.search.value.ToLower();
-                users = users.Where(u => u.UserName.ToLower().Contains(searchValue) ||
-                                         u.Email.ToLower().Contains(searchValue));
+                userWithRoles = userWithRoles
+                    .Where(u => u.User.UserName.ToLower().Contains(searchValue) ||
+                                u.User.Email.ToLower().Contains(searchValue));
             }
 
             if (request.order != null && request.order.Count > 0)
@@ -54,123 +70,129 @@ namespace SdWP.Data.Repositories
                 string? sortColumn = null;
                 if (request.columns != null && request.columns.Count > orderColumn.column)
                     sortColumn = request.columns[orderColumn.column].data;
+
                 if (!string.IsNullOrEmpty(sortColumn))
-                    users = ApplyOrdering(users, sortColumn, ascending);
+                {
+                    userWithRoles = sortColumn.ToLower() switch
+                    {
+                        "name" => ascending ? userWithRoles.OrderBy(u => u.User.UserName) : userWithRoles.OrderByDescending(u => u.User.UserName),
+                        "email" => ascending ? userWithRoles.OrderBy(u => u.User.Email) : userWithRoles.OrderByDescending(u => u.User.Email),
+                        "createdat" => ascending ? userWithRoles.OrderBy(u => u.User.CreatedAt) : userWithRoles.OrderByDescending(u => u.User.CreatedAt),
+                        "role" or "roles" => ascending ? userWithRoles.OrderBy(u => u.FirstRoleName ?? string.Empty) :
+                            userWithRoles.OrderByDescending(u => u.FirstRoleName ?? string.Empty),
+                        "islocked" => ascending ? userWithRoles.OrderBy(u => u.IsLocked) : userWithRoles.OrderByDescending(u => u.IsLocked),
+                        _ => userWithRoles.OrderBy(u => u.User.UserName)
+                    };
+                }
             }
             else
             {
-                users = users.OrderBy(u => u.UserName);
+                userWithRoles = userWithRoles.OrderBy(u => u.User.UserName);
             }
 
-            users = users
+            userWithRoles = userWithRoles
                 .Skip(request.start)
                 .Take(request.length);
 
-            var userList = await users.AsNoTracking()
+            var userList = await userWithRoles
                 .Select(u => new UserListResponse
                 {
-                    Id = u.Id,
-                    Email = u.Email,
-                    Name = u.UserName,
-                    CreatedAt = u.CreatedAt,
-                    isLocked = u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow,
+                    Id = u.User.Id,
+                    Email = u.User.Email,
+                    Name = u.User.UserName,
+                    CreatedAt = u.User.CreatedAt,
+                    isLocked = u.User.LockoutEnd.HasValue && u.User.LockoutEnd > DateTimeOffset.UtcNow,
                     Roles = _context.UserRoles
-                        .Where(ur => ur.UserId == u.Id)
+                        .Where(ur => ur.UserId == u.User.Id)
                         .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
                         .Where(role => role != null)
                         .Select(role => role!.Name)
                         .ToList(),
                     Success = true
                 })
+                .AsNoTracking()
                 .ToListAsync();
 
             return userList;
-
         }
 
-        public async Task<UserListResponse> FiltredAsync(DataTableRequest request, Guid userId)
-        {
-            IQueryable<User> users;
+        //public async Task<List<UserListResponse>> GetUsersAsync(DataTableRequest request)
+        //{
+        //    IQueryable<User> users = _context.Users.AsQueryable();
 
-            users = _context.Users.AsQueryable();
+        //    if (!string.IsNullOrEmpty(request.search.value))
+        //    {
+        //        var searchValue = request.search.value.ToLower();
+        //        users = users.Where(u => u.UserName.ToLower().Contains(searchValue) ||
+        //                                 u.Email.ToLower().Contains(searchValue));
+        //    }
 
-            if (!string.IsNullOrEmpty(request.search.value))
-            {
-                var searchValue = request.search.value.ToLower();
-                users = users.Where(u => u.UserName.ToLower().Contains(searchValue) ||
-                                         u.Email.ToLower().Contains(searchValue));
-            }
+        //    if (request.order != null && request.order.Count > 0)
+        //    {
+        //        var orderColumn = request.order[0];
+        //        bool ascending = orderColumn.dir == "asc";
+        //        string? sortColumn = null;
+        //        if (request.columns != null && request.columns.Count > orderColumn.column)
+        //            sortColumn = request.columns[orderColumn.column].data;
+        //        if (!string.IsNullOrEmpty(sortColumn))
+        //            users = ApplyOrdering(users, sortColumn, ascending);
+        //    }
+        //    else
+        //    {
+        //        users = users.OrderBy(u => u.UserName);
+        //    }
 
-            var totalRecords = await users.CountAsync();
-            if (request.order != null && request.order.Count > 0)
-            {
-                var orderColumn = request.order[0];
-                bool ascending = orderColumn.dir == "asc";
-                string? sortColumn = null;
-                if (request.columns != null && request.columns.Count > orderColumn.column) sortColumn = request.columns[orderColumn.column].data;
+        //    users = users
+        //        .Skip(request.start)
+        //        .Take(request.length);
 
-                if (!string.IsNullOrEmpty(sortColumn)) users = ApplyOrdering(users, sortColumn, ascending);
-            }
+        //    var userList = await users.AsNoTracking()
+        //        .Select(u => new UserListResponse
+        //        {
+        //            Id = u.Id,
+        //            Email = u.Email,
+        //            Name = u.UserName,
+        //            CreatedAt = u.CreatedAt,
+        //            isLocked = u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow,
+        //            Roles = _context.UserRoles
+        //                .Where(ur => ur.UserId == u.Id)
+        //                .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
+        //                .Where(role => role != null)
+        //                .Select(role => role!.Name)
+        //                .ToList(),
+        //            Success = true
+        //        })
+        //        .ToListAsync();
 
-            var data = await users.AsNoTracking()
-                .Skip(request.start)
-                .Take(request.length)
-                .Select(u => new UserListResponse
-                {
-                    Id = u.Id,
-                    Name = u.UserName,
-                    Email = u.Email,
-                    CreatedAt = u.CreatedAt,
-                    isLocked = u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow,
-                    Roles = _context.UserRoles
-                        .Where(ur => ur.UserId == u.Id)
-                        .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
-                        .Where(role => role != null)
-                        .Select(role => role.Name)
-                        .ToList()!
-                })
-                .ToListAsync();
+        //    return userList;
 
-            var firstUser = data.FirstOrDefault();
+        //}
 
-            var response = new UserListResponse
-            {
-                Id = firstUser.Id,
-                Email = firstUser?.Email ?? string.Empty,
-                Name = firstUser?.Name,
-                Roles = firstUser?.Roles ?? new List<string>(),
-                CreatedAt = firstUser?.CreatedAt,
-                isLocked = firstUser?.isLocked ?? false,
-                Success = true
-            };
 
-            return response;
-        }
-
-        private IQueryable<User> ApplyOrdering(IQueryable<User> query, string sortColumn, bool ascending)
-        {
-            return sortColumn.ToLower() switch
-            {
-                "name" => ascending ? query.OrderBy(u => u.UserName) : query.OrderByDescending(u => u.UserName),
-                "email" => ascending ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email),
-                "createdat" => ascending ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
-                "role" or "roles" => ascending 
-                    ? query.OrderBy(u => _context.UserRoles
-                        .Where(ur => ur.UserId == u.Id)
-                        .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId).Name)
-                        .OrderBy(rn => rn)
-                        .FirstOrDefault() ?? string.Empty)
-                    : query.OrderByDescending(u => _context.UserRoles
-                        .Where(ur => ur.UserId == u.Id)
-                        .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId).Name)
-                        .OrderBy(rn => rn)
-                        .FirstOrDefault() ?? string.Empty),
-                "islocked" => ascending
-                    ? query.OrderBy(u => u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow)
-                    : query.OrderByDescending(u => u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow),
-                _ => query.OrderBy($"{sortColumn} {(ascending ? "ascending" : "descending")}")
-            };
-        }
+        //private IQueryable<User> ApplyOrdering(IQueryable<User> query, string sortColumn, bool ascending)
+        //{
+        //    return sortColumn.ToLower() switch
+        //    {
+        //        "name" => ascending ? query.OrderBy(u => u.UserName) : query.OrderByDescending(u => u.UserName),
+        //        "email" => ascending ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email),
+        //        "createdat" => ascending ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
+        //        "role" or "roles" => ascending
+        //            ? query.OrderBy(u => _context.UserRoles
+        //                .Where(ur => ur.UserId == u.Id)
+        //                .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId).Name)
+        //                .OrderBy(rn => rn)
+        //                .FirstOrDefault() ?? string.Empty)
+        //            : query.OrderByDescending(u => _context.UserRoles
+        //                .Where(ur => ur.UserId == u.Id)
+        //                .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId).Name)
+        //                .OrderBy(rn => rn)
+        //                .FirstOrDefault() ?? string.Empty),
+        //        "islocked" => ascending
+        //            ? query.OrderBy(u => u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow)
+        //            : query.OrderByDescending(u => u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow),
+        //        _ => query.OrderBy($"{sortColumn} {(ascending ? "ascending" : "descending")}")
+        //    };
+        //}
 
 
         public async Task<User?> FindByEmailAsync(string email)

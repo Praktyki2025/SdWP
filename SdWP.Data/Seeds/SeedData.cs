@@ -6,6 +6,27 @@ using SdWP.Data.Models;
 
 public static class SeedData
 {
+    public static async Task Initialize(IServiceProvider serviceProvider)
+    {
+        await SeedUsers(serviceProvider);
+
+        await SeedCostTypes(serviceProvider);
+        await SeedCostCategories(serviceProvider);
+
+        var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
+        var adminUser = await userManager.FindByEmailAsync("admin@example.pl");
+        if (adminUser != null)
+        {
+            await SeedProjects(serviceProvider, adminUser);
+        }
+
+        var normalUser = await userManager.FindByEmailAsync("user@example.pl");
+        if (normalUser != null)
+        {
+            await SeedProjects(serviceProvider, normalUser);
+        }
+    }
+
     public static async Task SeedProjects(IServiceProvider serviceProvider, User user)
     {
         var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
@@ -103,20 +124,108 @@ public static class SeedData
         Console.WriteLine($"User - {normalUser.Id}");
     }
 
-    public static async Task Initialize(IServiceProvider serviceProvider)
+    public static async Task SeedCostTypes(IServiceProvider serviceProvider)
     {
-        await SeedUsers(serviceProvider);
-        var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
-        var adminUser = await userManager.FindByEmailAsync("admin@example.pl");
-        if (adminUser != null)
+        var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+        if (!await context.CostTypes.AnyAsync())
         {
-            await SeedProjects(serviceProvider, adminUser);
+            var costTypes = new List<CostType>
+            {
+                new CostType { Id = Guid.NewGuid(), Name = "Type1" },
+                new CostType { Id = Guid.NewGuid(), Name = "Type2" },
+                new CostType { Id = Guid.NewGuid(), Name = "Type3" }
+            };
+            await context.CostTypes.AddRangeAsync(costTypes);
+            await context.SaveChangesAsync();
         }
+    }
 
-        var normalUser = await userManager.FindByEmailAsync("user@example.pl");
-        if (normalUser != null)
+    public static async Task SeedCostCategories(IServiceProvider serviceProvider)
+    {
+        var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+        if (!await context.CostCategories.AnyAsync())
         {
-            await SeedProjects(serviceProvider, normalUser);
+            var costCategories = new List<CostCategory>
+            {
+                new CostCategory { Id = Guid.NewGuid(), Name = "Category1" },
+                new CostCategory { Id = Guid.NewGuid(), Name = "Category2" },
+                new CostCategory { Id = Guid.NewGuid(), Name = "Category3" }
+            };
+            await context.CostCategories.AddRangeAsync(costCategories);
+            await context.SaveChangesAsync();
+        }
+    }
+
+    public static async Task SeedValuation(IServiceProvider serviceProvider, User user)
+    {
+        var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+        var projects = await context.Projects.Where(p => p.CreatorUserId == user.Id).ToListAsync();
+        var costTypes = await context.CostTypes.FirstOrDefaultAsync();
+        var costCategories = await context.CostCategories.FirstOrDefaultAsync();
+        var userGroupTypes = await context.UserGroupTypes.FirstOrDefaultAsync();
+
+        foreach (var project in projects)
+        {
+            if (!context.Valuations.Any(v => v.ProjectId == project.Id))
+            {
+                var valuation = new Valuation
+                {
+                    Id = Guid.NewGuid(),
+                    Name = $"Valuation for {project.Title}",
+                    Description = "Sample valuation description",
+                    ProjectId = project.Id,
+                    CreatorUserId = user.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    LastModified = DateTime.UtcNow
+                };
+
+                await context.Valuations.AddAsync(valuation);
+                await context.SaveChangesAsync();
+
+                var valutaionItem = new List<ValuationItem>
+                {
+                    new ValuationItem
+                    {
+                        Id = Guid.NewGuid(),
+                        ValuationId = valuation.Id,
+                        Name = "Labor Cost Item",
+                        Description = "Labor cost description",
+                        CreatorUserId = user.Id,
+                        CreatedAt = DateTime.UtcNow,
+                        LastModified = DateTime.UtcNow,
+                        CostTypeId = costTypes?.Id ?? Guid.Empty,
+                        CostCategoryID = costCategories?.Id ?? Guid.Empty,
+                        UserGroupTypeId = userGroupTypes?.Id ?? Guid.Empty,
+                        Quantity = 10,
+                        UnitPrice = 20,
+                        TotalAmount = 200,
+                        RecurrencePeriod = 0,
+                        RecurrenceUnit = null
+                    },
+
+                    new ValuationItem
+                    {
+                        Id = Guid.NewGuid(),
+                        ValuationId = valuation.Id,
+                        Name = "Material Cost Item",
+                        Description = "Material cost description",
+                        CreatorUserId = user.Id,
+                        CreatedAt = DateTime.UtcNow,
+                        LastModified = DateTime.UtcNow,
+                        CostTypeId = costTypes?.Id ?? Guid.Empty,
+                        CostCategoryID = costCategories?.Id ?? Guid.Empty,
+                        UserGroupTypeId = userGroupTypes?.Id ?? Guid.Empty,
+                        Quantity = 5,
+                        UnitPrice = 50,
+                        TotalAmount = 250,
+                        RecurrencePeriod = 1,
+                        RecurrenceUnit = "Month"
+                    }
+                };
+
+                await context.ValuationItems.AddRangeAsync(valutaionItem);
+                await context.SaveChangesAsync();
+            }
         }
     }
 }

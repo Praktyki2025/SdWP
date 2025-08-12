@@ -14,5 +14,6 @@
         public decimal? TotalAmount { get; set; }
         public int? RecurrencePeriod { get; set; }
         public string? RecurrenceUnit { get; set; }
+        public Guid ProjectId { get; set; }
     }
 }

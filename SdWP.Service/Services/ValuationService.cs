@@ -105,7 +105,8 @@ namespace SdWP.Service.Services
                     UnitPrice = request.UnitPrice,
                     TotalAmount = request.TotalAmount,
                     RecurrencePeriod = request.RecurrencePeriod,
-                    RecurrenceUnit = request.RecurrenceUnit
+                    RecurrenceUnit = request.RecurrenceUnit,
+                    ProjectId = request.ProjectId
                 };
 
                 var result = await _valuationRepository.AddValuationAsync(valuation);
@@ -124,7 +125,7 @@ namespace SdWP.Service.Services
             catch (Exception ex)
             {
                 return ResultService<CreateValuationResponse>.BadResult(
-                    $"An error occurred: {ex.Message}",
+                    $"An error occurred: {ex.Message} | INNER: { ex.InnerException?.Message}",
                     StatusCodes.Status500InternalServerError);
             }
         }

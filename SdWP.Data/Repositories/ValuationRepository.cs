@@ -30,10 +30,10 @@ namespace SdWP.Data.Repositories
                     Name = request.Name,
                     Description = request.Description,
                     CreatorUserId = request.CreatorUserId,
-                    ProjectId = Guid.Empty,
+                    ProjectId = request.ProjectId, 
                     CreatedAt = DateTime.UtcNow,
                     LastModified = DateTime.UtcNow,
-                    ValuationItems = new List<ValuationItem>()
+                    ValuationItems = new List<ValuationItem>(),
                 };
 
                 _context.Valuations.Add(valuation);
@@ -42,7 +42,9 @@ namespace SdWP.Data.Repositories
                 var valuationItem = new ValuationItem
                 {
                     Id = Guid.NewGuid(),
+                    Name = request.Name,
                     ValuationId = valuation.Id,
+                    Description = request.Description,
                     CostTypeId = request.CostTypeId ?? throw new ArgumentNullException(nameof(request.CostTypeId)),
                     UserGroupTypeId = request.UserGroupTypeId ?? throw new ArgumentNullException(nameof(request.UserGroupTypeId)),
                     Quantity = request.Quantity ?? 1,
@@ -51,7 +53,9 @@ namespace SdWP.Data.Repositories
                     RecurrencePeriod = request.RecurrencePeriod ?? 0,
                     RecurrenceUnit = request.RecurrenceUnit,
                     CreatedAt = DateTime.UtcNow,
-                    LastModified = DateTime.UtcNow
+                    LastModified = DateTime.UtcNow,
+                    CreatorUserId = request.CreatorUserId,
+                    CostCategoryID = request.CostCategoryID ?? throw new ArgumentNullException(nameof(request.CostCategoryID)),
                 };
 
                 _context.ValuationItems.Add(valuationItem);

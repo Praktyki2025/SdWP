@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using SdWP.DTO.Requests;
+using SdWP.DTO.Requests.Valuation;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SdWP.DTO.Responses
+namespace SdWP.DTO.Responses.Valuation
 {
     public class ValuationResponse
     {

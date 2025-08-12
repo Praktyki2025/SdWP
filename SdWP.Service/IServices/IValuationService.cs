@@ -12,5 +12,6 @@ namespace SdWP.Service.IServices
         Task<ResultService<UserGroupNameRequest>> GetUserGroupName();
         Task<ResultService<CostTypeNameRequest>> GetCostTypeName();
         Task<ResultService<CostCategoryNameRequest>> GetCostCategoryName();
+        Task<ResultService<ValuationDeleteResponse>> DeleteValuation(Guid id);
     }
 }

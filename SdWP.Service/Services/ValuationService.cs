@@ -125,7 +125,7 @@ namespace SdWP.Service.Services
             catch (Exception ex)
             {
                 return ResultService<CreateValuationResponse>.BadResult(
-                    $"An error occurred: {ex.Message} | INNER: { ex.InnerException?.Message}",
+                    $"An error occurred: {ex.Message} | INNER: {ex.InnerException?.Message}",
                     StatusCodes.Status500InternalServerError);
             }
         }
@@ -211,6 +211,39 @@ namespace SdWP.Service.Services
             {
                 return ResultService<UserGroupNameRequest>.BadResult(
                     $"An error occurred: {ex.Message}",
+                    StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        public async Task<ResultService<ValuationDeleteResponse>> DeleteValuation(Guid id)
+        {
+            try
+            {
+                var exist = await _valuationRepository.GetValuationByIdAsync(id);
+
+                if (exist == null)
+                {
+                    return ResultService<ValuationDeleteResponse>.BadResult(
+                        "Valuation not found.",
+                        StatusCodes.Status404NotFound);
+                }
+
+                await _valuationRepository.DeleteValuationAsync(id);
+
+                return ResultService<ValuationDeleteResponse>.GoodResult(
+                    "Valuation deleted successfully.",
+                    StatusCodes.Status200OK,
+                    new ValuationDeleteResponse
+                    {
+                        Id = id
+                    });
+
+            }
+            catch (Exception ex)
+            {
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
+                return ResultService<ValuationDeleteResponse>.BadResult(
+                    $"An error occurred: {ex.Message} Inner exception: {innerMessage}",
                     StatusCodes.Status500InternalServerError);
             }
         }

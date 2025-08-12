@@ -84,5 +84,19 @@ namespace SdWP.API.Controllers
                     errors = result.Errors
                 });
         }
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteValuation(Guid id)
+        {
+            var result = await _valuationService.DeleteValuation(id);
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
+        }
     }
 }

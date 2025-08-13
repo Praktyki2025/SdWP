@@ -1,4 +1,4 @@
-﻿namespace SdWP.DTO.Responses
+﻿namespace SdWP.DTO.Responses.Valuation
 {
     public class ValuationItemResponse
     {

@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using SdWP.DTO.Requests;
-using SdWP.DTO.Responses;
+﻿using SdWP.DTO.Requests.Valuation;
+using SdWP.DTO.Requests.Valuation.Name;
+using SdWP.DTO.Responses.Valuation;
 using SdWP.Service.Services;
 
 namespace SdWP.Service.IServices
 {
     public interface IValuationService
     {
-        Task<ResultService<IEnumerable<ValuationResponse>>> GetAllValuationsAsync();
-        Task<ResultService<ValuationResponse>> GetValuationByIdAsync(Guid id);
-        Task<ResultService<IEnumerable<ValuationResponse>>> GetValuationsByProjectIdAsync(Guid projectId);
-        Task<ResultService<ValuationResponse>> CreateValuationAsync(CreateValuationRequest request);
-        Task<ResultService<ValuationResponse>> UpdateValuationAsync(UpdateValuationRequest request);
-        Task<ResultService<string>> DeleteValuationAsync(Guid id);
+        Task<ResultService<List<ValuationResponse>>> GetValuationList();
+        Task<ResultService<CreateValuationResponse>> CreateValuation(CreateValuationRequest request);
+        Task<ResultService<UserGroupNameRequest>> GetUserGroupName();
+        Task<ResultService<CostTypeNameRequest>> GetCostTypeName();
+        Task<ResultService<CostCategoryNameRequest>> GetCostCategoryName();
+        Task<ResultService<ValuationDeleteResponse>> DeleteValuation(Guid id);
     }
 }

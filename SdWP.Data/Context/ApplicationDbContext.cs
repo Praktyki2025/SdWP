@@ -49,7 +49,7 @@ namespace SdWP.Data.Context
                 .HasOne(vi => vi.Valuation)
                 .WithMany(v => v.ValuationItems)
                 .HasForeignKey(vi => vi.ValuationId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<ValuationItem>()
                 .HasOne(p => p.CreatorUser);

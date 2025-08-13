@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using SdWP.Data.IData;
 using SdWP.Data.Models;
-using SdWP.DTO.Requests;
-using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SdWP.DTO.Requests.Valuation;
+using SdWP.DTO.Responses.Valuation;
 
 namespace SdWP.Service.Services
 {

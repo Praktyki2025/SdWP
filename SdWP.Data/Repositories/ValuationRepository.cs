@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SdWP.Data.Context;
 using SdWP.Data.IData;
 using SdWP.Data.Models;
+using SdWP.DTO.Responses.Valuation;
 
 namespace SdWP.Data.Repositories
 {
@@ -18,11 +15,56 @@ namespace SdWP.Data.Repositories
             _context = context;
         }
 
-        public async Task<Valuation> AddValuationAsync(Valuation valuation)
+        public async Task<Valuation> AddValuationAsync(CreateValuationResponse request)
         {
-            _context.Valuations.Add(valuation);
-            await _context.SaveChangesAsync();
-            return valuation;
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var valuation = new Valuation
+                {
+                    Id = request.ValuationId,
+                    Name = request.Name,
+                    Description = request.Description,
+                    CreatorUserId = request.CreatorUserId,
+                    ProjectId = request.ProjectId, 
+                    CreatedAt = DateTime.UtcNow,
+                    LastModified = DateTime.UtcNow,
+                    ValuationItems = new List<ValuationItem>(),
+                };
+
+                _context.Valuations.Add(valuation);
+                await _context.SaveChangesAsync();
+
+                var valuationItem = new ValuationItem
+                {
+                    Id = Guid.NewGuid(),
+                    Name = request.Name,
+                    ValuationId = valuation.Id,
+                    Description = request.Description,
+                    CostTypeId = request.CostTypeId ?? throw new ArgumentNullException(nameof(request.CostTypeId)),
+                    UserGroupTypeId = request.UserGroupTypeId ?? throw new ArgumentNullException(nameof(request.UserGroupTypeId)),
+                    Quantity = request.Quantity ?? 1,
+                    UnitPrice = request.UnitPrice ?? 0,
+                    TotalAmount = request.TotalAmount ?? 0,
+                    RecurrencePeriod = request.RecurrencePeriod ?? 0,
+                    RecurrenceUnit = request.RecurrenceUnit,
+                    CreatedAt = DateTime.UtcNow,
+                    LastModified = DateTime.UtcNow,
+                    CreatorUserId = request.CreatorUserId,
+                    CostCategoryID = request.CostCategoryID ?? throw new ArgumentNullException(nameof(request.CostCategoryID)),
+                };
+
+                _context.ValuationItems.Add(valuationItem);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+                return valuation;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<Valuation> UpdateValuationAsync(Valuation valuation)

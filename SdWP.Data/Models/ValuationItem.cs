@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SdWP.Data.Models
+﻿namespace SdWP.Data.Models
 {
     public class ValuationItem
     {
@@ -29,6 +23,5 @@ namespace SdWP.Data.Models
         public virtual CostType CostType { get; set; }
         public virtual CostCategory CostCategory { get; set; }
         public virtual UserGroupType UserGroupType { get; set; }
-
     }
 }

@@ -1,9 +1,8 @@
-﻿using System;
-
-namespace SdWP.DTO.Requests
+﻿namespace SdWP.DTO.Requests.Valuation
 {
-    public class CreateValuationRequest
+    public class UpdateValuationItemRequest
     {
+        public Guid Id { get; set; }
         public Guid ValuationId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }

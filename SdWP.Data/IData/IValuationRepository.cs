@@ -1,4 +1,5 @@
 ﻿using SdWP.Data.Models;
+using SdWP.DTO.Responses.Valuation;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,7 +8,7 @@ namespace SdWP.Data.IData
 {
     public interface IValuationRepository
     {
-        Task<Valuation> AddValuationAsync(Valuation valuation);
+        Task<Valuation> AddValuationAsync(CreateValuationResponse request);
         Task<Valuation> UpdateValuationAsync(Valuation valuation);
         Task DeleteValuationAsync(Guid id);
         Task<Valuation?> GetValuationByIdAsync(Guid id);

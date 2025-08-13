@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SdWP.DTO.Requests
+﻿namespace SdWP.DTO.Requests.Valuation
 {
     public class UpdateValuationRequest
     {

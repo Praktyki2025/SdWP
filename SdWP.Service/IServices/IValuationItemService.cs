@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using SdWP.DTO.Requests;
-using SdWP.DTO.Responses;
+using SdWP.DTO.Requests.Valuation;
+using SdWP.DTO.Responses.Valuation;
 using SdWP.Service.Services;
 
 namespace SdWP.Service.IServices

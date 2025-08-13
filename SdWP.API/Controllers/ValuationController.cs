@@ -1,9 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using SdWP.DTO.Requests;
+﻿using Microsoft.AspNetCore.Mvc;
+using SdWP.DTO.Requests.Valuation;
 using SdWP.Service.IServices;
-using SdWP.Service.Services; 
 
 namespace SdWP.API.Controllers
 {
@@ -17,67 +14,89 @@ namespace SdWP.API.Controllers
         {
             _valuationService = valuationService;
         }
-        public async Task<ActionResult> HandleResult<T>(ResultService<T> result)
+
+        [HttpGet("list")]
+        public async Task<IActionResult> GetValuationList()
         {
-            if (result.Success)
-            {
-                
-                if (result.StatusCode == 201)
+            var result = await _valuationService.GetValuationList();
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
                 {
-                    var idProperty = result.Data.GetType().GetProperty("Id");
-                    var id = idProperty != null ? idProperty.GetValue(result.Data) : null;
-                    return CreatedAtAction(nameof(GetValuationById), new { id }, result.Data);
-                }
-                return StatusCode(result.StatusCode, result.Data);
-            }
-            return StatusCode(result.StatusCode, new { result.Message, result.Errors });
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllValuations()
-        {
-            var result = await _valuationService.GetAllValuationsAsync();
-            return await HandleResult(result);
-        }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetValuationById(Guid id)
-        {
-            var result = await _valuationService.GetValuationByIdAsync(id);
-            return await HandleResult(result);
-        }
-
-        [HttpGet("project/{projectId}")]
-        public async Task<IActionResult> GetValuationsByProjectId(Guid projectId)
-        {
-            var result = await _valuationService.GetValuationsByProjectIdAsync(projectId);
-            return await HandleResult(result);
-        }
-
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<IActionResult> CreateValuation([FromBody] CreateValuationRequest request)
         {
-            var result = await _valuationService.CreateValuationAsync(request);
-            return await HandleResult(result);
+            var result = await _valuationService.CreateValuation(request);
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateValuation(Guid id, [FromBody] UpdateValuationRequest request)
+        [HttpGet("cost-category")]
+        public async Task<IActionResult> GetCostCategoryName()
         {
-            if (id != request.Id)
-            {
-                return BadRequest("Valuation ID mismatch.");
-            }
-            var result = await _valuationService.UpdateValuationAsync(request);
-            return await HandleResult(result);
+            var result = await _valuationService.GetCostCategoryName();
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
         }
 
-        [HttpDelete("{id}")]
+        [HttpGet("cost-type")]
+        public async Task<IActionResult> GetCostTypeName()
+        {
+            var result = await _valuationService.GetCostTypeName();
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
+        }
+
+        [HttpGet("user-group")]
+        public async Task<IActionResult> GetUserGroupName()
+        {
+            var result = await _valuationService.GetUserGroupName();
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
+        }
+
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteValuation(Guid id)
         {
-            var result = await _valuationService.DeleteValuationAsync(id);
-            if (result.Success) return Ok(new { result.Message });
-            return StatusCode(result.StatusCode, new { result.Message });
+            var result = await _valuationService.DeleteValuation(id);
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
         }
     }
 }

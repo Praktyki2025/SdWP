@@ -15,6 +15,5 @@
         public int RecurrencePeriod { get; set; }
         public string? RecurrenceUnit { get; set; }
         public decimal? TotalAmount { get; set; }
-        public int RecurrencePeriod { get; set; }
     }
 }

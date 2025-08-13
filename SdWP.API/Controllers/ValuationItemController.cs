@@ -55,5 +55,19 @@ namespace SdWP.API.Controllers
                     errors = result.Errors
                 });
         }
+
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateValuationItem([FromBody] UpdateValuationItemRequest request)
+        {
+            var result = await _valuationItemService.UpdateValuationItem(request);
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
+        }
     }
 }

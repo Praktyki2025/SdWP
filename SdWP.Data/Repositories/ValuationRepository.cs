@@ -70,8 +70,7 @@ namespace SdWP.Data.Repositories
         public async Task<Valuation> UpdateValuationAsync(UpdateValuationResponse response)
         {
             var valuation = await _context.Valuations.FirstOrDefaultAsync(v => v.Id == response.Id);
-            if (valuation == null)
-                throw new Exception("Valuation not found");
+            if (valuation == null) throw new Exception("Valuation not found");
 
             valuation.Name = response.Name ?? throw new ArgumentNullException(nameof(response.Name));
             valuation.Description = response.Description ?? throw new ArgumentNullException(nameof(response.Description));

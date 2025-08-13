@@ -1,15 +1,8 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using SdWP.Data.IData;
-using SdWP.Data.Models;
-using SdWP.Data.Repositories;
 using SdWP.DTO.Requests.Valuation;
 using SdWP.DTO.Responses.Valuation;
 using SdWP.Service.IServices;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 namespace SdWP.Service.Services
 {
@@ -105,7 +98,7 @@ namespace SdWP.Service.Services
                 var costTypeId = await _costTypeRepository.GetGuidByName(request.CostTypeName);
                 if (costTypeId == Guid.Empty)
                 {
-                    return ResultService<CreateValuationItemResponse>.BadResult(
+                    return ResultService<CreateValuationItemResponse>.BadResult( 
                         "Cost type not found.",
                         StatusCodes.Status404NotFound);
                 }
@@ -158,6 +151,94 @@ namespace SdWP.Service.Services
             catch (Exception ex)
             {
                 return ResultService<CreateValuationItemResponse>.BadResult(
+                    $"An error occurred: {ex.Message} | throw {ex.InnerException}",
+                    StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        public async Task<ResultService<UpdateValuationItemResponse>> UpdateValuationItem(UpdateValuationItemRequest request)
+        {
+            try
+            {
+                var valuationItem = await _valuationItemRepository.GetValuationItemByIdAsync(request.Id);
+
+                if (valuationItem == null)
+                {
+                    return ResultService<UpdateValuationItemResponse>.BadResult(
+                        "Valuation item not found.",
+                        StatusCodes.Status404NotFound);
+                }
+
+                Guid? costTypeId = null;
+                Guid? coastCategoryId = null;
+                Guid? userGroupTypeId = null;
+
+                if (!string.IsNullOrEmpty(request.CostTypeName))
+                {
+                    costTypeId = await _costTypeRepository.GetGuidByName(request.CostTypeName);
+                    if (costTypeId == Guid.Empty)
+                    {
+                        return ResultService<UpdateValuationItemResponse>.BadResult(
+                            "Cost type not found.",
+                            StatusCodes.Status404NotFound);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(request.CostCategoryName))
+                {
+                    coastCategoryId = await _costCategoryRepsoitory.GetGuidByName(request.CostCategoryName);
+                    if (coastCategoryId == Guid.Empty)
+                    {
+                        return ResultService<UpdateValuationItemResponse>.BadResult(
+                            "Cost category not found.",
+                            StatusCodes.Status404NotFound);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(request.UserGroupTypeName))
+                {
+                    userGroupTypeId = await _userGroupTypeRepository.GetGuidByName(request.UserGroupTypeName);
+                    if (userGroupTypeId == Guid.Empty)
+                    {
+                        return ResultService<UpdateValuationItemResponse>.BadResult(
+                            "User group type not found.",
+                            StatusCodes.Status404NotFound);
+                    }
+                }
+
+                var update = new UpdateValuationItemResponse
+                {
+                    Id = request.Id,
+                    Name = request.Name,
+                    Description = request.Description,
+                    CostTypeId = costTypeId,
+                    CostCategoryID = coastCategoryId,
+                    UserGroupTypeId = userGroupTypeId,
+                    Quantity = request.Quantity,
+                    UnitPrice = request.UnitPrice,
+                    TotalAmount = request.TotalAmount,
+                    RecurrencePeriod = request.RecurrencePeriod,
+                    RecurrenceUnit = request.RecurrenceUnit,
+                };
+
+                var response = await _valuationItemRepository.UpdateValuationItemAsync(update);
+
+                if (response == null)
+                {
+                    return ResultService<UpdateValuationItemResponse>.BadResult(
+                        "Failed to update valuation item.",
+                        StatusCodes.Status500InternalServerError);
+                }
+
+                return ResultService<UpdateValuationItemResponse>.GoodResult(
+                    "Valuation item updated successfully.",
+                    StatusCodes.Status200OK,
+                    update);
+                    
+            }
+            catch (Exception ex)
+            {
+                return ResultService<UpdateValuationItemResponse>.BadResult(
                     $"An error occurred: {ex.Message} | throw {ex.InnerException}",
                     StatusCodes.Status500InternalServerError);
             }

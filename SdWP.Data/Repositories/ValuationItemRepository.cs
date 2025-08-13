@@ -42,9 +42,23 @@ namespace SdWP.Data.Repositories
             return valuationItem;
         }
 
-        public async Task<ValuationItem> UpdateValuationItemAsync(ValuationItem valuationItem)
+        public async Task<ValuationItem> UpdateValuationItemAsync(UpdateValuationItemResponse response)
         {
-            _context.ValuationItems.Update(valuationItem);
+            var valuationItem = await _context.ValuationItems.FirstOrDefaultAsync(vi => vi.Id == response.Id);
+            if (valuationItem == null) throw new KeyNotFoundException($"ValuationItem with ID {response.Id} not found.");
+
+            valuationItem.Name = response.Name ?? valuationItem.Name;
+            valuationItem.Description = response.Description ?? valuationItem.Description;
+            valuationItem.LastModified = DateTime.UtcNow;
+            valuationItem.CostTypeId = response.CostTypeId ?? valuationItem.CostTypeId;
+            valuationItem.CostCategoryID = response.CostCategoryID ?? valuationItem.CostCategoryID;
+            valuationItem.UserGroupTypeId = response.UserGroupTypeId ?? valuationItem.UserGroupTypeId;
+            valuationItem.Quantity = response.Quantity ?? valuationItem.Quantity;
+            valuationItem.UnitPrice = response.UnitPrice ?? valuationItem.UnitPrice;
+            valuationItem.TotalAmount = response.TotalAmount ?? valuationItem.TotalAmount;
+            valuationItem.RecurrencePeriod = response.RecurrencePeriod ?? valuationItem.RecurrencePeriod;
+            valuationItem.RecurrenceUnit = response.RecurrenceUnit ?? valuationItem.RecurrenceUnit;
+
             await _context.SaveChangesAsync();
             return valuationItem;
         }

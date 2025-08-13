@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SdWP.Data.Context;
 using SdWP.Data.IData;
 using SdWP.Data.Models;
+using SdWP.DTO.Responses.Valuation;
 
 namespace SdWP.Data.Repositories
 {
@@ -18,9 +15,29 @@ namespace SdWP.Data.Repositories
             _context = context;
         }
 
-        public async Task<ValuationItem> AddValuationItemAsync(ValuationItem valuationItem)
+        public async Task<ValuationItem> AddValuationItemAsync(CreateValuationItemResponse response)
         {
+            var valuationItem = new ValuationItem
+            {
+                Id = Guid.NewGuid(),
+                Name = response.Name,
+                ValuationId = response.ValuationId,
+                Description = response.Description,
+                CostTypeId = response.CostTypeId,
+                UserGroupTypeId = response.UserGroupTypeId,
+                Quantity = response.Quantity ?? throw new ArgumentNullException(nameof(response.Quantity)),
+                UnitPrice = response.UnitPrice ?? throw new ArgumentNullException(nameof(response.UnitPrice)),
+                TotalAmount = response.TotalAmount ?? throw new ArgumentNullException(nameof(response.TotalAmount)),
+                RecurrencePeriod = response.RecurrencePeriod ?? throw new ArgumentNullException(nameof(response.RecurrencePeriod)),
+                RecurrenceUnit = response.RecurrenceUnit,
+                CreatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow,
+                CreatorUserId = response.CreatorUserId,
+                CostCategoryID = response.CostCategoryID,
+            };
+
             _context.ValuationItems.Add(valuationItem);
+            
             await _context.SaveChangesAsync();
             return valuationItem;
         }
@@ -41,12 +58,15 @@ namespace SdWP.Data.Repositories
                 await _context.SaveChangesAsync();
             }
         }
-        public async Task<ValuationItem?> GetValuationItemByIdAsync(Guid id) =>
-            await _context.ValuationItems.FindAsync(id);
-        public async Task<List<ValuationItem>> GetAllValuationItemsAsync() =>
-            await _context.ValuationItems.ToListAsync();
 
-        public async Task<List<ValuationItem>> GetValuationItemsByValuationIdAsync(Guid valuationId) =>
-              await _context.ValuationItems.Where(vi => vi.ValuationId == valuationId).ToListAsync();
+        public async Task<ValuationItem?> GetValuationItemByIdAsync(Guid id) 
+            => await _context.ValuationItems.FindAsync(id);
+        public async Task<List<ValuationItem>> GetAllValuationItemsAsync() 
+            => await _context.ValuationItems.ToListAsync();
+
+        public async Task<List<ValuationItem>> GetValuationItemsByValuationIdAsync(Guid valuationId) 
+            => await _context.ValuationItems
+                .Where(vi => vi.ValuationId == valuationId)
+                .ToListAsync();
     }
 }

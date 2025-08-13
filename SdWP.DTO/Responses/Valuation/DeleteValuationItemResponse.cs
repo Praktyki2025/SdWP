@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SdWP.DTO.Responses.Valuation
 {
-    public class ValuationDeleteResponse
+    public class DeleteValuationItemResponse
     {
         public Guid Id { get; set; }
     }

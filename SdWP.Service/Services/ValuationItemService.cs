@@ -1,168 +1,86 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using SdWP.Data.IData;
 using SdWP.Data.Models;
+using SdWP.DTO.Requests.Valuation;
+using SdWP.DTO.Responses.Valuation;
 using SdWP.Service.IServices;
-using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using SdWP.DTO.Requests.Valuation;
-using SdWP.DTO.Responses.Valuation;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 namespace SdWP.Service.Services
 {
     public class ValuationItemService : IValuationItemService
     {
         private readonly IValuationItemRepository _valuationItemRepository;
-        private readonly IMapper _mapper;
 
-        public ValuationItemService(IValuationItemRepository valuationItemRepository, IMapper mapper)
+        public ValuationItemService(IValuationItemRepository valuationItemRepository)
         {
-            _valuationItemRepository = valuationItemRepository;
-            _mapper = mapper;
+            _valuationItemRepository = valuationItemRepository ?? throw new ArgumentNullException(nameof(valuationItemRepository));
         }
 
-        public async Task<ResultService<ValuationItemResponse>> CreateValuationItemAsync(CreateValuationItemRequest request)
+        public async Task<ResultService<List<ValuationItemResponse>>> GetValuationList()
         {
             try
             {
-                var valuationItem = _mapper.Map<ValuationItem>(request);
-                valuationItem.Id = Guid.NewGuid();
-                valuationItem.CreatedAt = DateTime.UtcNow;
-                valuationItem.LastModified = DateTime.UtcNow;
+                var valuationItems = await _valuationItemRepository.GetAllValuationItemsAsync();
 
-                var createdValuationItem = await _valuationItemRepository.AddValuationItemAsync(valuationItem);
-                var response = _mapper.Map<ValuationItemResponse>(createdValuationItem);
+                if (valuationItems == null)
+                {
+                    return ResultService<List<ValuationItemResponse>>.BadResult(
+                        "Valuation item not found.",
+                        StatusCodes.Status404NotFound);
+                }
 
-                return ResultService<ValuationItemResponse>.GoodResult(
-                    "Valuation item created successfully.",
-                    StatusCodes.Status201Created,
+                var response = valuationItems.Select(vi => new ValuationItemResponse
+                {
+                    Id = vi.Id,
+                    Name = vi.Name,
+                    Description = vi.Description,
+                    Quantity = vi.Quantity,
+                    UnitPrice = vi.UnitPrice,
+                    TotalAmount = vi.TotalAmount
+                }).ToList();
+
+                return ResultService<List<ValuationItemResponse>>.GoodResult(
+                    "Valuation items retrieved successfully.",
+                    StatusCodes.Status200OK,
                     response);
             }
             catch (Exception ex)
             {
-                return ResultService<ValuationItemResponse>.BadResult(
-                    $"An error occurred: {ex.Message}",
+                return ResultService<List<ValuationItemResponse>>.BadResult(
+                    $"An error occurred: {ex.Message} | throw {ex.InnerException}",
                     StatusCodes.Status500InternalServerError);
             }
         }
 
-        public async Task<ResultService<string>> DeleteValuationItemAsync(Guid id)
+        public async Task<ResultService<DeleteValuationItemResponse>> DeleteValuationItem(Guid id)
         {
             try
             {
-                var existingItem = await _valuationItemRepository.GetValuationItemByIdAsync(id);
-                if (existingItem == null)
+                var valuationItem = await _valuationItemRepository.GetValuationItemByIdAsync(id);
+
+                if (valuationItem == null)
                 {
-                    return ResultService<string>.BadResult(
+                    return ResultService<DeleteValuationItemResponse>.BadResult(
                         "Valuation item not found.",
                         StatusCodes.Status404NotFound);
                 }
 
                 await _valuationItemRepository.DeleteValuationItemAsync(id);
-                return ResultService<string>.GoodResult(
+
+                return ResultService<DeleteValuationItemResponse>.GoodResult(
                     "Valuation item deleted successfully.",
-                    StatusCodes.Status200OK);
-            }
-            catch (Exception ex)
-            {
-                return ResultService<string>.BadResult(
-                    $"An error occurred: {ex.Message}",
-                    StatusCodes.Status500InternalServerError);
-            }
-        }
-
-        public async Task<ResultService<IEnumerable<ValuationItemResponse>>> GetAllValuationItemsAsync()
-        {
-            try
-            {
-                var valuationItems = await _valuationItemRepository.GetAllValuationItemsAsync();
-                var response = _mapper.Map<IEnumerable<ValuationItemResponse>>(valuationItems);
-                return ResultService<IEnumerable<ValuationItemResponse>>.GoodResult(
-                    "Valuation items retrieved successfully.",
                     StatusCodes.Status200OK,
-                    response);
+                    new DeleteValuationItemResponse { Id = id });
             }
             catch (Exception ex)
             {
-                return ResultService<IEnumerable<ValuationItemResponse>>.BadResult(
-                    $"An error occurred: {ex.Message}",
-                    StatusCodes.Status500InternalServerError);
-            }
-        }
-
-        public async Task<ResultService<ValuationItemResponse>> GetValuationItemByIdAsync(Guid id)
-        {
-            try
-            {
-                var valuationItem = await _valuationItemRepository.GetValuationItemByIdAsync(id);
-                if (valuationItem == null)
-                {
-                    return ResultService<ValuationItemResponse>.BadResult(
-                        "Valuation item not found.",
-                        StatusCodes.Status404NotFound);
-                }
-
-                var response = _mapper.Map<ValuationItemResponse>(valuationItem);
-                return ResultService<ValuationItemResponse>.GoodResult(
-                    "Valuation item retrieved successfully.",
-                    StatusCodes.Status200OK,
-                    response);
-            }
-            catch (Exception ex)
-            {
-                return ResultService<ValuationItemResponse>.BadResult(
-                    $"An error occurred: {ex.Message}",
-                    StatusCodes.Status500InternalServerError);
-            }
-        }
-
-        public async Task<ResultService<IEnumerable<ValuationItemResponse>>> GetValuationItemsByValuationIdAsync(Guid valuationId)
-        {
-            try
-            {
-                var valuationItems = await _valuationItemRepository.GetValuationItemsByValuationIdAsync(valuationId);
-                var response = _mapper.Map<IEnumerable<ValuationItemResponse>>(valuationItems);
-                return ResultService<IEnumerable<ValuationItemResponse>>.GoodResult(
-                    "Valuation items retrieved successfully.",
-                    StatusCodes.Status200OK,
-                    response);
-            }
-            catch (Exception ex)
-            {
-                return ResultService<IEnumerable<ValuationItemResponse>>.BadResult(
-                    $"An error occurred: {ex.Message}",
-                    StatusCodes.Status500InternalServerError);
-            }
-        }
-
-        public async Task<ResultService<ValuationItemResponse>> UpdateValuationItemAsync(UpdateValuationItemRequest request)
-        {
-            try
-            {
-                var existingItem = await _valuationItemRepository.GetValuationItemByIdAsync(request.Id);
-                if (existingItem == null)
-                {
-                    return ResultService<ValuationItemResponse>.BadResult(
-                        "Valuation item not found.",
-                        StatusCodes.Status404NotFound);
-                }
-
-                _mapper.Map(request, existingItem);
-                existingItem.LastModified = DateTime.UtcNow;
-
-                var updatedItem = await _valuationItemRepository.UpdateValuationItemAsync(existingItem);
-                var response = _mapper.Map<ValuationItemResponse>(updatedItem);
-
-                return ResultService<ValuationItemResponse>.GoodResult(
-                    "Valuation item updated successfully.",
-                    StatusCodes.Status200OK,
-                    response);
-            }
-            catch (Exception ex)
-            {
-                return ResultService<ValuationItemResponse>.BadResult(
-                    $"An error occurred: {ex.Message}",
+                return ResultService<DeleteValuationItemResponse>.BadResult(
+                    $"An error occurred: {ex.Message} | throw {ex.InnerException}",
                     StatusCodes.Status500InternalServerError);
             }
         }

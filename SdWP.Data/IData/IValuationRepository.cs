@@ -9,7 +9,7 @@ namespace SdWP.Data.IData
     public interface IValuationRepository
     {
         Task<Valuation> AddValuationAsync(CreateValuationResponse request);
-        Task<Valuation> UpdateValuationAsync(Valuation valuation);
+        Task<Valuation> UpdateValuationAsync(UpdateValuationResponse request);
         Task DeleteValuationAsync(Guid id);
         Task<Valuation?> GetValuationByIdAsync(Guid id);
         Task<List<Valuation>> GetAllValuationsAsync();

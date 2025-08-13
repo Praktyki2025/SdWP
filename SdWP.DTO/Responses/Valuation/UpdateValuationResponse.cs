@@ -1,6 +1,6 @@
-﻿namespace SdWP.DTO.Requests.Valuation
+﻿namespace SdWP.DTO.Responses.Valuation
 {
-    public class UpdateValuationRequest
+    public class UpdateValuationResponse
     {
         public Guid Id { get; set; }
         public Guid? ProjectId { get; set; }

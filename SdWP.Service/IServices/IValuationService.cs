@@ -13,5 +13,6 @@ namespace SdWP.Service.IServices
         Task<ResultService<CostTypeNameRequest>> GetCostTypeName();
         Task<ResultService<CostCategoryNameRequest>> GetCostCategoryName();
         Task<ResultService<ValuationDeleteResponse>> DeleteValuation(Guid id);
+        Task<ResultService<UpdateValuationResponse>> UpdateValuation(UpdateValuationRequest request);
     }
 }

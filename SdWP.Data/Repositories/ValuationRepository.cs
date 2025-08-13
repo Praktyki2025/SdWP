@@ -67,9 +67,18 @@ namespace SdWP.Data.Repositories
             }
         }
 
-        public async Task<Valuation> UpdateValuationAsync(Valuation valuation)
+        public async Task<Valuation> UpdateValuationAsync(UpdateValuationResponse request)
         {
-            _context.Valuations.Update(valuation);
+            var valuation = await _context.Valuations.FirstOrDefaultAsync(v => v.Id == request.Id);
+            if (valuation == null)
+                throw new Exception("Valuation not found");
+
+            valuation.Name = request.Name ?? throw new ArgumentNullException(nameof(request.Name));
+            valuation.Description = request.Description ?? throw new ArgumentNullException(nameof(request.Description));
+            valuation.LastModified = request.LastModified;
+            valuation.ProjectId = request.ProjectId ?? throw new ArgumentNullException(nameof(request.ProjectId)); ;
+            valuation.CreatorUserId = request.CreatorUserId;
+
             await _context.SaveChangesAsync();
             return valuation;
         }

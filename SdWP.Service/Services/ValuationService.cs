@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using SdWP.Data.IData;
+using SdWP.Data.Repositories;
 using SdWP.DTO.Requests.Valuation;
 using SdWP.DTO.Requests.Valuation.Name;
 using SdWP.DTO.Responses.Valuation;
@@ -13,18 +14,21 @@ namespace SdWP.Service.Services
         private readonly ICostTypeRepository _costTypeRepository;
         private readonly ICostCategoryRepsoitory _costCategoryRepsoitory;
         private readonly IUserGroupTypeRepository _userGroupTypeRepository;
+        private readonly IProjectRepository _projectRepository;
 
         public ValuationService(
             IValuationRepository valuationRepository,
             ICostTypeRepository costTypeRepository,
             ICostCategoryRepsoitory costCategoryRepsoitory,
-            IUserGroupTypeRepository userGroupTypeRepository
+            IUserGroupTypeRepository userGroupTypeRepository,
+            IProjectRepository projectRepository
             )
         {
             _valuationRepository = valuationRepository;
             _costTypeRepository = costTypeRepository;
             _costCategoryRepsoitory = costCategoryRepsoitory;
             _userGroupTypeRepository = userGroupTypeRepository;
+            _projectRepository = projectRepository;
         }
 
         public async Task<ResultService<List<ValuationResponse>>> GetValuationList()
@@ -244,6 +248,73 @@ namespace SdWP.Service.Services
                 var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
                 return ResultService<ValuationDeleteResponse>.BadResult(
                     $"An error occurred: {ex.Message} Inner exception: {innerMessage}",
+                    StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        public async Task<ResultService<UpdateValuationResponse>> UpdateValuation(UpdateValuationRequest request)
+        {
+            try
+            {
+                var valuation = await _valuationRepository.GetValuationByIdAsync(request.Id);
+
+                if (valuation == null)
+                {
+                    return ResultService<UpdateValuationResponse>.BadResult(
+                        "Valuation not found.",
+                        StatusCodes.Status404NotFound);
+                }
+
+                if (valuation.CreatorUserId == null)
+                {
+                    return ResultService<UpdateValuationResponse>.BadResult(
+                        "Creator user ID is null.",
+                        StatusCodes.Status400BadRequest);
+                }
+
+                if (!request.ProjectId.HasValue)
+                {
+                    return ResultService<UpdateValuationResponse>.BadResult(
+                        "Project ID is null.",
+                        StatusCodes.Status400BadRequest);
+                }
+
+                var projectExists = await _projectRepository.GetByIdAsync(request.ProjectId.Value);
+                if (projectExists == null)
+                {
+                    return ResultService<UpdateValuationResponse>.BadResult(
+                        "Project not found.",
+                        StatusCodes.Status404NotFound);
+                }
+
+                var update = new UpdateValuationResponse
+                {
+                    Id = request.Id,
+                    ProjectId = request.ProjectId,
+                    Name = request.Name,
+                    Description = request.Description,
+                    CreatorUserId = request.CreatorUserId,
+                    LastModified = request.LastModified,
+                };
+
+                var response = await _valuationRepository.UpdateValuationAsync(update);
+
+                if (response == null)
+                {
+                    return ResultService<UpdateValuationResponse>.BadResult(
+                        "Failed to update valuation.",
+                        StatusCodes.Status500InternalServerError);
+                }
+
+                return ResultService<UpdateValuationResponse>.GoodResult(
+                    "Valuation retrieved successfully.",
+                    StatusCodes.Status200OK,
+                    update);
+            }
+            catch (Exception ex)
+            {
+                return ResultService<UpdateValuationResponse>.BadResult(
+                    $"An error occurred: {ex.Message} | throw {ex.InnerException}",
                     StatusCodes.Status500InternalServerError);
             }
         }

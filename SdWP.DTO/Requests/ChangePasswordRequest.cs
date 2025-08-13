@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace SdWP.DTO.Requests
 {
     public class ChangePasswordRequest
     {
         [Required]
-        public string PrevPassword { get; set; }
+        public string PreviousPassword { get; set; }
         [Required]
         public string NewPassword { get; set; }
         [Required]

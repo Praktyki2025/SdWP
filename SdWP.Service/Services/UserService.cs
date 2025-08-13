@@ -45,8 +45,7 @@ namespace SdWP.Service.Services
                         );
                 }
 
-                var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, dto.PrevPassword);
-                Console.WriteLine($"Password: {isPasswordCorrect}");
+                var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, dto.PreviousPassword);
                 if (!isPasswordCorrect)
                 {
                     return ResultService<User>.BadResult(
@@ -55,7 +54,23 @@ namespace SdWP.Service.Services
                         );
                 }
 
-                var result = await _userManager.ChangePasswordAsync(user, dto.PrevPassword, dto.NewPassword);
+                if (dto.NewPassword != dto.ConfirmPassword)
+                {
+                    return ResultService<User>.BadResult(
+                         statusCode: StatusCodes.Status400BadRequest,
+                         message: "Passwords do not match"
+                         );
+                }
+
+                if (dto.PreviousPassword == dto.ConfirmPassword)
+                {
+                    return ResultService<User>.BadResult(
+                         statusCode: StatusCodes.Status400BadRequest,
+                         message: "Passwords are the same"
+                         );
+                }
+
+                var result = await _userManager.ChangePasswordAsync(user, dto.PreviousPassword, dto.NewPassword);
 
                 if (!result.Succeeded)
                 {

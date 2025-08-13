@@ -1,14 +1,7 @@
-﻿using Azure.Core;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using SdWP.Data.Context;
+﻿using Microsoft.AspNetCore.Http;
 using SdWP.Data.Models;
-using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
-using System.Linq.Expressions;
 using System.Security.Claims;
-using Microsoft.Identity.Client;
-using Microsoft.IdentityModel.Tokens;
 using SdWP.Data.IData;
 using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Requests.ProjectRequests;
@@ -26,7 +19,7 @@ namespace SdWP.Service.Services
             {
                 var user = _httpContextAccessor.HttpContext?.User;
 
-                if (user?.Identity?.IsAuthenticated != true)
+                if (user == null || user.Identity?.IsAuthenticated != true)
                 {
                     return ResultService<ProjectResponse>.BadResult(
                         message: "User is not authenticated",
@@ -77,6 +70,18 @@ namespace SdWP.Service.Services
         {
             try
             {
+                var user = _httpContextAccessor.HttpContext?.User;
+
+                if (user == null || user.Identity?.IsAuthenticated != true)
+                {
+                    return ResultService<ProjectResponse>.BadResult(
+                        message: "User is not authenticated",
+                        statusCode: StatusCodes.Status401Unauthorized
+                        );
+                }
+
+                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
                 if (project == null || project.Id == Guid.Empty)
                 {
                     return ResultService<ProjectResponse>.BadResult(
@@ -92,16 +97,6 @@ namespace SdWP.Service.Services
                         message: "Project not found.",
                         statusCode: StatusCodes.Status204NoContent
                         );
-                }
-
-                var user = _httpContextAccessor.HttpContext?.User;
-                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if (userId == null)
-                {
-                    return ResultService<ProjectResponse>.BadResult(
-                        message: "User is not authentificated",
-                        statusCode: StatusCodes.Status401Unauthorized);
                 }
 
                 if (!user.IsInRole("Admin") && Guid.Parse(userId) != existingProject.CreatorUserId)
@@ -144,16 +139,18 @@ namespace SdWP.Service.Services
 
         public async Task<ResultService<ProjectDeleteResponse>> DeleteProjectAsync(ProjectDeleteRequest project)
         {
-            try {                
+            try {
                 var user = _httpContextAccessor.HttpContext?.User;
-                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (userId == null)
+                if (user == null || user.Identity?.IsAuthenticated != true)
                 {
                     return ResultService<ProjectDeleteResponse>.BadResult(
-                        message: "User is not authentificated",
-                        statusCode: StatusCodes.Status401Unauthorized);
+                        message: "User is not authenticated",
+                        statusCode: StatusCodes.Status401Unauthorized
+                        );
                 }
+
+                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 var projectToDelete = await _projectRepository.GetProjectByIdAsync(project.Id);
 
@@ -201,14 +198,15 @@ namespace SdWP.Service.Services
                 }
 
                 var user = _httpContextAccessor.HttpContext?.User;
-                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (userId == null)
+                if (user == null || user.Identity?.IsAuthenticated != true)
                 {
                     return ResultService<ProjectResponse>.BadResult(
-                        message: "User is not authentificated",
-                        statusCode: StatusCodes.Status401Unauthorized);
+                        message: "User is not authenticated",
+                        statusCode: StatusCodes.Status401Unauthorized
+                        );
                 }
+                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (!user.IsInRole("Admin") && Guid.Parse(userId) != project.CreatorUserId)
                 {
@@ -247,15 +245,16 @@ namespace SdWP.Service.Services
             try
             {
                 var user = _httpContextAccessor.HttpContext?.User;
-                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (user == null || !user.Identity.IsAuthenticated)
+                if (user == null || user.Identity?.IsAuthenticated != true)
                 {
                     return ResultService<ProjectListResponse<ProjectResponse>>.BadResult(
-                    message: "You are not authorized.",
-                    statusCode: StatusCodes.Status401Unauthorized
-                    );
+                        message: "User is not authenticated",
+                        statusCode: StatusCodes.Status401Unauthorized
+                        );
                 }
+
+                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 ProjectListResponse<ProjectResponse> projects;
                 UserRole role = UserRole.Unknown;

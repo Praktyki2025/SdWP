@@ -20,7 +20,7 @@ namespace SdWP.API.Controllers
             _projectService = projectService;
         }
 
-        [HttpPost("create")] // Create
+        [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] ProjectCreateRequest dto)
         {
             var result = await _projectService.CreateProjectAsync(dto);
@@ -37,7 +37,7 @@ namespace SdWP.API.Controllers
             });
         }
 
-        [HttpPost("edit")] // Edit
+        [HttpPost("edit")]
         public async Task<IActionResult> Edit([FromBody] ProjectEditRequest dto)
         {
             var result = await _projectService.EditProjectAsync(dto);

@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SdWP.Data.Models;
-using SdWP.DTO.Requests;
 using SdWP.DTO.Requests.Datatable;
+using SdWP.DTO.Requests.ProjectRequests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
 
@@ -14,14 +15,13 @@ namespace SdWP.API.Controllers
     public class ProjectsController : ControllerBase
     {
         private readonly IProjectService _projectService;
-
         public ProjectsController(IProjectService projectService)
         {
             _projectService = projectService;
         }
 
-        [HttpPost("create")] // Create
-        public async Task<IActionResult> Create([FromBody] ProjectUpsertRequestDTO dto)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create([FromBody] ProjectCreateRequest dto)
         {
             var result = await _projectService.CreateProjectAsync(dto);
             if (result.Success)
@@ -37,8 +37,8 @@ namespace SdWP.API.Controllers
             });
         }
 
-        [HttpPost("edit")] // Edit
-        public async Task<IActionResult> Edit([FromBody] ProjectUpsertRequestDTO dto)
+        [HttpPost("edit")]
+        public async Task<IActionResult> Edit([FromBody] ProjectEditRequest dto)
         {
             var result = await _projectService.EditProjectAsync(dto);
             if (result.Success)
@@ -57,24 +57,40 @@ namespace SdWP.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var result = await _projectService.DeleteProjectAsync(id);
-            if (result.Success)
+            var project = await _projectService.GetProjectAsync(id);
+            if (project.Success)
             {
-                return StatusCode(result.StatusCode, result.Data);
-            }
+                var result = await _projectService.DeleteProjectAsync(project.Data.MapToDeleteRequest());
+                if (result.Success)
+                {
+                    return StatusCode(result.StatusCode, result.Data);
+                }
+                else
+                {
 
-            return StatusCode(result.StatusCode, new
+                    return StatusCode(result.StatusCode, new
+                    {
+                        success = false,
+                        message = result.Message,
+                        errors = result.Errors
+                    });
+                }
+            }
+            else
             {
-                success = false,
-                message = result.Message,
-                errors = result.Errors
-            });
+                return StatusCode(project.StatusCode, new
+                {
+                    success = false,
+                    message = project.Message,
+                    errors = project.Errors
+                });
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var result = await _projectService.GetByIdAsync(id);
+            var result = await _projectService.GetProjectAsync(id);
             if (result.Success)
             {
                 return StatusCode(result.StatusCode, result.Data);

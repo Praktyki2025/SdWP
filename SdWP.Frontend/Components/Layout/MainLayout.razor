@@ -1,4 +1,8 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
+@inject IJSRuntime JS
+
+<Toasts class="p-3" @rendermode=InteractiveServer AutoHide="true" Delay="4000" Placement="ToastsPlacement.TopRight" />
 
 <div class="page">
     <div class="sidebar">
@@ -6,9 +10,13 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+       <AuthorizeView>
+            <Authorized>
+                <div class="top-row px-4">
+                    <a href="/user/changepassword" id="resetPasswordBtn">Change password</a>
+                </div>
+            </Authorized>
+        </AuthorizeView>
 
         <article class="content px-4">
             @Body
@@ -21,5 +29,3 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
-
-<Toasts class="p-3" AutoHide="true" Delay="4000" Placement="ToastsPlacement.TopRight" />

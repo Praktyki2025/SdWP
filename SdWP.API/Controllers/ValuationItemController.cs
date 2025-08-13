@@ -1,9 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SdWP.DTO.Requests.Valuation;
 using SdWP.Service.IServices;
-using SdWP.Service.Services;
 
 namespace SdWP.API.Controllers
 {
@@ -35,6 +32,20 @@ namespace SdWP.API.Controllers
         public async Task<IActionResult> DeleteValuationItem(Guid id)
         {
             var result = await _valuationItemService.DeleteValuationItem(id);
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
+        }
+
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateValuationItem([FromBody] CreateValuationItemRequest request)
+        {
+            var result = await _valuationItemService.CreateValuationItem(request);
             return result.Success
                 ? StatusCode(result.StatusCode, result.Data)
                 : StatusCode(result.StatusCode, new

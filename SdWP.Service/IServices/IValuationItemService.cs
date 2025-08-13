@@ -12,5 +12,6 @@ namespace SdWP.Service.IServices
     {
         Task<ResultService<List<ValuationItemResponse>>> GetValuationList();
         Task<ResultService<DeleteValuationItemResponse>> DeleteValuationItem(Guid id);
+        Task<ResultService<CreateValuationItemResponse>> CreateValuationItem(CreateValuationItemRequest request);
     }
 }

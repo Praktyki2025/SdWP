@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using SdWP.Data.IData;
 using SdWP.Data.Models;
+using SdWP.Data.Repositories;
 using SdWP.DTO.Requests.Valuation;
 using SdWP.DTO.Responses.Valuation;
 using SdWP.Service.IServices;
@@ -15,10 +16,22 @@ namespace SdWP.Service.Services
     public class ValuationItemService : IValuationItemService
     {
         private readonly IValuationItemRepository _valuationItemRepository;
+        private readonly ICostTypeRepository _costTypeRepository;
+        private readonly ICostCategoryRepsoitory _costCategoryRepsoitory;
+        private readonly IUserGroupTypeRepository _userGroupTypeRepository;
 
-        public ValuationItemService(IValuationItemRepository valuationItemRepository)
+        public ValuationItemService(
+            IValuationItemRepository valuationItemRepository,
+            ICostTypeRepository costTypeRepository,
+            ICostCategoryRepsoitory costCategoryRepsoitory,
+            IUserGroupTypeRepository userGroupTypeRepository
+            )
         {
-            _valuationItemRepository = valuationItemRepository ?? throw new ArgumentNullException(nameof(valuationItemRepository));
+            _valuationItemRepository = valuationItemRepository;
+            _costTypeRepository = costTypeRepository;
+            _costCategoryRepsoitory = costCategoryRepsoitory;
+            _userGroupTypeRepository = userGroupTypeRepository;
+
         }
 
         public async Task<ResultService<List<ValuationItemResponse>>> GetValuationList()
@@ -80,6 +93,71 @@ namespace SdWP.Service.Services
             catch (Exception ex)
             {
                 return ResultService<DeleteValuationItemResponse>.BadResult(
+                    $"An error occurred: {ex.Message} | throw {ex.InnerException}",
+                    StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        public async Task<ResultService<CreateValuationItemResponse>> CreateValuationItem(CreateValuationItemRequest request)
+        {
+            try 
+            {
+                var costTypeId = await _costTypeRepository.GetGuidByName(request.CostTypeName);
+                if (costTypeId == Guid.Empty)
+                {
+                    return ResultService<CreateValuationItemResponse>.BadResult(
+                        "Cost type not found.",
+                        StatusCodes.Status404NotFound);
+                }
+
+                var coastCategoryId = await _costCategoryRepsoitory.GetGuidByName(request.CostCategoryName);
+                if (coastCategoryId == Guid.Empty)
+                {
+                    return ResultService<CreateValuationItemResponse>.BadResult(
+                        "Cost category not found.",
+                        StatusCodes.Status404NotFound);
+                }
+
+                var userGroupTypeId = await _userGroupTypeRepository.GetGuidByName(request.UserGroupTypeName);
+                if (userGroupTypeId == Guid.Empty)
+                {
+                    return ResultService<CreateValuationItemResponse>.BadResult(
+                        "User group type not found.",
+                        StatusCodes.Status404NotFound);
+                }
+
+                var valuationItem = new CreateValuationItemResponse
+                {
+                    ValuationId = request.ValuationId,
+                    Name = request.Name,
+                    Description = request.Description,
+                    CreatorUserId = request.CreatorUserId,
+                    CostTypeId = costTypeId,
+                    CostCategoryID = coastCategoryId,
+                    UserGroupTypeId = userGroupTypeId,
+                    Quantity = request.Quantity,
+                    UnitPrice = request.UnitPrice,
+                    TotalAmount = request.TotalAmount,
+                    RecurrencePeriod = request.RecurrencePeriod,
+                    RecurrenceUnit = request.RecurrenceUnit,
+                };
+
+                var result = await _valuationItemRepository.AddValuationItemAsync(valuationItem);
+                if (result == null)
+                {
+                    return ResultService<CreateValuationItemResponse>.BadResult(
+                        "Failed to create valuation item.",
+                        StatusCodes.Status500InternalServerError);
+                }
+
+                return ResultService<CreateValuationItemResponse>.GoodResult(
+                    "Valuation item created successfully.",
+                    StatusCodes.Status201Created,
+                    valuationItem);
+            }
+            catch (Exception ex)
+            {
+                return ResultService<CreateValuationItemResponse>.BadResult(
                     $"An error occurred: {ex.Message} | throw {ex.InnerException}",
                     StatusCodes.Status500InternalServerError);
             }

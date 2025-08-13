@@ -26,7 +26,7 @@ namespace SdWP.Data.Repositories
                     Name = response.Name,
                     Description = response.Description,
                     CreatorUserId = response.CreatorUserId,
-                    ProjectId = response.ProjectId, 
+                    ProjectId = response.ProjectId,
                     CreatedAt = DateTime.UtcNow,
                     LastModified = DateTime.UtcNow,
                     ValuationItems = new List<ValuationItem>(),
@@ -72,10 +72,10 @@ namespace SdWP.Data.Repositories
             var valuation = await _context.Valuations.FirstOrDefaultAsync(v => v.Id == response.Id);
             if (valuation == null) throw new Exception("Valuation not found");
 
-            valuation.Name = response.Name ?? throw new ArgumentNullException(nameof(response.Name));
-            valuation.Description = response.Description ?? throw new ArgumentNullException(nameof(response.Description));
-            valuation.LastModified = response.LastModified;
-            valuation.ProjectId = response.ProjectId ?? throw new ArgumentNullException(nameof(response.ProjectId)); ;
+            valuation.Name = response.Name ?? valuation.Name;
+            valuation.Description = response.Description ?? valuation.Description;
+            valuation.LastModified = DateTime.UtcNow;
+            valuation.ProjectId = response.ProjectId;
             valuation.CreatorUserId = response.CreatorUserId;
 
             await _context.SaveChangesAsync();
@@ -93,16 +93,13 @@ namespace SdWP.Data.Repositories
         }
 
         public async Task<Valuation?> GetValuationByIdAsync(Guid id)
-        {
-            return await _context.Valuations.FindAsync(id);
-        }
+            => await _context.Valuations.FindAsync(id);
 
         public async Task<List<Valuation>> GetAllValuationsAsync()
             => await _context.Valuations.ToListAsync();
 
         public async Task<List<Valuation>> GetValuationsByProjectIdAsync(Guid projectId)
-        {
-            return await _context.Valuations.Where(v => v.ProjectId == projectId).ToListAsync();
-        }
+            => await _context.Valuations.Where(v => v.ProjectId == projectId).ToListAsync();
+        
     }
 }

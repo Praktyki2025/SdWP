@@ -269,14 +269,14 @@ namespace SdWP.Service.Services
                         StatusCodes.Status400BadRequest);
                 }
 
-                if (!request.ProjectId.HasValue)
+                if (request.ProjectId == Guid.Empty)
                 {
                     return ResultService<UpdateValuationResponse>.BadResult(
                         "Project ID is null.",
                         StatusCodes.Status400BadRequest);
                 }
 
-                var projectExists = await _projectRepository.GetByIdAsync(request.ProjectId.Value);
+                var projectExists = await _projectRepository.GetByIdAsync(request.ProjectId);
                 if (projectExists == null)
                 {
                     return ResultService<UpdateValuationResponse>.BadResult(
@@ -290,8 +290,7 @@ namespace SdWP.Service.Services
                     ProjectId = request.ProjectId,
                     Name = request.Name,
                     Description = request.Description,
-                    CreatorUserId = request.CreatorUserId,
-                    LastModified = request.LastModified,
+                    CreatorUserId = request.CreatorUserId
                 };
 
                 var response = await _valuationRepository.UpdateValuationAsync(update);

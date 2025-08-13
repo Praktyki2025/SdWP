@@ -7,7 +7,6 @@
         public Guid ValuationId { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
-        public DateTime? LastModified { get; set; }
         public string? CostTypeName { get; set; }
         public string? CostCategoryName { get; set; }
         public string? UserGroupTypeName { get; set; }

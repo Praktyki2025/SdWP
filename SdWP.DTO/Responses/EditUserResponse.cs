@@ -16,5 +16,6 @@ namespace SdWP.DTO.Responses
         public string? Message { get; set; }
 
         public List<string> Roles { get; set; } = new();
+        public bool isLocked { get; set; }
     }
 }

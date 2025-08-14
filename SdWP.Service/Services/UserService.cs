@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using SdWP.Data.Models;
-using SdWP.Data.Repositories;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
@@ -18,34 +16,25 @@ namespace SdWP.Service.Services
     {
         // In this services class, we handle user registration, delete, and edit user data.
 
-        private readonly UserManager<User> _userManager;
         private readonly IUserRepository _userRepository;
-        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly IErrorLogHelper _errorLogServices;
 
         private string message = string.Empty;
 
-
-        public UserService(
-            UserManager<User> userManager,
-            RoleManager<IdentityRole<Guid>> roleManager,
-            IErrorLogHelper errorLogServices,
-            IUserRepository userRepository
-            )
+        public UserService(IUserRepository userRepository, IErrorLogHelper errorLogServices)
         {
-            _userManager = userManager;
             _userRepository = userRepository;
-            _roleManager = roleManager;
-            _errorLogServices = _errorLogServices;
+            _errorLogServices = errorLogServices;
         }
 
         public async Task<ResultService<AddUserResponse>> RegisterAsync(AddUserRequest dto)
         {
             try
             {
-                var exist = await _userManager.FindByEmailAsync(dto.Email);
+                var exist = await _userRepository.FindByEmailAsync(dto.Email);
                 if (exist != null)
                 {
+
                     message = $"User registration attempt with existing email: {dto.Email}";
                     Log.Warning(message);
 
@@ -61,8 +50,8 @@ namespace SdWP.Service.Services
 
                     return await _errorLogServices.LoggEvent(errorLogDTO)
                         .ContinueWith(_ => ResultService<AddUserResponse>.BadResult(
-                        message,
-                        StatusCodes.Status400BadRequest
+                            message,
+                            StatusCodes.Status400BadRequest
                     ));
                 }
 
@@ -85,12 +74,12 @@ namespace SdWP.Service.Services
 
                     return await _errorLogServices.LoggEvent(errorLogDTO)
                         .ContinueWith(_ => ResultService<AddUserResponse>.BadResult(
-                        message,
-                        StatusCodes.Status400BadRequest
+                            message,
+                            StatusCodes.Status400BadRequest
                     ));
                 }
 
-                if (!await _roleManager.RoleExistsAsync(dto.Role))
+                if (!await _userRepository.RoleExistsAsync(dto.Role))
                 {
                     message = $"User registration attempt with unknown role {dto.Role}";
                     Log.Warning(message);
@@ -107,8 +96,8 @@ namespace SdWP.Service.Services
 
                     return await _errorLogServices.LoggEvent(errorLogDTO)
                         .ContinueWith(_ => ResultService<AddUserResponse>.BadResult(
-                        message,
-                        StatusCodes.Status400BadRequest
+                            message,
+                            StatusCodes.Status400BadRequest
                     ));
                 }
 
@@ -126,7 +115,7 @@ namespace SdWP.Service.Services
                     ConcurrencyStamp = Guid.NewGuid().ToString(),
                 };
 
-                var result = await _userManager.CreateAsync(user, dto.Password);
+                var result = await _userRepository.CreateAsync(user, dto.Password);
                 if (!result.Succeeded)
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
@@ -152,7 +141,7 @@ namespace SdWP.Service.Services
                     ));
                 }
 
-                var createdUser = await _userManager.FindByEmailAsync(dto.Email);
+                var createdUser = await _userRepository.FindByEmailAsync(dto.Email);
                 if (createdUser == null)
                 {
                     message = $"User created but could not be loaded for role assignment: {dto.Email}";
@@ -170,12 +159,12 @@ namespace SdWP.Service.Services
 
                     return await _errorLogServices.LoggEvent(errorLogDTO)
                         .ContinueWith(_ => ResultService<AddUserResponse>.BadResult(
-                        message,
-                        StatusCodes.Status400BadRequest
+                            message,
+                            StatusCodes.Status400BadRequest
                     ));
                 }
 
-                var roleResult = await _userManager.AddToRoleAsync(createdUser, dto.Role);
+                var roleResult = await _userRepository.AddToRoleAsync(createdUser, dto.Role);
                 if (!roleResult.Succeeded)
                 {
                     var errors = roleResult.Errors.Select(e => e.Description).ToList();
@@ -200,7 +189,7 @@ namespace SdWP.Service.Services
                     ));
                 }
 
-                var roles = await _userManager.GetRolesAsync(createdUser);
+                var roles = await _userRepository.GetRolesAsync(createdUser);
                 if (roles == null || !roles.Any())
                 {
                     message = $"User created but no roles assigned for email: {dto.Email}";
@@ -267,7 +256,7 @@ namespace SdWP.Service.Services
         {
             try
             {
-                var users = await _userRepository.GetUserAsync(request);
+                var users = await _userRepository.GetUsersAsync(request);
 
                 if (users == null || users.Count == 0)
                 {
@@ -286,8 +275,8 @@ namespace SdWP.Service.Services
 
                     return await _errorLogServices.LoggEvent(errorLogDTO).
                         ContinueWith(_ => ResultService<DataTableResponse<UserListResponse>>.BadResult(
-                        message,
-                        StatusCodes.Status404NotFound
+                            message,
+                            StatusCodes.Status404NotFound
                     ));
                 }
 
@@ -358,7 +347,7 @@ namespace SdWP.Service.Services
                     ));
                 }
 
-                var roles = await _userManager.GetRolesAsync(user);
+                var roles = await _userRepository.GetRolesAsync(user); ;
 
                 if (roles != null && roles.Contains("Admin"))
                 {
@@ -393,7 +382,7 @@ namespace SdWP.Service.Services
                     Success = true
                 };
 
-                var result = await _userManager.DeleteAsync(user);
+                var result = await _userRepository.DeleteAsync(user);
 
                 if (result.Succeeded)
                 {
@@ -456,7 +445,7 @@ namespace SdWP.Service.Services
         {
             try
             {
-                var exist = await _userManager.FindByIdAsync(dto.Id.ToString());
+                var exist = await _userRepository.FindByIdAsync(dto.Id.ToString());
                 if (exist == null)
                 {
                     message = $"User edit attempt for non-existing user ID: {dto.Id}";
@@ -481,7 +470,7 @@ namespace SdWP.Service.Services
 
                 if (!string.IsNullOrEmpty(dto.Email) && dto.Email != exist.Email)
                 {
-                    var userWithEmail = await _userManager.FindByEmailAsync(dto.Email);
+                    var userWithEmail = await _userRepository.FindByEmailAsync(dto.Email);
                     if (userWithEmail != null && userWithEmail.Id != exist.Id)
                     {
                         message = $"User edit attempt with existing email: {dto.Email}";
@@ -501,13 +490,13 @@ namespace SdWP.Service.Services
                             .ContinueWith(_ => ResultService<EditUserRequest>.BadResult(
                                 message,
                                 StatusCodes.Status400BadRequest
-                            ));
+                        ));
                     }
                 }
 
                 if (!string.IsNullOrEmpty(dto.Name) && dto.Name != exist.Name)
                 {
-                    var userWithName = await _userManager.FindByNameAsync(dto.Name);
+                    var userWithName = await _userRepository.FindByNameAsync(dto.Name);
                     if (userWithName != null && userWithName.Id != exist.Id)
                     {
                         message = $"User edit attempt with existing name: {dto.Name}";
@@ -531,7 +520,7 @@ namespace SdWP.Service.Services
                     }
                 }
 
-                if (!string.IsNullOrEmpty(dto.Role) && !await _roleManager.RoleExistsAsync(dto.Role))
+                if (!string.IsNullOrEmpty(dto.Role) && !await _userRepository.RoleExistsAsync(dto.Role))
                 {
                     message = $"Role not exist: {dto.Role}";
                     Log.Warning(message);
@@ -553,6 +542,47 @@ namespace SdWP.Service.Services
                         ));
                 }
 
+                if (dto.IsLocked.HasValue)
+                {
+                    var enableResult = await _userRepository.SetLockoutEnabledAsync(exist, true);
+                    if (!enableResult.Succeeded)
+                    {
+                        var errors = enableResult.Errors.Select(e => e.Description).ToList();
+                        return ResultService<EditUserRequest>.BadResult(
+                            "Failed to lock user account",
+                            StatusCodes.Status400BadRequest,
+                            errors
+                        );
+                    }
+
+                    if (dto.IsLocked.Value)
+                    {
+                        var lockResult = await _userRepository.SetLockoutEndDateAsync(exist, DateTimeOffset.MaxValue);
+                        if (!lockResult.Succeeded)
+                        {
+                            var errors = lockResult.Errors.Select(e => e.Description).ToList();
+                            return ResultService<EditUserRequest>.BadResult(
+                                "Failed to lock user account",
+                                StatusCodes.Status400BadRequest,
+                                errors
+                            );
+                        }
+                    }
+                    else
+                    {
+                        var unlockResult = await _userRepository.SetLockoutEndDateAsync(exist, null);
+                        if (!unlockResult.Succeeded)
+                        {
+                            var errors = unlockResult.Errors.Select(e => e.Description).ToList();
+                            return ResultService<EditUserRequest>.BadResult(
+                                "Failed to unlock user account",
+                                StatusCodes.Status400BadRequest,
+                                errors
+                            );
+                        }
+                    }
+                }
+
 
                 if (!string.IsNullOrEmpty(dto.Name))
                 {
@@ -571,8 +601,8 @@ namespace SdWP.Service.Services
 
                 if (!string.IsNullOrEmpty(dto.Password) && !string.IsNullOrWhiteSpace(dto.Password))
                 {
-                    var token = await _userManager.GeneratePasswordResetTokenAsync(exist);
-                    var editPassword = await _userManager.ResetPasswordAsync(exist, token, dto.Password);
+                    var token = await _userRepository.GeneratePasswordResetTokenAsync(exist);
+                    var editPassword = await _userRepository.ResetPasswordAsync(exist, token, dto.Password);
 
                     if (!editPassword.Succeeded)
                     {
@@ -598,8 +628,7 @@ namespace SdWP.Service.Services
                     }
                 }
 
-                var updateResult = await _userManager.UpdateAsync(exist);
-
+                var updateResult = await _userRepository.UpdateAsync(exist);
                 if (!updateResult.Succeeded)
                 {
                     var errors = updateResult.Errors.Select(e => e.Description).ToList();
@@ -625,10 +654,10 @@ namespace SdWP.Service.Services
 
                 if (!string.IsNullOrEmpty(dto.Role))
                 {
-                    var currentRole = await _userManager.GetRolesAsync(exist);
+                    var currentRole = await _userRepository.GetRolesAsync(exist);
                     if (currentRole.Any())
                     {
-                        var removeRole = await _userManager.RemoveFromRolesAsync(exist, currentRole);
+                        var removeRole = await _userRepository.RemoveFromRolesAsync(exist, currentRole);
                         if (!removeRole.Succeeded)
                         {
                             var errors = removeRole.Errors.Select(e => e.Description).ToList();
@@ -653,7 +682,7 @@ namespace SdWP.Service.Services
                         }
                     }
 
-                    var updateRole = await _userManager.AddToRoleAsync(exist, dto.Role);
+                    var updateRole = await _userRepository.AddToRoleAsync(exist, dto.Role);
                     if (!updateRole.Succeeded)
                     {
                         var errors = updateRole.Errors.Select(e => e.Description).ToList();
@@ -678,7 +707,8 @@ namespace SdWP.Service.Services
                     }
                 }
 
-                var currentRoles = await _userManager.GetRolesAsync(exist);
+                exist = await _userRepository.FindByIdAsync(exist.Id.ToString());
+                var currentRoles = await _userRepository.GetRolesAsync(exist);
 
                 var responseDto = new EditUserRequest
                 {
@@ -687,6 +717,7 @@ namespace SdWP.Service.Services
                     Name = exist.Name,
                     Role = currentRoles.ToString(),
                     LastUpdate = exist.LastUpdate,
+                    IsLocked = exist.LockoutEnd.HasValue && exist.LockoutEnd.Value > DateTimeOffset.UtcNow,
 
                 };
 
@@ -716,7 +747,6 @@ namespace SdWP.Service.Services
                         StatusCodes.Status500InternalServerError,
                         new List<string> { e.Message }
                 ));
-
             }
         }
 
@@ -724,7 +754,7 @@ namespace SdWP.Service.Services
         {
             try
             {
-                var user = await _userManager.FindByEmailAsync(dto.Email);
+                var user = await _userRepository.FindByEmailAsync(dto.Email);
 
                 if (user == null)
                 {
@@ -749,7 +779,7 @@ namespace SdWP.Service.Services
                 }
 
                 var token = Uri.UnescapeDataString(dto.Token);
-                var result = await _userManager.ResetPasswordAsync(user, token, dto.Password);
+                var result = await _userRepository.ResetPasswordAsync(user, token, dto.Password);
 
                 if (result.Succeeded)
                 {
@@ -779,7 +809,7 @@ namespace SdWP.Service.Services
                         ));
                 }
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 message = $"An error occurred while change password: {e.Message}";
                 Log.Error(message);

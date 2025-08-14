@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+
     <PackageReference Include="MailKit" Version="4.13.0" />
+    <PackageReference Include="AutoMapper" Version="15.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.18" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />

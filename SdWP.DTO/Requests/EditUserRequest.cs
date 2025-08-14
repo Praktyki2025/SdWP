@@ -19,5 +19,6 @@ namespace SdWP.DTO.Requests
         public string? Role { get; set; } = string.Empty;
 
         public DateTime LastUpdate { get; set; }
+        public bool? IsLocked { get; set; } 
     }
 }

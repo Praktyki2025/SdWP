@@ -1,5 +1,6 @@
-﻿@page "/valuations"
-
+﻿@page "/projects/valuations"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 
 <h3 class="mb-4">Project Valuations</h3>
 
@@ -149,9 +150,9 @@
             };
         }
 
-        public Task<List<ValuationModel>> GetValuationsAsync()
+        public async Task<List<ValuationModel>> GetValuationsAsync()
         {
-            return Task.FromResult(_valuations);
+            return await Task.FromResult(_valuations);
         }
     }
 }

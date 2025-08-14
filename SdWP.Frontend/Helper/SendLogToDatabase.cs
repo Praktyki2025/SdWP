@@ -5,32 +5,35 @@ namespace SdWP.Frontend.Functions
 {
     public class SendLogToDatabase
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private readonly HttpClient _httpClient;
 
-        public static async Task SendLogAsync(
+        public SendLogToDatabase(IHttpClientFactory httpClientFactory)
+        {
+            _httpClient = httpClientFactory.CreateClient("ApiClient");
+        }
+
+        public async Task SendLogAsync(
             string errorMessage,
             string source,
             string stackTrace,
             TypeOfLog typeOfLog)
         {
-            if (typeOfLog == TypeOfLog.Info)
+            switch (typeOfLog)
             {
-                Log.Information(errorMessage);
-            }
-            else if (typeOfLog == TypeOfLog.Warning)
-            {
-                Log.Warning(errorMessage);
-            }
-            else if (typeOfLog == TypeOfLog.Error)
-            {
-                Log.Error(errorMessage);
+                case TypeOfLog.Info: Log.Information(errorMessage); break;
+                case TypeOfLog.Warning: Log.Warning(errorMessage); break;
+                case TypeOfLog.Error: Log.Error(errorMessage); break;
             }
 
-            var logContent = new StringContent(string.Empty);
-            await _httpClient.PostAsync(
-                $"api/log/Message={errorMessage}StackTrace={stackTrace}Source={source}TypeOfLog={typeOfLog}",
-                logContent
-            );
+            var logObj = new
+            {
+                Message = errorMessage,
+                StackTrace = stackTrace,
+                Source = source,
+                TypeOfLog = typeOfLog.ToString()
+            };
+
+            await _httpClient.PostAsJsonAsync("api/ErrorLog/log", logObj);
         }
     }
 }

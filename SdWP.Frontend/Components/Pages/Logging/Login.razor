@@ -76,6 +76,9 @@
 </section>
 
 @code {
+    [Inject]
+    public SendLogToDatabase SendLogToDatabase { get; set; }
+
     private LoginRequest loginModel = new();
     private string message = string.Empty;
     private bool isLoading = false;

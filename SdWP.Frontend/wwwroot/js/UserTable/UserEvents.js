@@ -39,15 +39,25 @@ window.usersModals = {
             const data = {
                 name: $('#registerName').val(),
                 email: $('#registerEmail').val(),
-                password: $('#registerPassword').val(),
-                confirmPassword: $('#registerConfirmPassword').val(),
                 role: $('#registerRole').val()
             };
 
             try {
                 await window.userApi.registerUser(data);
-                $('#registerUserModal').modal('hide');
-                window.initializeUserTable();
+                const modalEl = document.getElementById('registerUserModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+
+                setTimeout(() => {
+                    const table = $('#userTable').DataTable();
+                    if (table) {
+                        table.ajax.reload(null, false);
+                    }
+                }, 300);
+
             } catch (err) {
                 alert(`Error registering user: ${err.message}`);
             }
@@ -62,9 +72,8 @@ window.usersModals = {
             $('#editUserId').val(rowData.id);
             $('#editName').val(rowData.name);
             $('#editEmail').val(rowData.email);
-            $('#editPassword').val('');
-            $('#editConfirmPassword').val('');
             $('#editRole').val(rowData.roles?.[0] ?? '');
+            $('#editIsLocked').prop('checked', rowData.isLocked === true);
 
             const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
             modal.show();
@@ -77,15 +86,27 @@ window.usersModals = {
                 id: $('#editUserId').val(),
                 name: $('#editName').val(),
                 email: $('#editEmail').val(),
-                password: $('#editPassword').val(),
-                confirmPassword: $('#editConfirmPassword').val(),
-                role: $('#editRole').val()
+                role: $('#editRole').val(),
+                isLocked: $('#editIsLocked').is(':checked')
             };
 
             try {
                 await window.userApi.updateUser(data);
-                $('#editUserModal').modal('hide');
-                window.initializeUserTable();
+                const modalEl = document.getElementById('editUserModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+
+                if (modalInstance) modalInstance.hide();
+
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open');
+
+                setTimeout(() => {
+                    const table = $('#userTable').DataTable();
+                    if (table) {
+                        table.ajax.reload(null, false);
+                    }
+                }, 300);
+
             } catch (e) {
                 $('#editUserMessage').removeClass('d-none alert-success').addClass('alert-danger').text(e.message);
             }

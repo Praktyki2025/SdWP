@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SdWP.DTO.Requests;
 using SdWP.Service.IServices;
 
 namespace SdWP.API.Controllers
@@ -14,19 +15,14 @@ namespace SdWP.API.Controllers
             _errorLogServices = errorLogServices;
         }
 
-        [HttpPost("log/Message={errorMessage}StackTrace={stackTrace}Source={source}TypeOfLog={typeOfLog}")]
-        public async Task<IActionResult> LogError(
-            string errorMessage,
-            string stackTrace,
-            string source,
-            string typeOfLog
-            )
+        [HttpPost("log")]
+        public async Task<IActionResult> LogError([FromBody] ErrorLogRequest request)
         {
             var result = await _errorLogServices.GetLogToDatabase(
-                errorMessage,
-                stackTrace,
-                source,
-                typeOfLog
+                request.Message,
+                request.StackTrace,
+                request.Source,
+                request.TypeOfLog.ToString()
             );
             
             return result.Success

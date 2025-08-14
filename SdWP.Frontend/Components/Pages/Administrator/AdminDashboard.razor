@@ -18,6 +18,9 @@
 <h2>Welcome @adminName</h2>
 
 @code {
+    [Inject]
+    public SendLogToDatabase SendLogToDatabase { get; set; }
+
     private string? adminName;
     private bool _isInvoke = true;
 

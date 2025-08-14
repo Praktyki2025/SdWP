@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using SdWP.Data.Models;
+using Microsoft.AspNetCore.Http;
+using SdWP.Data.IData;
 using SdWP.Data.Repositories;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
@@ -12,18 +11,15 @@ namespace SdWP.Service.Services
 {
     public class LoginServices : ILoginService
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly IUserRepository _userRepository;
         private readonly IErrorLogHelper _errorLogServices;
         private string message = string.Empty;
 
         public LoginServices(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager,
+            UserRepository userRepository,
             IErrorLogHelper errorLogServices)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            _userRepository = userRepository;
             _errorLogServices = errorLogServices;
         }
 
@@ -31,7 +27,7 @@ namespace SdWP.Service.Services
         {
             try
             {
-                var user = await _userManager.FindByEmailAsync(dto.Email);
+                var user = await _userRepository.FindByEmailAsync(dto.Email);
                 if (user == null)
                 {
                     message = $"Login attempt with invalid email: {dto.Email}";
@@ -54,11 +50,11 @@ namespace SdWP.Service.Services
                         ));
                 }
 
-                var result = await _signInManager.PasswordSignInAsync(user, dto.Password, isPersistent: true, lockoutOnFailure: false);
+                var result = await _userRepository.PasswordSignInAsync(user, dto.Password, isPersistent: true, lockoutOnFailure: false);
 
                 if (result.Succeeded)
                 {
-                    var roles = await _userManager.GetRolesAsync(user);
+                    var roles = await _userRepository.GetRolesAsync(user);
                     return ResultService<LoginResponse>.GoodResult(
                         "Login successful",
                         StatusCodes.Status200OK,
@@ -113,7 +109,7 @@ namespace SdWP.Service.Services
                 };
 
                 return await _errorLogServices.LoggEvent(errorLogDTO)
-                    .ContinueWith (_ => ResultService<LoginResponse>.BadResult(
+                    .ContinueWith(_ => ResultService<LoginResponse>.BadResult(
                         message,
                         StatusCodes.Status500InternalServerError
                     ));
@@ -124,7 +120,7 @@ namespace SdWP.Service.Services
         {
             try
             {
-                await _signInManager.SignOutAsync();
+                await _userRepository.SignOutAsync();
 
                 return ResultService<string>.GoodResult(
                     "Logout successful",

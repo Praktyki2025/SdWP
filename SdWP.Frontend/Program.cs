@@ -7,17 +7,17 @@ using SdWP.Data.IData;
 using SdWP.Data.Models;
 using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
+using SdWP.Frontend.Functions;
+using SdWP.Service.Helpers;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
-using Serilog;
-using SdWP.Service.Helpers;
 using SdWP.Service.Services.Mailing;
+using Serilog;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,11 +26,15 @@ builder.Host.UseSerilog();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddBlazorBootstrap();
+
 builder.Services.AddControllers();
+builder.Services.AddHttpClient("ApiClient", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5267/");
+});
 
 builder.Services.AddAuthorizationCore();
-
-builder.Services.AddBlazorBootstrap();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -71,29 +75,12 @@ builder.Services.AddScoped<ErrorLogRepository>();
 builder.Services.AddScoped<IErrorLogHelper, ErrorLogHelper>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-
+builder.Services.AddScoped<SendLogToDatabase>();
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<HttpClient>(sp =>
-{
-    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
-    var httpClient = httpClientFactory.CreateClient();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
 
-    var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-    var httpContext = httpContextAccessor.HttpContext;
-
-    if (httpContext != null)
-    {
-        var request = httpContext.Request;
-        httpClient.BaseAddress = new Uri($"{request.Scheme}://{request.Host}/");
-    }
-    else
-    {
-        httpClient.BaseAddress = new Uri("https://localhost:7019/");
-    }
-
-    return httpClient;
-});
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<EmailService>();
@@ -140,9 +127,9 @@ using (var scope = app.Services.CreateScope())
 
 
 app.UseStaticFiles();
-app.UseRouting();
 
 app.UseAuthentication();
+app.UseRouting();
 app.UseAuthorization();
 
 app.UseAntiforgery();

@@ -1,1 +1,71 @@
-﻿
+﻿@page "/projects/valuations"
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@using SdWP.DTO.Responses
+@using SdWP.DTO.Requests
+@using BlazorBootstrap
+
+
+<h3>Project Valuations</h3>
+
+@if (valuations == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!valuations.Any())
+{
+    <p>No valuations found.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table id="Valuationtable" class="table table-striped table-hover table-bordered align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Created At</th>
+                    <th scope="col">Action </th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<ValuationResponse>? valuations;
+
+    protected override async Task OnInitializedAsync()
+    {
+        valuations = await Http.GetFromJsonAsync<List<ValuationResponse>>("api/valuation/list");
+    }
+
+    public class ValuationResponse
+    {
+        public Guid Id { get; set; }
+        public Guid ProjectId { get; set; }
+        public string Name { get; set; }
+        public string? Description { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime LastModified { get; set; }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("initializeValuationtable");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing user table: {ex.Message}");
+            }
+        }
+    }
+
+}
+
+

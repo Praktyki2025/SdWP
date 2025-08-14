@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SdWP.DTO.Requests.Datatable
+namespace SdWP.DTO.Requests.Datatable.UserTable
 {
     public class DataTableOrderRequests
     {

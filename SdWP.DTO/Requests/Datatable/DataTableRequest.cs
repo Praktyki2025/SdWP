@@ -1,4 +1,6 @@
-﻿namespace SdWP.DTO.Requests.Datatable
+﻿using SdWP.DTO.Requests.Datatable.UserTable;
+
+namespace SdWP.DTO.Requests.Datatable
 {
     public class DataTableRequest
     {

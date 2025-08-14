@@ -81,11 +81,15 @@ builder.Services.AddScoped<HttpClient>(sp =>
 });
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
+
 builder.Services.AddScoped<IValuationRepository, ValuationRepository>();
 builder.Services.AddScoped<IValuationService, ValuationService>();
 builder.Services.AddScoped<ICostTypeRepository, CostTypeRepository>();
 builder.Services.AddScoped<ICostCategoryRepsoitory, CostCategoryRepsoitory>();
 builder.Services.AddScoped<IUserGroupTypeRepository, UserGroupTypeRepository>();
+
+builder.Services.AddScoped<IValuationItemRepository, ValuationItemRepository>();
+builder.Services.AddScoped<IValuationItemService, ValuationItemService>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

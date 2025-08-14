@@ -1,9 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SdWP.DTO.Requests.Valuation;
 using SdWP.Service.IServices;
-using SdWP.Service.Services;
 
 namespace SdWP.API.Controllers
 {
@@ -12,78 +9,65 @@ namespace SdWP.API.Controllers
     public class ValuationItemController : ControllerBase
     {
         private readonly IValuationItemService _valuationItemService;
-
         public ValuationItemController(IValuationItemService valuationItemService)
         {
-            _valuationItemService = valuationItemService;
+            _valuationItemService = valuationItemService ?? throw new ArgumentNullException(nameof(valuationItemService));
         }
 
-
-        private ActionResult HandleResult<T>(ResultService<T> result)
+        [HttpGet("list")]
+        public async Task<IActionResult> GetValuationList([FromServices] IValuationItemService valuationItemService)
         {
-            if (!result.Success)
-            {
-                return StatusCode(result.StatusCode, new { result.Message, result.Errors });
-            }
-
-            if (result.StatusCode == 201)
-            {
-                var idProperty = result.Data.GetType().GetProperty("Id");
-                var id = idProperty != null ? idProperty.GetValue(result.Data) : null;
-                return CreatedAtAction(nameof(GetValuationItemById), new { id }, result.Data);
-            }
-            return StatusCode(result.StatusCode, result.Data);
+            var result = await valuationItemService.GetValuationList();
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
         }
 
-
-        [HttpGet]
-        public async Task<IActionResult> GetAllValuationItems()
-        {
-            var result = await _valuationItemService.GetAllValuationItemsAsync();
-            return HandleResult(result);
-        }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetValuationItemById(Guid id)
-        {
-            var result = await _valuationItemService.GetValuationItemByIdAsync(id);
-            return HandleResult(result);
-        }
-
-        [HttpGet("valuation/{valuationId}")]
-        public async Task<IActionResult> GetValuationItemsByValuationId(Guid valuationId)
-        {
-            var result = await _valuationItemService.GetValuationItemsByValuationIdAsync(valuationId);
-            return HandleResult(result);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateValuationItem([FromBody] CreateValuationItemRequest request)
-        {
-            var result = await _valuationItemService.CreateValuationItemAsync(request);
-            return HandleResult(result);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateValuationItem(Guid id, [FromBody] UpdateValuationItemRequest request)
-        {
-            if (id != request.Id)
-            {
-                return BadRequest("Valuation Item ID mismatch.");
-            }
-            var result = await _valuationItemService.UpdateValuationItemAsync(request);
-            return HandleResult(result);
-        }
-
-        [HttpDelete("{id}")]
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteValuationItem(Guid id)
         {
-            var result = await _valuationItemService.DeleteValuationItemAsync(id);
-            if (!result.Success)
-            {
-                return StatusCode(result.StatusCode, new { result.Message });
-            }
-            return Ok(new { result.Message });
+            var result = await _valuationItemService.DeleteValuationItem(id);
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
+        }
+
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateValuationItem([FromBody] CreateValuationItemRequest request)
+        {
+            var result = await _valuationItemService.CreateValuationItem(request);
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
+        }
+
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateValuationItem([FromBody] UpdateValuationItemRequest request)
+        {
+            var result = await _valuationItemService.UpdateValuationItem(request);
+            return result.Success
+                ? StatusCode(result.StatusCode, result.Data)
+                : StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
         }
     }
 }

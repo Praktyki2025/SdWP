@@ -15,18 +15,18 @@ namespace SdWP.Data.Repositories
             _context = context;
         }
 
-        public async Task<Valuation> AddValuationAsync(CreateValuationResponse request)
+        public async Task<Valuation> AddValuationAsync(CreateValuationResponse response)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var valuation = new Valuation
                 {
-                    Id = request.ValuationId,
-                    Name = request.Name,
-                    Description = request.Description,
-                    CreatorUserId = request.CreatorUserId,
-                    ProjectId = request.ProjectId, 
+                    Id = response.ValuationId,
+                    Name = response.Name,
+                    Description = response.Description,
+                    CreatorUserId = response.CreatorUserId,
+                    ProjectId = response.ProjectId,
                     CreatedAt = DateTime.UtcNow,
                     LastModified = DateTime.UtcNow,
                     ValuationItems = new List<ValuationItem>(),
@@ -38,20 +38,20 @@ namespace SdWP.Data.Repositories
                 var valuationItem = new ValuationItem
                 {
                     Id = Guid.NewGuid(),
-                    Name = request.Name,
+                    Name = response.Name,
                     ValuationId = valuation.Id,
-                    Description = request.Description,
-                    CostTypeId = request.CostTypeId ?? throw new ArgumentNullException(nameof(request.CostTypeId)),
-                    UserGroupTypeId = request.UserGroupTypeId ?? throw new ArgumentNullException(nameof(request.UserGroupTypeId)),
-                    Quantity = request.Quantity ?? 1,
-                    UnitPrice = request.UnitPrice ?? 0,
-                    TotalAmount = request.TotalAmount ?? 0,
-                    RecurrencePeriod = request.RecurrencePeriod ?? 0,
-                    RecurrenceUnit = request.RecurrenceUnit,
+                    Description = response.Description,
+                    CostTypeId = response.CostTypeId ?? throw new ArgumentNullException(nameof(response.CostTypeId)),
+                    UserGroupTypeId = response.UserGroupTypeId ?? throw new ArgumentNullException(nameof(response.UserGroupTypeId)),
+                    Quantity = response.Quantity ?? throw new ArgumentNullException(nameof(response.Quantity)),
+                    UnitPrice = response.UnitPrice ?? throw new ArgumentNullException(nameof(response.UnitPrice)),
+                    TotalAmount = response.TotalAmount ?? throw new ArgumentNullException(nameof(response.TotalAmount)),
+                    RecurrencePeriod = response.RecurrencePeriod ?? throw new ArgumentNullException(nameof(response.RecurrencePeriod)),
+                    RecurrenceUnit = response.RecurrenceUnit,
                     CreatedAt = DateTime.UtcNow,
                     LastModified = DateTime.UtcNow,
-                    CreatorUserId = request.CreatorUserId,
-                    CostCategoryID = request.CostCategoryID ?? throw new ArgumentNullException(nameof(request.CostCategoryID)),
+                    CreatorUserId = response.CreatorUserId,
+                    CostCategoryID = response.CostCategoryID ?? throw new ArgumentNullException(nameof(response.CostCategoryID)),
                 };
 
                 _context.ValuationItems.Add(valuationItem);
@@ -67,9 +67,17 @@ namespace SdWP.Data.Repositories
             }
         }
 
-        public async Task<Valuation> UpdateValuationAsync(Valuation valuation)
+        public async Task<Valuation> UpdateValuationAsync(UpdateValuationResponse response)
         {
-            _context.Valuations.Update(valuation);
+            var valuation = await _context.Valuations.FirstOrDefaultAsync(v => v.Id == response.Id);
+            if (valuation == null) throw new Exception("Valuation not found");
+
+            valuation.Name = response.Name ?? valuation.Name;
+            valuation.Description = response.Description ?? valuation.Description;
+            valuation.LastModified = DateTime.UtcNow;
+            valuation.ProjectId = response.ProjectId;
+            valuation.CreatorUserId = response.CreatorUserId;
+
             await _context.SaveChangesAsync();
             return valuation;
         }
@@ -85,18 +93,13 @@ namespace SdWP.Data.Repositories
         }
 
         public async Task<Valuation?> GetValuationByIdAsync(Guid id)
-        {
-            return await _context.Valuations.FindAsync(id);
-        }
+            => await _context.Valuations.FindAsync(id);
 
         public async Task<List<Valuation>> GetAllValuationsAsync()
-        {
-            return await _context.Valuations.ToListAsync();
-        }
+            => await _context.Valuations.ToListAsync();
 
         public async Task<List<Valuation>> GetValuationsByProjectIdAsync(Guid projectId)
-        {
-            return await _context.Valuations.Where(v => v.ProjectId == projectId).ToListAsync();
-        }
+            => await _context.Valuations.Where(v => v.ProjectId == projectId).ToListAsync();
+        
     }
 }

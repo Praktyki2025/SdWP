@@ -10,11 +10,9 @@ namespace SdWP.Service.IServices
 {
     public interface IValuationItemService
     {
-        Task<ResultService<IEnumerable<ValuationItemResponse>>> GetAllValuationItemsAsync();
-        Task<ResultService<ValuationItemResponse>> GetValuationItemByIdAsync(Guid id);
-        Task<ResultService<IEnumerable<ValuationItemResponse>>> GetValuationItemsByValuationIdAsync(Guid valuationId);
-        Task<ResultService<ValuationItemResponse>> CreateValuationItemAsync(CreateValuationItemRequest request);
-        Task<ResultService<ValuationItemResponse>> UpdateValuationItemAsync(UpdateValuationItemRequest request);
-        Task<ResultService<string>> DeleteValuationItemAsync(Guid id);
+        Task<ResultService<List<ValuationItemResponse>>> GetValuationList();
+        Task<ResultService<DeleteValuationItemResponse>> DeleteValuationItem(Guid id);
+        Task<ResultService<CreateValuationItemResponse>> CreateValuationItem(CreateValuationItemRequest request);
+        Task<ResultService<UpdateValuationItemResponse>> UpdateValuationItem(UpdateValuationItemRequest request);
     }
 }

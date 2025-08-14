@@ -1,5 +1,4 @@
-﻿
-namespace SdWP.DTO.Requests.Datatable
+﻿namespace SdWP.DTO.Requests.Datatable.ProjectTable
 {
     public class DataTableOrder
     {

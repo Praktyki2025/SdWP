@@ -1,45 +1,42 @@
-﻿using Microsoft.AspNetCore.Identity;
-using SdWP.Data.Models;
-using SdWP.DTO.Requests;
+﻿using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
 using Microsoft.AspNetCore.Http;
+using SdWP.Data.IData;
 
 namespace SdWP.Service.Services
 {
     public class LoginServices : ILoginService
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
-        public LoginServices(UserManager<User> userManager, SignInManager<User> signInManager)
+        private readonly IUserRepository _userRepository;
+        public LoginServices(IUserRepository userRepository)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            _userRepository = userRepository;
         }
 
-        public async Task<ResultService<LoginResponseDTO>> HandleLoginAsync(LoginRequestDTO dto)
+        public async Task<ResultService<LoginResponse>> HandleLoginAsync(LoginRequest dto)
         {
             try
             {
-                var user = await _userManager.FindByEmailAsync(dto.Email);
+                var user = await _userRepository.FindByEmailAsync(dto.Email);
                 if (user == null)
                 {
-                    return ResultService<LoginResponseDTO>.BadResult(
+                    return ResultService<LoginResponse>.BadResult(
                         "Invalid email or password",
                         StatusCodes.Status401Unauthorized
                     );
                 }
 
-                var result = await _signInManager.PasswordSignInAsync(user, dto.Password, isPersistent: true, lockoutOnFailure: false);
+                var result = await _userRepository.PasswordSignInAsync(user, dto.Password, isPersistent: true, lockoutOnFailure: false);
 
                 if (result.Succeeded)
                 {
-                    var roles = await _userManager.GetRolesAsync(user);
+                    var roles = await _userRepository.GetRolesAsync(user);
 
-                    return ResultService<LoginResponseDTO>.GoodResult(
+                    return ResultService<LoginResponse>.GoodResult(
                         "Login successful",
                         StatusCodes.Status200OK,
-                        new LoginResponseDTO
+                        new LoginResponse
                         {
                             Success = true,
                             Id = user.Id,
@@ -51,14 +48,14 @@ namespace SdWP.Service.Services
                     );
                 }
 
-                return ResultService<LoginResponseDTO>.BadResult(
+                return ResultService<LoginResponse>.BadResult(
                     "Invalid email or password",
                     StatusCodes.Status401Unauthorized
                 );
             }
             catch (Exception ex)
             {
-                return ResultService<LoginResponseDTO>.BadResult(
+                return ResultService<LoginResponse>.BadResult(
                     $"An error occurred during login: {ex.Message}",
                     StatusCodes.Status500InternalServerError
                 );
@@ -69,7 +66,7 @@ namespace SdWP.Service.Services
         {
             try
             {
-                await _signInManager.SignOutAsync();
+                await _userRepository.SignOutAsync();
 
                 return ResultService<string>.GoodResult(
                     "Logout successful",

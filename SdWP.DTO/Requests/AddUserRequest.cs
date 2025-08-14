@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace SdWP.DTO.Requests
 {
-    public class RegisterRequestDTO
+    public class AddUserRequest
     {
         [Required(ErrorMessage = "Name is requried")]
         [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters")]
@@ -24,5 +19,9 @@ namespace SdWP.DTO.Requests
         [Required(ErrorMessage = "Confirm Password is required")]
         [Compare("Password", ErrorMessage = "Passwords do not match")]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Role is required")]
+        [StringLength(50, ErrorMessage = "Role cannot be longer than 50 characters")]
+        public string Role { get; set; } = string.Empty;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace SdWP.DTO.Requests
 {
-    public class LoginRequestDTO
+    public class LoginRequest
     {
         [Required(ErrorMessage = "Email is required.")]
         [EmailAddress(ErrorMessage = "Invalid email format.")]

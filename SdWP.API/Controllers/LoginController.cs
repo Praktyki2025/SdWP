@@ -20,7 +20,7 @@ namespace SdWP.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login([FromBody] LoginRequestDTO dto)
+        public async Task<IActionResult> Login([FromBody] LoginRequest dto)
         {
             var result = await _userLoginService.HandleLoginAsync(dto);
 

@@ -1,6 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using SdWP.Frontend.Components.Layout
+@using SdWP.Frontend.Enum
+@using SdWP.Frontend.Functions
 
 @attribute [Authorize(Roles = "User")]
 @rendermode InteractiveServer
@@ -16,6 +18,9 @@
 
 @code {
     private string? userName;
+    
+    [Inject]
+    public SendLogToDatabase SendLogToDatabase { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -24,6 +29,26 @@
         if (user.Identity?.IsAuthenticated ?? false)
         {
             userName = user.Identity.Name ?? "user";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                await JSRuntime.InvokeVoidAsync("destroyUserTable");
+                await JSRuntime.InvokeVoidAsync("cleanupAllDataTables");
+            }
+        }
+        catch (Exception e)
+        {
+            await SendLogToDatabase.SendLogAsync(
+                $"Error during Admin dashboard {e.Message} | throw {e.InnerException}",
+                e.StackTrace,
+                e.Source,
+                TypeOfLog.Error);
         }
     }
 }

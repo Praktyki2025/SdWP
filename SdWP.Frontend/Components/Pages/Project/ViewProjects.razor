@@ -3,10 +3,15 @@
 
 @using ProjectInteractions
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using SdWP.Frontend.Enum
+@using SdWP.Frontend.Functions
 
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JS
+
+@attribute [Authorize(Roles = "Admin,User")]
 
 <div class="d-flex justify-content-end mb-12">
     <Button Class="add-project-btn" Color="ButtonColor.Success" @onclick='() => NavigationManager.NavigateTo("/projects/add")'>Add project</Button>
@@ -49,6 +54,9 @@
 @code {
     private ConfirmDialog dialog = default!;
 
+    [Inject]
+    public SendLogToDatabase SendLogToDatabase { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -62,9 +70,22 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        try
         {
-            await JS.InvokeVoidAsync("initializeDataTable");
+            if (firstRender)
+            {
+                await JS.InvokeVoidAsync("destroyUserTable");
+                await JS.InvokeVoidAsync("cleanupAllDataTables");
+                await JS.InvokeVoidAsync("initializeDataTable");
+            }
+        }
+        catch (Exception e)
+        {
+            await SendLogToDatabase.SendLogAsync(
+                $"Error during Projects view {e.Message} | throw {e.InnerException}",
+                e.StackTrace,
+                e.Source,
+                TypeOfLog.Error);
         }
     }
 }

@@ -48,7 +48,7 @@
         catch (Exception e)
         {
             await SendLogToDatabase.SendLogAsync(
-                $"Error during Admin dashboard {e.Message}",
+                $"Error during Admin dashboard {e.Message} | throw {e.InnerException}",
                 e.StackTrace,
                 e.Source,
                 TypeOfLog.Error);
@@ -61,9 +61,14 @@
         {
             await JSRuntime.InvokeVoidAsync("destroyUserTable");
         }
-        catch
+        catch (Exception e)
         {
-
+            await SendLogToDatabase.SendLogAsync(
+                $"Error during Admin dashboard DisposeAsync {e.Message} | throw {e.InnerException}",
+                e.StackTrace,
+                e.Source,
+                TypeOfLog.Error);
         }
+
     }
 }

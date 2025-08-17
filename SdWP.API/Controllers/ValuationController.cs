@@ -15,7 +15,7 @@ namespace SdWP.API.Controllers
             _valuationService = valuationService;
         }
 
-        [HttpGet("list")]
+        [HttpPost("list")]
         public async Task<IActionResult> GetValuationList()
         {
             var result = await _valuationService.GetValuationList();

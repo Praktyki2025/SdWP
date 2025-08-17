@@ -16,13 +16,13 @@
                     return JSON.stringify(d);
                 },
                 dataSrc: function (json) {
-                    return json.data || [];
+                    return json;
                 }
             },
             columns: [
                 { data: 'name' },
                 { data: 'description' },
-                { data: 'createdat' },
+                { data: 'createdAt' },
                 {
                     data: 'id',
                     orderable: false,

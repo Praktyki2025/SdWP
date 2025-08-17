@@ -54,7 +54,7 @@ namespace SdWP.API.Controllers
             });
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var project = await _projectService.GetProjectAsync(id);
@@ -83,6 +83,27 @@ namespace SdWP.API.Controllers
                     success = false,
                     message = project.Message,
                     errors = project.Errors
+                });
+            }
+        }
+
+        [HttpPost("delete/")]
+        public async Task<IActionResult> PostDelete([FromBody] ProjectDeleteRequest dto)
+        {
+            TryValidateModel(dto);
+            var result = await _projectService.DeleteProjectAsync(dto);
+            if (result.Success)
+            {
+                return StatusCode(result.StatusCode, result.Data);
+            }
+            else
+            {
+
+                return StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
                 });
             }
         }

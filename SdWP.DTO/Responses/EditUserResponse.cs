@@ -6,15 +6,16 @@ using System.Threading.Tasks;
 
 namespace SdWP.DTO.Responses
 {
-    public class RegisterResponseDTO
+    public class EditUserResponse
     {
         public Guid Id { get; set; }
         public string Email { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdateAt { get; set; } = DateTime.UtcNow;
         public bool Success { get; set; }
         public string? Message { get; set; }
 
         public List<string> Roles { get; set; } = new();
+        public bool isLocked { get; set; }
     }
 }

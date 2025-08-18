@@ -89,6 +89,12 @@ builder.Services.AddScoped<IUserGroupTypeRepository, UserGroupTypeRepository>();
 builder.Services.AddScoped<IValuationItemRepository, ValuationItemRepository>();
 builder.Services.AddScoped<IValuationItemService, ValuationItemService>();
 
+builder.Services.AddScoped<IValuationItemRepository, ValuationItemRepository>();
+builder.Services.AddScoped<IValuationItemService, ValuationItemService>();
+
+builder.Services.AddScoped<ILinkRepository, LinkRepository>();
+builder.Services.AddScoped<ILinkServices, LinkServices>();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 

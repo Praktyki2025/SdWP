@@ -52,7 +52,7 @@ namespace SdWP.Service.Services.Mailing
             }
             catch (Exception e)
             {
-                message = $"Error sending test email: {e.Message}";
+                message = $"Error sending test email: {e.Message} || throw {e.InnerException}";
                 Log.Error(message);
 
                 var errorLogDTO = new ErrorLogResponse
@@ -165,7 +165,7 @@ namespace SdWP.Service.Services.Mailing
             }
             catch (Exception e)
             {
-                message = $"Error sending remind password email: {e.Message}";
+                message = $"Error sending remind password email: {e.Message} || throw {e.InnerException}";
                 Log.Error(message);
 
                 var errorLogDTO = new ErrorLogResponse

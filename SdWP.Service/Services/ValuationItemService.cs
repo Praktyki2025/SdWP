@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using SdWP.Data.IData;
 using SdWP.DTO.Requests.Valuation;
+using SdWP.DTO.Responses;
 using SdWP.DTO.Responses.Valuation;
+using SdWP.Service.Enums;
 using SdWP.Service.IServices;
+using Serilog;
 
 namespace SdWP.Service.Services
 {
@@ -12,19 +15,23 @@ namespace SdWP.Service.Services
         private readonly ICostTypeRepository _costTypeRepository;
         private readonly ICostCategoryRepsoitory _costCategoryRepsoitory;
         private readonly IUserGroupTypeRepository _userGroupTypeRepository;
+        private readonly IErrorLogHelper _errorLogServices;
+
+        private string message = string.Empty;
 
         public ValuationItemService(
             IValuationItemRepository valuationItemRepository,
             ICostTypeRepository costTypeRepository,
             ICostCategoryRepsoitory costCategoryRepsoitory,
-            IUserGroupTypeRepository userGroupTypeRepository
+            IUserGroupTypeRepository userGroupTypeRepository,
+            IErrorLogHelper errorLogServices
             )
         {
             _valuationItemRepository = valuationItemRepository;
             _costTypeRepository = costTypeRepository;
             _costCategoryRepsoitory = costCategoryRepsoitory;
             _userGroupTypeRepository = userGroupTypeRepository;
-
+            _errorLogServices = errorLogServices;
         }
 
         public async Task<ResultService<List<ValuationItemResponse>>> GetValuationList()
@@ -35,9 +42,24 @@ namespace SdWP.Service.Services
 
                 if (valuationItems == null)
                 {
-                    return ResultService<List<ValuationItemResponse>>.BadResult(
-                        "Valuation item not found.",
-                        StatusCodes.Status404NotFound);
+                    message = "Valuation item not found";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "ValuationItemService/GetValuationList",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<List<ValuationItemResponse>>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                            ));
                 }
 
                 var response = valuationItems.Select(vi => new ValuationItemResponse
@@ -55,11 +77,26 @@ namespace SdWP.Service.Services
                     StatusCodes.Status200OK,
                     response);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return ResultService<List<ValuationItemResponse>>.BadResult(
-                    $"An error occurred: {ex.Message} | throw {ex.InnerException}",
-                    StatusCodes.Status500InternalServerError);
+                message = $"Error during show valuation item list: {e.Message} || throw {e.InnerException}";
+                Log.Error(message);
+
+                var errorLogDTO = new ErrorLogResponse
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = e.Source,
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLog.Error
+                };
+
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<List<ValuationItemResponse>>.BadResult(
+                        message,
+                        StatusCodes.Status500InternalServerError
+                ));
             }
         }
 
@@ -71,9 +108,24 @@ namespace SdWP.Service.Services
 
                 if (valuationItem == null)
                 {
-                    return ResultService<DeleteValuationItemResponse>.BadResult(
-                        "Valuation item not found.",
-                        StatusCodes.Status404NotFound);
+                    message = "Valuation item not found";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "ValuationItemService/DeleteValuationItem",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<DeleteValuationItemResponse>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                            ));
                 }
 
                 await _valuationItemRepository.DeleteValuationItemAsync(id);
@@ -83,40 +135,103 @@ namespace SdWP.Service.Services
                     StatusCodes.Status200OK,
                     new DeleteValuationItemResponse { Id = id });
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return ResultService<DeleteValuationItemResponse>.BadResult(
-                    $"An error occurred: {ex.Message} | throw {ex.InnerException}",
-                    StatusCodes.Status500InternalServerError);
+                message = $"Error delete vauation item: {e.Message} || throw {e.InnerException}";
+                Log.Error(message);
+
+                var errorLogDTO = new ErrorLogResponse
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = e.Source,
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLog.Error
+                };
+
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<DeleteValuationItemResponse>.BadResult(
+                        message,
+                        StatusCodes.Status500InternalServerError
+                ));
             }
         }
 
         public async Task<ResultService<CreateValuationItemResponse>> CreateValuationItem(CreateValuationItemRequest request)
         {
-            try 
+            try
             {
                 var costTypeId = await _costTypeRepository.GetGuidByName(request.CostTypeName);
                 if (costTypeId == Guid.Empty)
                 {
-                    return ResultService<CreateValuationItemResponse>.BadResult( 
-                        "Cost type not found.",
-                        StatusCodes.Status404NotFound);
+                    message = "Cost type not found";
+
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "ValuationItemService/CreateValuationItem",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<CreateValuationItemResponse>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                            ));
                 }
 
                 var coastCategoryId = await _costCategoryRepsoitory.GetGuidByName(request.CostCategoryName);
                 if (coastCategoryId == Guid.Empty)
                 {
-                    return ResultService<CreateValuationItemResponse>.BadResult(
-                        "Cost category not found.",
-                        StatusCodes.Status404NotFound);
+                    message = "Cost category not found";
+
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "ValuationItemService/CreateValuationItem",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<CreateValuationItemResponse>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                            ));
                 }
 
                 var userGroupTypeId = await _userGroupTypeRepository.GetGuidByName(request.UserGroupTypeName);
                 if (userGroupTypeId == Guid.Empty)
                 {
-                    return ResultService<CreateValuationItemResponse>.BadResult(
-                        "User group type not found.",
-                        StatusCodes.Status404NotFound);
+                    message = "User group type not found";
+
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "ValuationItemService/CreateValuationItem",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<CreateValuationItemResponse>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                            ));
                 }
 
                 var valuationItem = new CreateValuationItemResponse
@@ -138,9 +253,25 @@ namespace SdWP.Service.Services
                 var result = await _valuationItemRepository.AddValuationItemAsync(valuationItem);
                 if (result == null)
                 {
-                    return ResultService<CreateValuationItemResponse>.BadResult(
-                        "Failed to create valuation item.",
-                        StatusCodes.Status500InternalServerError);
+                    message = "Error drugin add valuation item";
+
+                    Log.Error(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "ValuationItemService/CreateValuationItem",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Error
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<CreateValuationItemResponse>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                            ));
                 }
 
                 return ResultService<CreateValuationItemResponse>.GoodResult(
@@ -148,11 +279,27 @@ namespace SdWP.Service.Services
                     StatusCodes.Status201Created,
                     valuationItem);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return ResultService<CreateValuationItemResponse>.BadResult(
-                    $"An error occurred: {ex.Message} | throw {ex.InnerException}",
-                    StatusCodes.Status500InternalServerError);
+                message = $"Error: {e.Message} || throw {e.InnerException}";
+
+                Log.Warning(message);
+
+                var errorLogDTO = new ErrorLogResponse
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = e.Source,
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLog.Error
+                };
+
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<CreateValuationItemResponse>.BadResult(
+                        message,
+                        StatusCodes.Status500InternalServerError
+                        ));
             }
         }
 
@@ -164,9 +311,25 @@ namespace SdWP.Service.Services
 
                 if (valuationItem == null)
                 {
-                    return ResultService<UpdateValuationItemResponse>.BadResult(
-                        "Valuation item not found.",
-                        StatusCodes.Status404NotFound);
+                    message = "Valuation item not found";
+
+                    Log.Error(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "ValuationItemService/UpdateValuationItem",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Error
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<UpdateValuationItemResponse>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                            ));
                 }
 
                 Guid? costTypeId = null;
@@ -178,9 +341,25 @@ namespace SdWP.Service.Services
                     costTypeId = await _costTypeRepository.GetGuidByName(request.CostTypeName);
                     if (costTypeId == Guid.Empty)
                     {
-                        return ResultService<UpdateValuationItemResponse>.BadResult(
-                            "Cost type not found.",
-                            StatusCodes.Status404NotFound);
+                        message = "Cost type not found";
+
+                        Log.Error(message);
+
+                        var errorLogDTO = new ErrorLogResponse
+                        {
+                            Id = Guid.NewGuid(),
+                            Message = message,
+                            StackTrace = "Backend",
+                            Source = "ValuationItemService/UpdateValuationItem",
+                            TimeStamp = DateTime.UtcNow,
+                            TypeOfLog = TypeOfLog.Error
+                        };
+
+                        return await _errorLogServices.LoggEvent(errorLogDTO)
+                            .ContinueWith(_ => ResultService<UpdateValuationItemResponse>.BadResult(
+                                message,
+                                StatusCodes.Status400BadRequest
+                                ));
                     }
                 }
 
@@ -189,9 +368,25 @@ namespace SdWP.Service.Services
                     coastCategoryId = await _costCategoryRepsoitory.GetGuidByName(request.CostCategoryName);
                     if (coastCategoryId == Guid.Empty)
                     {
-                        return ResultService<UpdateValuationItemResponse>.BadResult(
-                            "Cost category not found.",
-                            StatusCodes.Status404NotFound);
+                        message = "Coast category not found";
+
+                        Log.Error(message);
+
+                        var errorLogDTO = new ErrorLogResponse
+                        {
+                            Id = Guid.NewGuid(),
+                            Message = message,
+                            StackTrace = "Backend",
+                            Source = "ValuationItemService/UpdateValuationItem",
+                            TimeStamp = DateTime.UtcNow,
+                            TypeOfLog = TypeOfLog.Warning
+                        };
+
+                        return await _errorLogServices.LoggEvent(errorLogDTO)
+                            .ContinueWith(_ => ResultService<UpdateValuationItemResponse>.BadResult(
+                                message,
+                                StatusCodes.Status400BadRequest
+                                ));
                     }
                 }
 
@@ -200,9 +395,25 @@ namespace SdWP.Service.Services
                     userGroupTypeId = await _userGroupTypeRepository.GetGuidByName(request.UserGroupTypeName);
                     if (userGroupTypeId == Guid.Empty)
                     {
-                        return ResultService<UpdateValuationItemResponse>.BadResult(
-                            "User group type not found.",
-                            StatusCodes.Status404NotFound);
+                        message = "User group not found";
+
+                        Log.Warning(message);
+
+                        var errorLogDTO = new ErrorLogResponse
+                        {
+                            Id = Guid.NewGuid(),
+                            Message = message,
+                            StackTrace = "Backend",
+                            Source = "ValuationItemService/UpdateValuationItem",
+                            TimeStamp = DateTime.UtcNow,
+                            TypeOfLog = TypeOfLog.Warning
+                        };
+
+                        return await _errorLogServices.LoggEvent(errorLogDTO)
+                            .ContinueWith(_ => ResultService<UpdateValuationItemResponse>.BadResult(
+                                message,
+                                StatusCodes.Status400BadRequest
+                                ));
                     }
                 }
 
@@ -225,22 +436,54 @@ namespace SdWP.Service.Services
 
                 if (response == null)
                 {
-                    return ResultService<UpdateValuationItemResponse>.BadResult(
-                        "Failed to update valuation item.",
-                        StatusCodes.Status500InternalServerError);
+                    message = "Can't update valuation item";
+
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "ValuationItemService/UpdateValuationItem",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Error
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<UpdateValuationItemResponse>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                            ));
                 }
 
                 return ResultService<UpdateValuationItemResponse>.GoodResult(
                     "Valuation item updated successfully.",
                     StatusCodes.Status200OK,
                     update);
-                    
+
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return ResultService<UpdateValuationItemResponse>.BadResult(
-                    $"An error occurred: {ex.Message} | throw {ex.InnerException}",
-                    StatusCodes.Status500InternalServerError);
+                message = $"Error: {e.Message} || throw: {e.InnerException}";
+
+                Log.Error(message);
+
+                var errorLogDTO = new ErrorLogResponse
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = e.Source,
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLog.Error
+                };
+
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<UpdateValuationItemResponse>.BadResult(
+                        message,
+                        StatusCodes.Status400BadRequest
+                        ));
             }
         }
     }

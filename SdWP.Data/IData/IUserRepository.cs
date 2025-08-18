@@ -13,7 +13,7 @@ namespace SdWP.Data.IData
         Task<IdentityResult> CreateAsync(User user, string password);
         Task<bool> RoleExistsAsync(string role);
         Task<IdentityResult> AddToRoleAsync(User user, string role);
-        Task<IList<string>> GetRolesAsync (User user);
+        Task<IList<string>> GetRolesAsync(User user);
         Task<IdentityResult> DeleteAsync(User user);
         Task<IdentityResult> UpdateAsync(User user);
         Task<User?> FindByNameAsync(string name);
@@ -22,5 +22,7 @@ namespace SdWP.Data.IData
         Task SignOutAsync();
         Task<IdentityResult> SetLockoutEnabledAsync(User user, bool enabled);
         Task<IdentityResult> SetLockoutEndDateAsync(User user, DateTimeOffset? lockoutEnd);
+        Task<string> GeneratePasswordResetTokenAsync(User user);
+        Task<IdentityResult> ResetPasswordAsync(User user, string token, string password);
     }
 }

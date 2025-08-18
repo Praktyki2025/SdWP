@@ -1,15 +1,9 @@
-﻿using Azure.Core;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using SdWP.Data.Context;
+﻿using Microsoft.AspNetCore.Http;
 using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
-using System.Linq.Expressions;
 using System.Security.Claims;
-using Microsoft.Identity.Client;
-using Microsoft.IdentityModel.Tokens;
 using SdWP.Data.IData;
 using SdWP.DTO.Requests.Datatable;
 

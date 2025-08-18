@@ -1,14 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SdWP.Data.Context;
 using SdWP.Data.IData;
 using SdWP.Data.Models;
 using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
 using System.Linq.Dynamic.Core;
-using System.Runtime.CompilerServices;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+
 
 namespace SdWP.Data.Repositories
 {
@@ -116,85 +114,6 @@ namespace SdWP.Data.Repositories
             return userList;
         }
 
-        //public async Task<List<UserListResponse>> GetUsersAsync(DataTableRequest request)
-        //{
-        //    IQueryable<User> users = _context.Users.AsQueryable();
-
-        //    if (!string.IsNullOrEmpty(request.search.value))
-        //    {
-        //        var searchValue = request.search.value.ToLower();
-        //        users = users.Where(u => u.UserName.ToLower().Contains(searchValue) ||
-        //                                 u.Email.ToLower().Contains(searchValue));
-        //    }
-
-        //    if (request.order != null && request.order.Count > 0)
-        //    {
-        //        var orderColumn = request.order[0];
-        //        bool ascending = orderColumn.dir == "asc";
-        //        string? sortColumn = null;
-        //        if (request.columns != null && request.columns.Count > orderColumn.column)
-        //            sortColumn = request.columns[orderColumn.column].data;
-        //        if (!string.IsNullOrEmpty(sortColumn))
-        //            users = ApplyOrdering(users, sortColumn, ascending);
-        //    }
-        //    else
-        //    {
-        //        users = users.OrderBy(u => u.UserName);
-        //    }
-
-        //    users = users
-        //        .Skip(request.start)
-        //        .Take(request.length);
-
-        //    var userList = await users.AsNoTracking()
-        //        .Select(u => new UserListResponse
-        //        {
-        //            Id = u.Id,
-        //            Email = u.Email,
-        //            Name = u.UserName,
-        //            CreatedAt = u.CreatedAt,
-        //            isLocked = u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow,
-        //            Roles = _context.UserRoles
-        //                .Where(ur => ur.UserId == u.Id)
-        //                .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
-        //                .Where(role => role != null)
-        //                .Select(role => role!.Name)
-        //                .ToList(),
-        //            Success = true
-        //        })
-        //        .ToListAsync();
-
-        //    return userList;
-
-        //}
-
-
-        //private IQueryable<User> ApplyOrdering(IQueryable<User> query, string sortColumn, bool ascending)
-        //{
-        //    return sortColumn.ToLower() switch
-        //    {
-        //        "name" => ascending ? query.OrderBy(u => u.UserName) : query.OrderByDescending(u => u.UserName),
-        //        "email" => ascending ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email),
-        //        "createdat" => ascending ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
-        //        "role" or "roles" => ascending
-        //            ? query.OrderBy(u => _context.UserRoles
-        //                .Where(ur => ur.UserId == u.Id)
-        //                .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId).Name)
-        //                .OrderBy(rn => rn)
-        //                .FirstOrDefault() ?? string.Empty)
-        //            : query.OrderByDescending(u => _context.UserRoles
-        //                .Where(ur => ur.UserId == u.Id)
-        //                .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId).Name)
-        //                .OrderBy(rn => rn)
-        //                .FirstOrDefault() ?? string.Empty),
-        //        "islocked" => ascending
-        //            ? query.OrderBy(u => u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow)
-        //            : query.OrderByDescending(u => u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow),
-        //        _ => query.OrderBy($"{sortColumn} {(ascending ? "ascending" : "descending")}")
-        //    };
-        //}
-
-
         public async Task<User?> FindByEmailAsync(string email)
             => await _userManager.FindByEmailAsync(email);
 
@@ -246,5 +165,10 @@ namespace SdWP.Data.Repositories
 
         public async Task<IdentityResult> SetLockoutEndDateAsync(User user, DateTimeOffset? lockoutEnd)
             => await _userManager.SetLockoutEndDateAsync(user, lockoutEnd);
+
+        public async Task<string> GeneratePasswordResetTokenAsync(User user)
+            => await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        
     }
 }

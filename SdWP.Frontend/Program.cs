@@ -1,4 +1,3 @@
-using BlazorBootstrap;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Identity;
@@ -8,15 +7,25 @@ using SdWP.Data.IData;
 using SdWP.Data.Models;
 using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
+using SdWP.Frontend.Functions;
+using SdWP.Service.Helpers;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
-using SdWP.Data.IData;
-using SdWP.Data.Repositories;
+using SdWP.Service.Services.Mailing;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog();
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
 builder.Services.AddBlazorBootstrap();
 
 builder.Services.AddControllers();
@@ -25,7 +34,7 @@ builder.Services.AddHttpClient("ApiClient", client =>
     client.BaseAddress = new Uri("http://localhost:5267/");
 });
 
-builder.Services.AddBlazorBootstrap();
+builder.Services.AddAuthorizationCore();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -56,41 +65,25 @@ builder.Services.ConfigureApplicationCookie(options =>
         ? CookieSecurePolicy.None
         : CookieSecurePolicy.Always;
     options.SlidingExpiration = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
 });
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ILoginService, LoginServices>();
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<ErrorLogRepository>();
+builder.Services.AddScoped<IErrorLogHelper, ErrorLogHelper>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<SendLogToDatabase>();
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<HttpClient>(sp =>
-{
-    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
-    var httpClient = httpClientFactory.CreateClient();
-
-    var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-    var httpContext = httpContextAccessor.HttpContext;
-
-    if (httpContext != null)
-    {
-        var request = httpContext.Request;
-        httpClient.BaseAddress = new Uri($"{request.Scheme}://{request.Host}/");
-    }
-    else
-    {
-        httpClient.BaseAddress = new Uri("https://localhost:7019/");
-    }
-
-    return httpClient;
-});
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddHttpContextAccessor();
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<EmailService>();
 
 var app = builder.Build();
 
@@ -114,7 +107,21 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Wyst?pi? b??d podczas inicjalizacji bazy danych");
+        logger.LogError(ex, "An error occurred during database initialization.");
+    }
+}
+
+// testowy mail, zostawam aby wiedzieæ ¿e dzia³a
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
+        await emailService.SendTestEmailAsync("user@example.pl");
+    }
+    catch (Exception e)
+    {
+        Log.Error(e.Message);
     }
 }
 

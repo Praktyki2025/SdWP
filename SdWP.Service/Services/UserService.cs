@@ -1,14 +1,14 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using SdWP.Data.Models;
-using SdWP.Data.Repositories;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
-using SdWP.DTO.Responses.DataTable;
+using SdWP.Service.Enums;
 using SdWP.Service.IServices;
+using Serilog;
+using SdWP.DTO.Responses.DataTable;
+using SdWP.DTO.Requests.Mailing;
 using SdWP.Data.IData;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace SdWP.Service.Services
 {
@@ -17,12 +17,14 @@ namespace SdWP.Service.Services
         // In this services class, we handle user registration, delete, and edit user data.
 
         private readonly IUserRepository _userRepository;
+        private readonly IErrorLogHelper _errorLogServices;
 
-        private readonly List<string> _roles = new();
+        private string message = string.Empty;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, IErrorLogHelper errorLogServices)
         {
             _userRepository = userRepository;
+            _errorLogServices = errorLogServices;
         }
 
         public async Task<ResultService<AddUserResponse>> RegisterAsync(AddUserRequest dto)
@@ -32,26 +34,71 @@ namespace SdWP.Service.Services
                 var exist = await _userRepository.FindByEmailAsync(dto.Email);
                 if (exist != null)
                 {
-                    return ResultService<AddUserResponse>.BadResult(
-                        "User with this email already exists",
-                        StatusCodes.Status400BadRequest
-                    );
+
+                    message = $"User registration attempt with existing email: {dto.Email}";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "UserServices.RegisterAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<AddUserResponse>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                    ));
                 }
 
                 if (string.IsNullOrEmpty(dto.Role))
                 {
-                    return ResultService<AddUserResponse>.BadResult(
-                        "Invalid role specified",
-                        StatusCodes.Status400BadRequest
-                    );
+                    message = $"User registration attempt with unknown role {dto.Role}";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "UserServices.RegisterAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Error
+                    };
+
+
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<AddUserResponse>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                    ));
                 }
 
                 if (!await _userRepository.RoleExistsAsync(dto.Role))
                 {
-                    return ResultService<AddUserResponse>.BadResult(
-                        "Role does not exist",
-                        StatusCodes.Status400BadRequest
-                    );
+                    message = $"User registration attempt with unknown role {dto.Role}";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "UserServices.RegisterAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Error
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<AddUserResponse>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                    ));
                 }
 
                 var user = new User
@@ -72,34 +119,98 @@ namespace SdWP.Service.Services
                 if (!result.Succeeded)
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
-                    return ResultService<AddUserResponse>.BadResult(
-                        "User creation failed",
+
+                    message = $"User creation failed for email: {dto.Email}, Errors: {errors}";
+                    Log.Error(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "LoginServices.RegisterAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Error
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<AddUserResponse>.BadResult(
+                        message,
                         StatusCodes.Status400BadRequest,
                         errors
-                    );
+                    ));
                 }
 
                 var createdUser = await _userRepository.FindByEmailAsync(dto.Email);
                 if (createdUser == null)
                 {
-                    return ResultService<AddUserResponse>.BadResult(
-                        "User was created but could not be loaded for role assignment",
-                        StatusCodes.Status400BadRequest
-                    );
+                    message = $"User created but could not be loaded for role assignment: {dto.Email}";
+                    Log.Error(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "LoginServices.RegisterAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Error
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<AddUserResponse>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                    ));
                 }
 
                 var roleResult = await _userRepository.AddToRoleAsync(createdUser, dto.Role);
                 if (!roleResult.Succeeded)
                 {
                     var errors = roleResult.Errors.Select(e => e.Description).ToList();
-                    return ResultService<AddUserResponse>.BadResult(
-                        "User was created but failed to assign role to user",
+                    message = $"User creation failed for email: {dto.Email}, Errors: {errors}";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "LoginServices.RegisterAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Error
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<AddUserResponse>.BadResult(
+                        message,
                         StatusCodes.Status400BadRequest,
                         errors
-                    );
+                    ));
                 }
 
                 var roles = await _userRepository.GetRolesAsync(createdUser);
+                if (roles == null || !roles.Any())
+                {
+                    message = $"User created but no roles assigned for email: {dto.Email}";
+                    Log.Error(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "LoginServices.RegisterAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Error
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<AddUserResponse>.BadResult(
+                        message,
+                        StatusCodes.Status400BadRequest
+                    ));
+                }
 
                 var responseDto = new AddUserResponse
                 {
@@ -120,10 +231,24 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
-                return ResultService<AddUserResponse>.BadResult(
-                    $"An error occurred during registration: {e.Message}",
-                    StatusCodes.Status500InternalServerError
-                );
+                message = $"Error during user registration: {e.Message}";
+                Log.Error(message);
+
+                var errorLogDTO = new ErrorLogResponse
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = e.Source,
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLog.Error
+                };
+
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<AddUserResponse>.BadResult(
+                        message,
+                        StatusCodes.Status500InternalServerError
+                ));
             }
         }
 
@@ -135,10 +260,24 @@ namespace SdWP.Service.Services
 
                 if (users == null || users.Count == 0)
                 {
-                    return ResultService<DataTableResponse<UserListResponse>>.BadResult(
-                        "No users found",
-                        StatusCodes.Status404NotFound
-                    );
+                    message = "No users found";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Unknow",
+                        Source = "UserServices/GetUserListAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO).
+                        ContinueWith(_ => ResultService<DataTableResponse<UserListResponse>>.BadResult(
+                            message,
+                            StatusCodes.Status404NotFound
+                    ));
                 }
 
 
@@ -158,11 +297,25 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
-                return ResultService<DataTableResponse<UserListResponse>>.BadResult(
-                    $"An error occurred while retrieving users: {e.Message}",
-                    StatusCodes.Status500InternalServerError,
-                    new List<string> { e.Message }
-                );
+                message = $"An error occurred while retrieving users: {e.Message}";
+                Log.Error(message);
+
+                var errorLogDTO = new ErrorLogResponse
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = e.Source,
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLog.Error
+                };
+
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<DataTableResponse<UserListResponse>>.BadResult(
+                        message,
+                        StatusCodes.Status500InternalServerError,
+                        new List<string> { e.Message }
+                ));
             }
         }
 
@@ -173,20 +326,50 @@ namespace SdWP.Service.Services
                 var user = await _userRepository.FindByIdAsync(dto.Id.ToString());
                 if (user == null)
                 {
-                    return ResultService<UserListResponse>.BadResult(
-                        "User not found",
+                    message = $"User deletion attempt for non-existing user ID: {dto.Id}";
+
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "backend",
+                        Source = "LoginServices.DeleteUserAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<UserListResponse>.BadResult(
+                        message,
                         StatusCodes.Status404NotFound
-                    );
+                    ));
                 }
 
                 var roles = await _userRepository.GetRolesAsync(user); ;
 
                 if (roles != null && roles.Contains("Admin"))
                 {
-                    return ResultService<UserListResponse>.BadResult(
-                        "Cannot delete an admin user",
+                    message = $"Attempt to delete admin user: {user.Email}";
+
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "backend",
+                        Source = "LoginServices.DeleteUserAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<UserListResponse>.BadResult(
+                        message,
                         StatusCodes.Status403Forbidden
-                    );
+                    ));
                 }
 
                 var responseDto = new UserListResponse
@@ -212,20 +395,49 @@ namespace SdWP.Service.Services
                 else
                 {
                     var errors = result.Errors.Select(e => e.Description).ToList();
-                    return ResultService<UserListResponse>.BadResult(
-                        "User deletion failed",
+                    message = $"User deletion failed for user ID: {dto.Id}, Errors: {errors}";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "backend",
+                        Source = "LoginServices.DeleteUserAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<UserListResponse>.BadResult(
+                        message,
                         StatusCodes.Status400BadRequest,
                         errors
-                    );
+                    ));
                 }
             }
             catch (Exception e)
             {
-                return ResultService<UserListResponse>.BadResult(
-                    $"An error occurred while deleting the user: {e.Message}",
+                message = $"Error during user deletion: {e.Message}";
+
+                Log.Error(message);
+
+                var errorLogDTO = new ErrorLogResponse
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = "LoginServices.DeleteUserAsync",
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLog.Warning
+                };
+
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<UserListResponse>.BadResult(
+                    message,
                     StatusCodes.Status500InternalServerError,
                     new List<string> { e.Message }
-                );
+                ));
             }
         }
 
@@ -236,10 +448,24 @@ namespace SdWP.Service.Services
                 var exist = await _userRepository.FindByIdAsync(dto.Id.ToString());
                 if (exist == null)
                 {
-                    return ResultService<EditUserRequest>.BadResult(
-                        "User not found",
-                        StatusCodes.Status400BadRequest
-                    );
+                    message = $"User edit attempt for non-existing user ID: {dto.Id}";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Unknow",
+                        Source = "UserServices/EditUserAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<EditUserRequest>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                    ));
                 }
 
                 if (!string.IsNullOrEmpty(dto.Email) && dto.Email != exist.Email)
@@ -247,10 +473,24 @@ namespace SdWP.Service.Services
                     var userWithEmail = await _userRepository.FindByEmailAsync(dto.Email);
                     if (userWithEmail != null && userWithEmail.Id != exist.Id)
                     {
-                        return ResultService<EditUserRequest>.BadResult(
-                            "User with this email already exists",
-                            StatusCodes.Status400BadRequest
-                        );
+                        message = $"User edit attempt with existing email: {dto.Email}";
+                        Log.Warning(message);
+
+                        var errorLogDTO = new ErrorLogResponse
+                        {
+                            Id = Guid.NewGuid(),
+                            Message = message,
+                            StackTrace = "Unknow",
+                            Source = "UserServices/EditUserAsync",
+                            TimeStamp = DateTime.UtcNow,
+                            TypeOfLog = TypeOfLog.Warning
+                        };
+
+                        return await _errorLogServices.LoggEvent(errorLogDTO)
+                            .ContinueWith(_ => ResultService<EditUserRequest>.BadResult(
+                                message,
+                                StatusCodes.Status400BadRequest
+                        ));
                     }
                 }
 
@@ -259,19 +499,47 @@ namespace SdWP.Service.Services
                     var userWithName = await _userRepository.FindByNameAsync(dto.Name);
                     if (userWithName != null && userWithName.Id != exist.Id)
                     {
-                        return ResultService<EditUserRequest>.BadResult(
-                            "User with this name already exists",
-                            StatusCodes.Status400BadRequest
-                        );
+                        message = $"User edit attempt with existing name: {dto.Name}";
+                        Log.Warning(message);
+
+                        var errorLogDTO = new ErrorLogResponse
+                        {
+                            Id = Guid.NewGuid(),
+                            Message = message,
+                            StackTrace = "Unknow",
+                            Source = "UserServices/EditUserAsync",
+                            TimeStamp = DateTime.UtcNow,
+                            TypeOfLog = TypeOfLog.Warning
+                        };
+
+                        return await _errorLogServices.LoggEvent(errorLogDTO)
+                            .ContinueWith(_ => ResultService<EditUserRequest>.BadResult(
+                                message,
+                                StatusCodes.Status400BadRequest
+                            ));
                     }
                 }
 
                 if (!string.IsNullOrEmpty(dto.Role) && !await _userRepository.RoleExistsAsync(dto.Role))
                 {
-                    return ResultService<EditUserRequest>.BadResult(
-                        "Role does not exist",
-                        StatusCodes.Status400BadRequest
-                    );
+                    message = $"Role not exist: {dto.Role}";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Unknow",
+                        Source = "UserServices/EditUserAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<EditUserRequest>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                        ));
                 }
 
                 if (dto.IsLocked.HasValue)
@@ -331,16 +599,57 @@ namespace SdWP.Service.Services
 
                 exist.LastUpdate = DateTime.UtcNow;
 
-                var updateResult = await _userRepository.UpdateAsync(exist);
+                if (!string.IsNullOrEmpty(dto.Password) && !string.IsNullOrWhiteSpace(dto.Password))
+                {
+                    var token = await _userRepository.GeneratePasswordResetTokenAsync(exist);
+                    var editPassword = await _userRepository.ResetPasswordAsync(exist, token, dto.Password);
 
+                    if (!editPassword.Succeeded)
+                    {
+                        var errors = editPassword.Errors.Select(e => e.Description).ToList();
+                        message = $"Failed to update password: {errors}";
+                        Log.Error(message);
+
+                        var errorLogDTO = new ErrorLogResponse
+                        {
+                            Id = Guid.NewGuid(),
+                            Message = message,
+                            StackTrace = "Unknow",
+                            Source = "UserServices/EditUserAsync",
+                            TimeStamp = DateTime.UtcNow,
+                            TypeOfLog = TypeOfLog.Error
+                        };
+
+                        return await _errorLogServices.LoggEvent(errorLogDTO)
+                            .ContinueWith(_ => ResultService<EditUserRequest>.BadResult(
+                                message,
+                                StatusCodes.Status400BadRequest
+                            ));
+                    }
+                }
+
+                var updateResult = await _userRepository.UpdateAsync(exist);
                 if (!updateResult.Succeeded)
                 {
                     var errors = updateResult.Errors.Select(e => e.Description).ToList();
-                    return ResultService<EditUserRequest>.BadResult(
-                        "Failed to update user",
-                        StatusCodes.Status400BadRequest,
-                        errors
-                    );
+                    message = $"Failed to update user: {errors}";
+                    Log.Error(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Unknow",
+                        Source = "UserServices/EditUserAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Error
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<EditUserRequest>.BadResult(
+                            message,
+                            StatusCodes.Status400BadRequest
+                        ));
                 }
 
                 if (!string.IsNullOrEmpty(dto.Role))
@@ -352,11 +661,24 @@ namespace SdWP.Service.Services
                         if (!removeRole.Succeeded)
                         {
                             var errors = removeRole.Errors.Select(e => e.Description).ToList();
-                            return ResultService<EditUserRequest>.BadResult(
-                                "Failed to remove existing roles",
-                                StatusCodes.Status400BadRequest,
-                                errors
-                            );
+                            message = $"Failed to removing existing roles: {errors}";
+                            Log.Error(message);
+
+                            var errorLogDTO = new ErrorLogResponse
+                            {
+                                Id = Guid.NewGuid(),
+                                Message = message,
+                                StackTrace = "Unknow",
+                                Source = "UserServices/EditUserAsync",
+                                TimeStamp = DateTime.UtcNow,
+                                TypeOfLog = TypeOfLog.Error
+                            };
+
+                            return await _errorLogServices.LoggEvent(errorLogDTO)
+                                .ContinueWith(_ => ResultService<EditUserRequest>.BadResult(
+                                    message,
+                                    StatusCodes.Status400BadRequest
+                                ));
                         }
                     }
 
@@ -364,11 +686,24 @@ namespace SdWP.Service.Services
                     if (!updateRole.Succeeded)
                     {
                         var errors = updateRole.Errors.Select(e => e.Description).ToList();
-                        return ResultService<EditUserRequest>.BadResult(
-                            "Failed to assign new role",
-                            StatusCodes.Status400BadRequest,
-                            errors
-                        );
+                        message = $"Failed to asign new role: {errors}";
+                        Log.Error(message);
+
+                        var errorLogDTO = new ErrorLogResponse
+                        {
+                            Id = Guid.NewGuid(),
+                            Message = message,
+                            StackTrace = "Unknow",
+                            Source = "UserServices/EditUserAsync",
+                            TimeStamp = DateTime.UtcNow,
+                            TypeOfLog = TypeOfLog.Error
+                        };
+
+                        return await _errorLogServices.LoggEvent(errorLogDTO)
+                            .ContinueWith(_ => ResultService<EditUserRequest>.BadResult(
+                                message,
+                                StatusCodes.Status400BadRequest
+                            ));
                     }
                 }
 
@@ -382,7 +717,7 @@ namespace SdWP.Service.Services
                     Name = exist.Name,
                     Role = currentRoles.ToString(),
                     LastUpdate = exist.LastUpdate,
-                    IsLocked = exist.LockoutEnd.HasValue && exist.LockoutEnd.Value > DateTimeOffset.UtcNow, 
+                    IsLocked = exist.LockoutEnd.HasValue && exist.LockoutEnd.Value > DateTimeOffset.UtcNow,
 
                 };
 
@@ -394,12 +729,108 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
-                return ResultService<EditUserRequest>.BadResult(
-                    $"An error occurred while editing the user: {e.Message}",
-                    StatusCodes.Status500InternalServerError,
-                    new List<string> { e.Message }
-                );
+                message = $"An error occurred while editing the user: {e.Message}";
+                Log.Error(message);
+
+                var errorLogDTO = new ErrorLogResponse
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = e.Source,
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLog.Error
+                };
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<EditUserRequest>.BadResult(
+                        message,
+                        StatusCodes.Status500InternalServerError,
+                        new List<string> { e.Message }
+                ));
             }
         }
+
+        public async Task<ResultService<string>> ResetPasswordAsync(ResetPasswordRequest dto)
+        {
+            try
+            {
+                var user = await _userRepository.FindByEmailAsync(dto.Email);
+
+                if (user == null)
+                {
+                    message = "No users found";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Unknow",
+                        Source = "UserServices/ResetPasswordAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO).
+                        ContinueWith(_ => ResultService<string>.BadResult(
+                            message,
+                            StatusCodes.Status404NotFound
+                    ));
+                }
+
+                var token = Uri.UnescapeDataString(dto.Token);
+                var result = await _userRepository.ResetPasswordAsync(user, token, dto.Password);
+
+                if (result.Succeeded)
+                {
+                    return ResultService<string>.GoodResult(
+                        "Password reset successfullt",
+                        StatusCodes.Status200OK
+                        );
+                }
+                else
+                {
+                    message = $"Password reset failed: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Unknow",
+                        Source = "UserServices/GetUserListAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<string>.BadResult(
+                            message,
+                            StatusCodes.Status404NotFound
+                        ));
+                }
+            }
+            catch (Exception e)
+            {
+                message = $"An error occurred while change password: {e.Message}";
+                Log.Error(message);
+
+                var errorLogDTO = new ErrorLogResponse
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = e.Source,
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLog.Error
+                };
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<string>.BadResult(
+                        message,
+                        StatusCodes.Status500InternalServerError,
+                        new List<string> { e.Message }
+                ));
+            }
+        }
+
     }
 }

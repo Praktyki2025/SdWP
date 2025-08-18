@@ -4,6 +4,8 @@
 @using SdWP.DTO.Responses
 @using SdWP.DTO.Requests
 @using BlazorBootstrap
+@using SdWP.Frontend.Enum
+@using SdWP.Frontend.Functions
 
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
@@ -150,21 +152,31 @@
 </div>
 
 @code {
+    [Inject]
+    public SendLogToDatabase SendLogToDatabase { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        try
         {
-            try
+            if (firstRender)
             {
+                await JSRuntime.InvokeVoidAsync("destroyUserTable");
+                await JSRuntime.InvokeVoidAsync("cleanupAllDataTables");
                 await JSRuntime.InvokeVoidAsync("usersModals.init");
-
                 await Task.Delay(100);
                 await JSRuntime.InvokeVoidAsync("initializeUserTable");
+
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error initializing user table: {ex.Message}");
-            }
+        }
+        catch (Exception e)
+        {
+            await SendLogToDatabase.SendLogAsync(
+            $"Error initializing user table: {e.Message} | throw {e.InnerException}",
+            e.StackTrace ?? "Unknow",
+            e.Source ?? "Client/UserList/OnAfterRenderAsync",
+            TypeOfLog.Error);
+
         }
     }
 
@@ -174,9 +186,13 @@
         {
             await JSRuntime.InvokeVoidAsync("showRegisterModal");
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            Console.WriteLine($"Error showing register modal: {ex.Message}");
+            await SendLogToDatabase.SendLogAsync(
+                $"Error showing register modal: {e.Message} | throw {e.InnerException}",
+                e.StackTrace ?? "Unknow",
+                e.Source ?? "Client/UserList/ShowRegisterModal",
+                TypeOfLog.Error);
         }
     }
 
@@ -186,8 +202,13 @@
         {
             await JSRuntime.InvokeVoidAsync("eval", "$('#userTable').DataTable().destroy();");
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            await SendLogToDatabase.SendLogAsync(
+                $"Error DisposeAsync: {e.Message} | throw {e.InnerException}",
+                e.StackTrace ?? "Unknow",
+                e.Source ?? "Client/UserList/DisposeAsync",
+                TypeOfLog.Error);
         }
     }
 }

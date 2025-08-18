@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.18" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
   </ItemGroup>
 
 	<ItemGroup>
@@ -27,6 +29,10 @@
     <ProjectReference Include="..\SdWP.API\SdWP.API.csproj" />
     <ProjectReference Include="..\SdWP.Data\SdWP.Data.csproj" />
     <ProjectReference Include="..\SdWP.DTO\SdWP.DTO.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="logs\" />
   </ItemGroup>
 
 </Project>

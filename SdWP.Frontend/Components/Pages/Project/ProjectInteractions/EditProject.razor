@@ -4,10 +4,13 @@
 @using SdWP.DTO.Responses
 @inject IHttpClientFactory HttpClientFactory
 @inject IProjectService ProjectService
+@using Microsoft.AspNetCore.Authorization
 
 @page "/projects/edit"
 
 @attribute [StreamRendering]
+@attribute [Authorize(Roles = "Admin,User")]
+
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Edit Project</PageTitle>

@@ -1,4 +1,7 @@
-﻿namespace SdWP.Service.Services
+using Microsoft.Extensions.Logging;
+using Serilog;
+
+namespace SdWP.Service.Services
 {
     public class ResultService<T>
     {
@@ -25,8 +28,10 @@
             int statusCode,
             List<string>? errors = null,
             T? data = default)
-            =>
-            new ResultService<T>
+        {
+            Log.Warning("Bad result: {Message}, StatusCode: {StatusCode}, Errors: {Errors}",
+                message, statusCode, errors);
+            return new ResultService<T>
             {
                 Message = message,
                 StatusCode = statusCode,
@@ -34,6 +39,6 @@
                 Errors = errors ?? new List<string>(),
                 Data = data
             };
+        }
     }
 }
-

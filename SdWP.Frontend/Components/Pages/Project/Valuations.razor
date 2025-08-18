@@ -1,5 +1,8 @@
 ﻿@page "/projects/valuations"
 @inject HttpClient Http
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin,User")]
+
 
 <h3>Project Valuations</h3>
 

@@ -1,45 +1,64 @@
-﻿using Microsoft.AspNetCore.Identity;
-using SdWP.Data.Models;
+using Microsoft.AspNetCore.Http;
+using SdWP.Data.IData;
+using SdWP.Data.Repositories;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Responses;
+using SdWP.Service.Enums;
 using SdWP.Service.IServices;
-using Microsoft.AspNetCore.Http;
+using Serilog;
 
 namespace SdWP.Service.Services
 {
     public class LoginServices : ILoginService
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
-        public LoginServices(UserManager<User> userManager, SignInManager<User> signInManager)
+        private readonly IUserRepository _userRepository;
+        private readonly IErrorLogHelper _errorLogServices;
+        private string message = string.Empty;
+
+        public LoginServices(
+            UserRepository userRepository,
+            IErrorLogHelper errorLogServices)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            _userRepository = userRepository;
+            _errorLogServices = errorLogServices;
         }
 
-        public async Task<ResultService<LoginResponseDTO>> HandleLoginAsync(LoginRequestDTO dto)
+        public async Task<ResultService<LoginResponse>> HandleLoginAsync(LoginRequest dto)
         {
             try
             {
-                var user = await _userManager.FindByEmailAsync(dto.Email);
+                var user = await _userRepository.FindByEmailAsync(dto.Email);
                 if (user == null)
                 {
-                    return ResultService<LoginResponseDTO>.BadResult(
-                        "Invalid email or password",
-                        StatusCodes.Status401Unauthorized
-                    );
+                    message = $"Login attempt with invalid email: {dto.Email}";
+                    Log.Warning(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "LoginServices.HandleLoginAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Warning
+                    };
+
+                    return await _errorLogServices.LoggEvent(errorLogDTO)
+                        .ContinueWith(_ => ResultService<LoginResponse>.BadResult(
+                            message,
+                            StatusCodes.Status401Unauthorized
+                        ));
                 }
 
-                var result = await _signInManager.PasswordSignInAsync(user, dto.Password, isPersistent: true, lockoutOnFailure: false);
+                var result = await _userRepository.PasswordSignInAsync(user, dto.Password, isPersistent: true, lockoutOnFailure: false);
 
                 if (result.Succeeded)
                 {
-                    var roles = await _userManager.GetRolesAsync(user);
-
-                    return ResultService<LoginResponseDTO>.GoodResult(
+                    var roles = await _userRepository.GetRolesAsync(user);
+                    return ResultService<LoginResponse>.GoodResult(
                         "Login successful",
                         StatusCodes.Status200OK,
-                        new LoginResponseDTO
+                        new LoginResponse
                         {
                             Success = true,
                             Id = user.Id,
@@ -50,18 +69,50 @@ namespace SdWP.Service.Services
                         }
                     );
                 }
+                else
+                {
+                    message = $"Login failed for user: {dto.Email}. Result: {result.ToString()}";
 
-                return ResultService<LoginResponseDTO>.BadResult(
+                    Log.Error(message);
+
+                    var errorLogDTO = new ErrorLogResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        Message = message,
+                        StackTrace = "Backend",
+                        Source = "LoginServices.HandleLoginAsync",
+                        TimeStamp = DateTime.UtcNow,
+                        TypeOfLog = TypeOfLog.Error
+                    };
+
+                    await _errorLogServices.LoggEvent(errorLogDTO);
+                }
+
+                return ResultService<LoginResponse>.BadResult(
                     "Invalid email or password",
                     StatusCodes.Status401Unauthorized
                 );
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return ResultService<LoginResponseDTO>.BadResult(
-                    $"An error occurred during login: {ex.Message}",
-                    StatusCodes.Status500InternalServerError
-                );
+                message = $"Error: {e.Message}";
+                Log.Error(message);
+
+                var errorLogDTO = new ErrorLogResponse
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = e.Source,
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLog.Error
+                };
+
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<LoginResponse>.BadResult(
+                        message,
+                        StatusCodes.Status500InternalServerError
+                    ));
             }
         }
 
@@ -69,7 +120,7 @@ namespace SdWP.Service.Services
         {
             try
             {
-                await _signInManager.SignOutAsync();
+                await _userRepository.SignOutAsync();
 
                 return ResultService<string>.GoodResult(
                     "Logout successful",
@@ -78,10 +129,23 @@ namespace SdWP.Service.Services
             }
             catch (Exception e)
             {
-                return ResultService<string>.BadResult(
-                    $"An error occurred during logout: {e.Message}",
-                    StatusCodes.Status500InternalServerError
-                );
+                message = $"Error during logout: {e.Message}";
+                Log.Error(message);
+                var errorLogDTO = new ErrorLogResponse
+                {
+                    Id = Guid.NewGuid(),
+                    Message = message,
+                    StackTrace = e.StackTrace,
+                    Source = "LoginServices.HandleLogoutAsync",
+                    TimeStamp = DateTime.UtcNow,
+                    TypeOfLog = TypeOfLog.Error
+                };
+
+                return await _errorLogServices.LoggEvent(errorLogDTO)
+                    .ContinueWith(_ => ResultService<string>.BadResult(
+                        message,
+                        StatusCodes.Status500InternalServerError
+                    ));
             }
         }
     }

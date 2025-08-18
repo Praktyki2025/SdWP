@@ -1,30 +1,74 @@
 ﻿@page "/admin"
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using SdWP.Frontend.Components.Layout
+@using Serilog
+@using SdWP.Frontend.Enum
+@using SdWP.Frontend.Functions
 
 @attribute [Authorize(Roles = "Admin")]
+
 @rendermode InteractiveServer
 
 @inject NavigationManager Navigation
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider Auth
 
-<h1>Admin Dashboard</h1>
+@implements IAsyncDisposable
 
-<button @onclick="Logout" class="btn btn-primary">Logout</button>
-
-
-<RegisterUserModal Show="showModal" OnClose="@(() => showModal = false)" />
-<button @onclick="ToggleModal" class="btn btn-primary">Register new user</button>
-
+<h2>Welcome @adminName</h2>
 
 @code {
-    private bool showModal = false;
+    [Inject]
+    public SendLogToDatabase SendLogToDatabase { get; set; }
 
+    private string? adminName;
 
-    private void ShowModal() => showModal = true;
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await Auth.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            adminName = user.Identity.Name ?? "admin";
+        }
+    }
 
-    private async Task Logout() => await JSRuntime.InvokeVoidAsync("apiLogout");
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                await JSRuntime.InvokeVoidAsync("destroyUserTable");
+                await JSRuntime.InvokeVoidAsync("cleanupAllDataTables");
+            }
+        }
+        catch (Exception e)
+        {
+            await SendLogToDatabase.SendLogAsync(
+                $"Error during Admin dashboard {e.Message} | throw {e.InnerException}",
+                e.StackTrace,
+                e.Source,
+                TypeOfLog.Error);
+        }
+    }
 
-    private void ToggleModal() => showModal = !showModal;
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("destroyUserTable");
+        }
+        catch (Exception e)
+        {
+            await SendLogToDatabase.SendLogAsync(
+                $"Error during Admin dashboard DisposeAsync {e.Message} | throw {e.InnerException}",
+                e.StackTrace,
+                e.Source,
+                TypeOfLog.Error);
+        }
+
+    }
 }

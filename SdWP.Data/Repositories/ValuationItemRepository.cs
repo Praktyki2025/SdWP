@@ -73,14 +73,13 @@ namespace SdWP.Data.Repositories
             }
         }
 
-        public async Task<ValuationItem?> GetValuationItemByIdAsync(Guid id) 
-            => await _context.ValuationItems.FindAsync(id);
-        public async Task<List<ValuationItem>> GetAllValuationItemsAsync() 
-            => await _context.ValuationItems.ToListAsync();
 
-        public async Task<List<ValuationItem>> GetValuationItemsByValuationIdAsync(Guid valuationId) 
-            => await _context.ValuationItems
-                .Where(vi => vi.ValuationId == valuationId)
-                .ToListAsync();
+        public async Task<ValuationItem?> GetValuationItemByIdAsync(Guid id) =>
+            await _context.ValuationItems.FindAsync(id);
+        public async Task<List<ValuationItem>> GetAllValuationItemsAsync() =>
+            await _context.ValuationItems.ToListAsync();
+
+        public async Task<List<ValuationItem>> GetValuationItemsByValuationIdAsync(Guid valuationId) =>
+              await _context.ValuationItems.Where(vi => vi.ValuationId == valuationId).ToListAsync();
     }
 }

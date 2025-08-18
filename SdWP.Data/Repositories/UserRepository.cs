@@ -1,285 +1,174 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SdWP.Data.Context;
+using SdWP.Data.IData;
 using SdWP.Data.Models;
+using SdWP.DTO.Requests.Datatable;
+using SdWP.DTO.Responses;
+using System.Linq.Dynamic.Core;
+
 
 namespace SdWP.Data.Repositories
 {
-    public class UserRepository :
-        IUserStore<User>,
-        IUserPasswordStore<User>,
-        IUserEmailStore<User>,
-        IUserRoleStore<User>
+    public class UserRepository : IUserRepository
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+        private readonly SignInManager<User> _signInManager;
 
-        public UserRepository(ApplicationDbContext context)
+        public UserRepository(
+            ApplicationDbContext context,
+            UserManager<User> userManager,
+            RoleManager<IdentityRole<Guid>> roleManager,
+            SignInManager<User> signInManager)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _context = context;
+            _userManager = userManager;
+            _roleManager = roleManager;
+            _signInManager = signInManager;
         }
 
-        public async Task<IdentityResult> CreateAsync(User user, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-
-            if (user.Id == Guid.Empty) user.Id = Guid.NewGuid();
-
-            var exists = await _context.Users
-                .AnyAsync(
-                    u => u.Id == user.Id || 
-                    u.NormalizedUserName == user.UserName.ToUpper(), 
-                    cancellationToken
-                );
-
-            if (exists)
-            {
-                return IdentityResult.Failed(new IdentityError
-                {
-                    Description = "User not found."
-                });
-            }
-
-            user.CreatedAt = DateTime.UtcNow;
-            user.LastUpdate = DateTime.UtcNow;
-            user.NormalizedUserName = user.UserName?.ToUpper();
-            user.NormalizedEmail = user.Email?.ToUpper();
-            user.EmailConfirmed = true;
-
-            await _context.Users.AddAsync(user, cancellationToken);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return IdentityResult.Success;
-        }
-
-        public async Task<IdentityResult> UpdateAsync(User user, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-
-            var exists = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id, cancellationToken);
-
-            if (exists == null)
-            {
-                return IdentityResult.Failed(new IdentityError
-                {
-                    Description = "User not found."
-                });
-            }
-
-            user.LastUpdate = DateTime.UtcNow;
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return IdentityResult.Success;
-        }
-
-        public async Task<IdentityResult> DeleteAsync(User user, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return IdentityResult.Success;
-        }
-
-        public async Task<User?> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public async Task<User?> FindByIdAsync(string userId)
         {
             if (!Guid.TryParse(userId, out var id)) return null;
 
-            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        public async Task<User?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+        public async Task<List<UserListResponse>> GetUsersAsync(DataTableRequest request)
         {
-            if (string.IsNullOrEmpty(normalizedUserName)) return null;
+            var userWithRoles = _context.Users
+                .Select(u => new
+                {
+                    User = u,
+                    FirstRoleName = _context.UserRoles
+                        .Where(ur => ur.UserId == u.Id)
+                        .Join(_context.Roles,
+                            ur => ur.RoleId,
+                            r => r.Id,
+                            (ur, r) => r.Name)
+                        .OrderBy(roleName => roleName)
+                        .FirstOrDefault(),
+                    IsLocked = u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow
+                });
 
-            return await _context.Users.FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName.ToUpper(), cancellationToken);
-        }
-
-        public Task<string?> GetNormalizedUserNameAsync(User user, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            return Task.FromResult(user.NormalizedUserName);
-        }
-
-        public Task<string?> GetUserIdAsync(User user, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            return Task.FromResult<string?>(user.Id.ToString());
-        }
-
-        public Task<string?> GetUserNameAsync(User user, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            return Task.FromResult(user.UserName);
-        }
-
-        public Task SetNormalizedUserNameAsync(User user, string normalizedName, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            user.NormalizedUserName = normalizedName;
-            return Task.CompletedTask;
-        }
-
-        public Task SetUserNameAsync(User user, string userName, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            user.UserName = userName;
-            return Task.CompletedTask;
-        }
-
-        public Task SetPasswordHashAsync(User user, string passwordHash, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            user.PasswordHash = passwordHash;
-            return Task.CompletedTask;
-        }
-
-        public Task<string?> GetPasswordHashAsync(User user, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            return Task.FromResult(user.PasswordHash);
-        }
-
-        public Task<bool> HasPasswordAsync(User user, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            return Task.FromResult(!string.IsNullOrEmpty(user.PasswordHash));
-        }
-
-        public void Dispose()
-        {
-            // 
-        }
-
-        public Task SetEmailAsync(User user, string email, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            user.Email = email;
-            return Task.CompletedTask;
-        }
-
-        public Task<string?> GetEmailAsync(User user, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            return Task.FromResult(user.Email);
-        }
-
-        public Task SetEmailConfirmedAsync(User user, bool confirmed, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            user.EmailConfirmed = confirmed;
-            return Task.CompletedTask;
-        }
-
-        public async Task<User?> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrEmpty(normalizedEmail)) return null;
-
-            return await _context.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail.ToUpper(), cancellationToken);
-        }
-
-        public Task<string?> GetNormalizedEmailAsync(User user, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            return Task.FromResult(user.NormalizedEmail);
-        }
-
-        public Task SetNormalizedEmailAsync(User user, string normalizedEmail, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            user.NormalizedEmail = normalizedEmail;
-            return Task.CompletedTask;
-        }
-
-        public Task<bool> GetEmailConfirmedAsync(User user, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            return Task.FromResult(user.EmailConfirmed);
-        }
-
-        public async Task AddToRoleAsync(User user, string roleName, CancellationToken cancellationToken)
-        {
-            var role = await _context.Roles.FirstOrDefaultAsync(
-                r => r.Name == roleName,
-                cancellationToken
-                );
-
-            if (role == null) throw new InvalidOperationException($"Role {roleName}does not exist.");
-
-            _context.UserRoles.Add(new IdentityUserRole<Guid>
+            if (!string.IsNullOrEmpty(request.search.value))
             {
-                UserId = user.Id,
-                RoleId = role.Id
-            });
-
-            await _context.SaveChangesAsync(cancellationToken);
-        }
-
-        public async Task RemoveFromRoleAsync(User user, string roleName, CancellationToken cancellationToken)
-        {
-            var role = await _context.Roles.FirstOrDefaultAsync(
-                r => r.Name == roleName,
-                cancellationToken
-            );
-
-            if (role == null) throw new InvalidOperationException($"Role {roleName} does not exist.");
-
-            var userRole = await _context.UserRoles
-                .FirstOrDefaultAsync(ur => ur.UserId == user.Id && ur.RoleId == role.Id, cancellationToken);
-
-            if (userRole != null)
-            {
-                _context.UserRoles.Remove(userRole);
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-        }
-
-        public Task<IList<string>> GetRolesAsync(User user, CancellationToken cancellationToken)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-
-            var roleName = _context.UserRoles
-                .Where(ur => ur.UserId == user.Id)
-                .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
-                .Where(role => role != null)
-                .Select(role => role.Name)
-                .ToList();
-
-            return Task.FromResult<IList<string>>(roleName);
-        }
-
-        public Task<bool> IsInRoleAsync(User user, string roleName, CancellationToken cancellationToken)
-        {
-            if (user == null || string.IsNullOrEmpty(roleName))
-                throw new ArgumentNullException(nameof(user));
-
-           var isInRole = _context.UserRoles
-                .Any(ur => ur.UserId == user.Id && 
-                           _context.Roles.Any(r => r.Id == ur.RoleId && r.Name == roleName));
-            return Task.FromResult(isInRole);
-        }
-
-        public async Task<IList<User>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
-        {
-            var role = await _context.Roles
-                .FirstOrDefaultAsync(r => r.Name == roleName, cancellationToken);
-
-            if (role == null)
-            {
-                return new List<User>();
+                var searchValue = request.search.value.ToLower();
+                userWithRoles = userWithRoles
+                    .Where(u => u.User.UserName.ToLower().Contains(searchValue) ||
+                                u.User.Email.ToLower().Contains(searchValue));
             }
 
-            var usersInRole = await _context.UserRoles
-                .Where(ur => ur.RoleId == role.Id)
-                .Select(ur => ur.UserId)
-                .ToListAsync(cancellationToken);
+            if (request.order != null && request.order.Count > 0)
+            {
+                var orderColumn = request.order[0];
+                bool ascending = orderColumn.dir == "asc";
+                string? sortColumn = null;
+                if (request.columns != null && request.columns.Count > orderColumn.column)
+                    sortColumn = request.columns[orderColumn.column].data;
 
-            var users = await _context.Users
-                .Where(u => usersInRole.Contains(u.Id))
-                .ToListAsync(cancellationToken);
+                if (!string.IsNullOrEmpty(sortColumn))
+                {
+                    userWithRoles = sortColumn.ToLower() switch
+                    {
+                        "name" => ascending ? userWithRoles.OrderBy(u => u.User.UserName) : userWithRoles.OrderByDescending(u => u.User.UserName),
+                        "email" => ascending ? userWithRoles.OrderBy(u => u.User.Email) : userWithRoles.OrderByDescending(u => u.User.Email),
+                        "createdat" => ascending ? userWithRoles.OrderBy(u => u.User.CreatedAt) : userWithRoles.OrderByDescending(u => u.User.CreatedAt),
+                        "role" or "roles" => ascending ? userWithRoles.OrderBy(u => u.FirstRoleName ?? string.Empty) :
+                            userWithRoles.OrderByDescending(u => u.FirstRoleName ?? string.Empty),
+                        "islocked" => ascending ? userWithRoles.OrderBy(u => u.IsLocked) : userWithRoles.OrderByDescending(u => u.IsLocked),
+                        _ => userWithRoles.OrderBy(u => u.User.UserName)
+                    };
+                }
+            }
+            else
+            {
+                userWithRoles = userWithRoles.OrderBy(u => u.User.UserName);
+            }
 
-            return users;
+            userWithRoles = userWithRoles
+                .Skip(request.start)
+                .Take(request.length);
+
+            var userList = await userWithRoles
+                .Select(u => new UserListResponse
+                {
+                    Id = u.User.Id,
+                    Email = u.User.Email,
+                    Name = u.User.UserName,
+                    CreatedAt = u.User.CreatedAt,
+                    isLocked = u.User.LockoutEnd.HasValue && u.User.LockoutEnd > DateTimeOffset.UtcNow,
+                    Roles = _context.UserRoles
+                        .Where(ur => ur.UserId == u.User.Id)
+                        .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId))
+                        .Where(role => role != null)
+                        .Select(role => role!.Name)
+                        .ToList(),
+                    Success = true
+                })
+                .AsNoTracking()
+                .ToListAsync();
+
+            return userList;
         }
+
+        public async Task<User?> FindByEmailAsync(string email)
+            => await _userManager.FindByEmailAsync(email);
+
+        public async Task<IdentityResult> CreateAsync(User user, string password)
+            => await _userManager.CreateAsync(user, password);
+
+        public async Task<bool> RoleExistsAsync(string role)
+            => await _roleManager.RoleExistsAsync(role);
+
+        public async Task<IdentityResult> AddToRoleAsync(User user, string role)
+            => await _userManager.AddToRoleAsync(user, role);
+
+        public async Task<IList<string>> GetRolesAsync(User user)
+            => await _userManager.GetRolesAsync(user);
+
+        public async Task<IdentityResult> DeleteAsync(User user)
+            => await _userManager.DeleteAsync(user);
+
+        public async Task<IdentityResult> UpdateAsync(User user)
+            => await _userManager.UpdateAsync(user);
+
+        public async Task<User?> FindByNameAsync(string name)
+            => await _userManager.FindByNameAsync(name);
+
+        public async Task<IdentityResult> ResetPasswordAsync(User user, string token, string password)
+            => await _userManager.ResetPasswordAsync(user, token, password);
+
+        public async Task<IdentityResult> RemoveFromRolesAsync(User user, IEnumerable<string> roles)
+        {
+            if (roles == null || !roles.Any())
+                return IdentityResult.Failed();
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            var rolesToRemove = currentRoles.Intersect(roles).ToList();
+            if (rolesToRemove.Any())
+            {
+                return await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
+            }
+            return IdentityResult.Success;
+        }
+
+        public async Task<SignInResult> PasswordSignInAsync(User user, string password, bool? isPersistent, bool? lockoutOnFailure)
+            => await _signInManager.PasswordSignInAsync(user, password, isPersistent ?? false, lockoutOnFailure ?? false);
+
+        public async Task SignOutAsync()
+            => await _signInManager.SignOutAsync();
+
+        public async Task<IdentityResult> SetLockoutEnabledAsync(User user, bool enabled)
+            => await _userManager.SetLockoutEnabledAsync(user, enabled);
+
+        public async Task<IdentityResult> SetLockoutEndDateAsync(User user, DateTimeOffset? lockoutEnd)
+            => await _userManager.SetLockoutEndDateAsync(user, lockoutEnd);
+
+        public async Task<string> GeneratePasswordResetTokenAsync(User user)
+            => await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        
     }
 }

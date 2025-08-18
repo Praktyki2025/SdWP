@@ -15,7 +15,7 @@ namespace SdWP.Data.Models
         public DateTime TimeStamp { get; set; }
         public Guid? UserId { get; set; }
 
-
+        public string TypeOfLog { get; set; }
         public virtual User User { get; set; }
 
     }

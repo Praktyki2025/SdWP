@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using SdWP.Data.Models;
 using SdWP.DTO.Requests;
 using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
@@ -77,6 +79,23 @@ namespace SdWP.API.Controllers
                     message = result.Message,
                     errors = result.Errors
                 });
+        }
+        [HttpPost("newpassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest model)
+        { 
+            var result = await _userService.ChangePasswordAsync(model);
+
+            if (result.Success) return StatusCode(result.StatusCode, result.Data);
+
+            else
+            {
+                return StatusCode(result.StatusCode, new
+                {
+                    success = false,
+                    message = result.Message,
+                    errors = result.Errors
+                });
+            }
         }
     }
 }

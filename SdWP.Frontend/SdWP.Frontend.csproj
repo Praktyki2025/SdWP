@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Content Remove="wwwroot\datatable-init.js" />
-    <Content Remove="wwwroot\js\datatables\projectview-datatable-init.js" />
   </ItemGroup>
 
   <ItemGroup>

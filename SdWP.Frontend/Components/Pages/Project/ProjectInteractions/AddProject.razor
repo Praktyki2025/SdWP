@@ -1,9 +1,11 @@
 ﻿@using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authorization
+@using SdWP.DTO.Requests;
+@using SdWP.DTO.Requests.ProjectRequests
+@using SdWP.DTO.Responses;
+@using SdWP.DTO.Responses.ProjectRequests
 @using SdWP.Data.Models;
 @using SdWP.Service.IServices
-@using SdWP.DTO.Requests;
-@using SdWP.DTO.Responses;
 @inject IProjectService ProjectService
 @inject HttpClient Http
 @inject NavigationManager Navigation
@@ -14,13 +16,6 @@
 @rendermode InteractiveServer
 
 <PageTitle>Add Project</PageTitle>
-
-@if (!string.IsNullOrEmpty(message))
-{
-    <div class="alert alert-danger" role="alert">
-        @message
-    </div>
-}
     
 <EditForm Model="project" OnValidSubmit="AddProjectToDbAsync" FormName="AddProjectForm">
     <DataAnnotationsValidator />
@@ -39,12 +34,13 @@
         </div>
     </div>
 
-    <button class="btn btn-primary" type="submit">Confrim</button>
+    <button class="btn btn-primary" type="submit">Save</button>
+    <button class="btn btn-secondary" type="button" @onclick='() => Navigation.NavigateTo("/projects")'>Cancel</button>
 </EditForm>
 
 @code {
     private string message = string.Empty;
-    private ProjectUpsertRequestDTO project = new ProjectUpsertRequestDTO();
+    private ProjectCreateRequest project = new();
 
     private async Task AddProjectToDbAsync()
     {
@@ -52,13 +48,12 @@
 
         if (response != null && response.Success)
         {
-            ToastService.Notify(new ToastMessage(response.Success && response.Message != null ? ToastType.Success :
-                ToastType.Secondary, response.Data.Message));
-            Navigation.NavigateTo("/projects", true);
+            ToastService.Notify(new ToastMessage(ToastType.Success, "Project was added successfully"));
+            Navigation.NavigateTo("/projects");
         }
         else
         {
-			message = response?.Message ?? "Adding the project failed. Try again.";
+            ToastService.Notify(new ToastMessage(ToastType.Danger, response?.Message ?? "Adding the project failed. Try again."));
         }
     }
 }

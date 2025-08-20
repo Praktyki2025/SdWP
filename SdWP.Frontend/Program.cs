@@ -10,8 +10,6 @@ using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
-using SdWP.Data.IData;
-using SdWP.Data.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -121,8 +119,9 @@ using (var scope = app.Services.CreateScope())
 
 app.UseStaticFiles();
 
-app.UseAuthentication();
 app.UseRouting();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseAntiforgery();

@@ -1,4 +1,5 @@
-﻿using SdWP.DTO.Requests;
+﻿using SdWP.Data.Models;
+using SdWP.DTO.Requests;
 using SdWP.DTO.Requests.Datatable;
 using SdWP.DTO.Responses;
 using SdWP.DTO.Responses.DataTable;
@@ -13,5 +14,6 @@ namespace SdWP.Service.IServices
         Task<ResultService<DataTableResponse<UserListResponse>>> GetUserListAsync(DataTableRequest request);
         Task<ResultService<UserListResponse>> DeleteUserAsync(DeleteUserRequest dto);
         Task<ResultService<EditUserRequest>> EditUserAsync(EditUserRequest dto);
+        Task<ResultService<User>> ChangePasswordAsync(ChangePasswordRequest dto);
     }
 }

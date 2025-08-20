@@ -11,8 +11,7 @@ window.projectsEvents = {
         $(tableSelector).on('click', '.delete-project', function (e) {
             e.preventDefault();
             selectedProjectId = $(this).data('id');
-            const myModal = new bootstrap.Modal(document.getElementById('DeleteModal'));
-            myModal.show();
+            const myModal = new bootstrap.Modal(document.getElementById('DeleteModal')).show();
         });
 
         $('#confirmButton').on('click', async function () {
@@ -21,8 +20,9 @@ window.projectsEvents = {
             try {
                 await window.projectsApi.deleteProject(selectedProjectId);
                 tableInstance.ajax.reload(null, false);
+                showToast("Project deleted successfully", 'bg-success');
             } catch {
-                alert('Failed to delete project');
+                showToast("Operation failed", "bg-danger");
             }
 
             const modalEl = document.getElementById('DeleteModal');
@@ -39,10 +39,31 @@ window.projectsEvents = {
             }
             const id = $(this).data('id');
             if ($(e.target).closest('.dropdown, .dropdown-menu').length === 0) {
-                //window.location.href = `/projects/valutaions?id=${id}`;
-                window.location.href = `/projects/valutaions`;
+                //window.location.href = `/projects/valuations?id=${id}`;
+                window.location.href = `/projects/valuations`;
             }
         });
+
     }
-};
+}
+
+//bgclass - bg-success or bg-danger example: showToast("Project deleted successfully", 'bg-success');
+function showToast(message, bgClass) {
+    const toastElement = document.getElementById('toast');
+    const toastBody = toastElement.querySelector('.toast-body');
+    toastBody.textContent = message;
+
+    toastElement.className = toastElement.className
+        .split(' ')
+        .filter(cls => !cls.startsWith('bg-'))
+        .join(' ');
+
+    toastElement.classList.add(bgClass);
+
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+}
+
+
+
 

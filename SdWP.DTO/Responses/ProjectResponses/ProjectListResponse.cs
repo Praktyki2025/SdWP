@@ -1,6 +1,6 @@
 ﻿using SdWP.DTO.Requests;
 
-namespace SdWP.DTO.Responses
+namespace SdWP.DTO.Responses.ProjectRequests
 {
     public class ProjectListResponse<T>
     {

@@ -1,17 +1,11 @@
-﻿using Azure.Core;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using SdWP.Data.Context;
+﻿using Microsoft.AspNetCore.Http;
 using SdWP.Data.Models;
-using SdWP.DTO.Requests;
-using SdWP.DTO.Responses;
 using SdWP.Service.IServices;
-using System.Linq.Expressions;
 using System.Security.Claims;
-using Microsoft.Identity.Client;
-using Microsoft.IdentityModel.Tokens;
 using SdWP.Data.IData;
 using SdWP.DTO.Requests.Datatable;
+using SdWP.DTO.Requests.ProjectRequests;
+using SdWP.DTO.Responses.ProjectRequests;
 
 namespace SdWP.Service.Services
 {
@@ -19,15 +13,15 @@ namespace SdWP.Service.Services
     {
         private readonly IProjectRepository _projectRepository = projectRepository;
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-        public async Task<ResultService<ProjectUpsertResponseDTO>> CreateProjectAsync(ProjectUpsertRequestDTO project)
+        public async Task<ResultService<ProjectResponse>> CreateProjectAsync(ProjectCreateRequest project)
         {
             try
             {
                 var user = _httpContextAccessor.HttpContext?.User;
 
-                if (user?.Identity?.IsAuthenticated != true)
+                if (user == null || user.Identity?.IsAuthenticated != true)
                 {
-                    return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                    return ResultService<ProjectResponse>.BadResult(
                         message: "User is not authenticated",
                         statusCode: StatusCodes.Status401Unauthorized
                         );
@@ -48,7 +42,7 @@ namespace SdWP.Service.Services
 
                 await _projectRepository.AddAsync(response);
 
-                var result = new ProjectUpsertResponseDTO
+                var result = new ProjectResponse
                 {
                     Id = response.Id,
                     Title = response.Title,
@@ -57,7 +51,7 @@ namespace SdWP.Service.Services
                     LastModified = response.LastModified
                 };
 
-                return ResultService<ProjectUpsertResponseDTO>.GoodResult(
+                return ResultService<ProjectResponse>.GoodResult(
                     message: "Project created",
                     statusCode: StatusCodes.Status201Created,
                     data: result
@@ -65,49 +59,49 @@ namespace SdWP.Service.Services
             }
             catch (Exception ex)
             {
-                return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                return ResultService<ProjectResponse>.BadResult(
                     $"An error occurred during creating project: {ex.Message}",
                     StatusCodes.Status500InternalServerError
                 );
             }
         }
         
-        public async Task<ResultService<ProjectUpsertResponseDTO>> EditProjectAsync(ProjectUpsertRequestDTO project)
+        public async Task<ResultService<ProjectResponse>> EditProjectAsync(ProjectEditRequest project)
         {
             try
             {
-                if (project == null || project.Id == null)
+                var user = _httpContextAccessor.HttpContext?.User;
+
+                if (user == null || user.Identity?.IsAuthenticated != true)
                 {
-                    return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                    return ResultService<ProjectResponse>.BadResult(
+                        message: "User is not authenticated",
+                        statusCode: StatusCodes.Status401Unauthorized
+                        );
+                }
+
+                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (project == null || project.Id == Guid.Empty)
+                {
+                    return ResultService<ProjectResponse>.BadResult(
                         message: "Project data is invalid.",
                         statusCode: StatusCodes.Status400BadRequest
                         );
                 }
 
-                var existingProject = await _projectRepository.GetByIdAsync((Guid)project.Id);
+                var existingProject = await _projectRepository.GetProjectByIdAsync(project.Id);
                 if (existingProject == null)
                 {
-                    return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                    return ResultService<ProjectResponse>.BadResult(
                         message: "Project not found.",
                         statusCode: StatusCodes.Status204NoContent
                         );
                 }
 
-                var user = _httpContextAccessor.HttpContext?.User;
-                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if (userId == null)
+                if (!user.IsInRole("Admin") && Guid.Parse(userId) != existingProject.CreatorUserId)
                 {
-                    return ResultService<ProjectUpsertResponseDTO>.BadResult(
-                        message: "User is not authentificated",
-                        statusCode: StatusCodes.Status401Unauthorized);
-                }
-
-                var fetchedProject = await _projectRepository.GetByIdAsync((Guid)project.Id);
-
-                if (project == null || !user.IsInRole("Admin") && Guid.Parse(userId) != fetchedProject.CreatorUserId)
-                {
-                    return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                    return ResultService<ProjectResponse>.BadResult(
                         message: "You don't have permissions to edit this project.",
                         statusCode: StatusCodes.Status403Forbidden);
                 }
@@ -118,7 +112,7 @@ namespace SdWP.Service.Services
 
                 await _projectRepository.UpdateAsync(existingProject);
 
-                var result = new ProjectUpsertResponseDTO
+                var result = new ProjectResponse
                 {
                     Id = existingProject.Id,
                     Title = existingProject.Title,
@@ -127,7 +121,7 @@ namespace SdWP.Service.Services
                     LastModified = existingProject.LastModified
                 };
 
-                return ResultService<ProjectUpsertResponseDTO>.GoodResult(
+                return ResultService<ProjectResponse>.GoodResult(
                     message: "Project edited successfully",
                     statusCode: StatusCodes.Status200OK,
                     data: result
@@ -135,7 +129,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception ex)
             {
-                return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                return ResultService<ProjectResponse>.BadResult(
                     $"An error occurred during editing project: {ex.Message}",
                     StatusCodes.Status500InternalServerError
                 );
@@ -143,57 +137,85 @@ namespace SdWP.Service.Services
 
         }
 
-        public async Task<ResultService<ProjectDeleteResponseDTO>> DeleteProjectAsync(Guid projectId)
+        public async Task<ResultService<ProjectDeleteResponse>> DeleteProjectAsync(ProjectDeleteRequest project)
         {
-            try {                
+            try {
                 var user = _httpContextAccessor.HttpContext?.User;
-                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (userId == null)
+                if (user == null || user.Identity?.IsAuthenticated != true)
                 {
-                    return ResultService<ProjectDeleteResponseDTO>.BadResult(
-                        message: "User is not authentificated",
-                        statusCode: StatusCodes.Status401Unauthorized);
+                    return ResultService<ProjectDeleteResponse>.BadResult(
+                        message: "User is not authenticated",
+                        statusCode: StatusCodes.Status401Unauthorized
+                        );
                 }
 
-                var project = await _projectRepository.GetByIdAsync(projectId);
+                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (project == null || !user.IsInRole("Admin") && Guid.Parse(userId) != project.CreatorUserId)
+                var projectToDelete = await _projectRepository.GetProjectByIdAsync(project.Id);
+
+                if (projectToDelete == null)
                 {
-                    return ResultService<ProjectDeleteResponseDTO>.BadResult(
+                    return ResultService<ProjectDeleteResponse>.BadResult(
+                        message: "Project not found.",
+                        statusCode: StatusCodes.Status404NotFound
+                        );
+                }
+
+                if (!user.IsInRole("Admin") && Guid.Parse(userId) != projectToDelete.CreatorUserId)
+                {
+                    return ResultService<ProjectDeleteResponse>.BadResult(
                         message: "You don't have permissions to delete this project.",
                         statusCode: StatusCodes.Status403Forbidden);
                 }
 
-                await _projectRepository.DeleteAsync(projectId);
+                await _projectRepository.DeleteAsync(projectToDelete.Id);
 
-                return ResultService<ProjectDeleteResponseDTO>.GoodResult(
+                return ResultService<ProjectDeleteResponse>.GoodResult(
                     message: "Project was deleted.",
                     statusCode: StatusCodes.Status200OK);
             }
             catch (Exception ex)
             {
-                return ResultService<ProjectDeleteResponseDTO>.BadResult(
+                return ResultService<ProjectDeleteResponse>.BadResult(
                     $"An error occurred during deleting project: {ex.Message}",
                     StatusCodes.Status500InternalServerError
                 );
             }
         }
 
-        public async Task<ResultService<ProjectUpsertResponseDTO>> GetByIdAsync(Guid id)
+        public async Task<ResultService<ProjectResponse>> GetProjectAsync(Guid id)
         {
             try
             {
-                var project = await _projectRepository.GetByIdAsync(id);
+                var project = await _projectRepository.GetProjectByIdAsync(id);
 
                 if (project == null)
                 {
-                    return ResultService<ProjectUpsertResponseDTO>.BadResult(
-                        message: "Project not found",
+                    return ResultService<ProjectResponse>.BadResult(
+                        message: $"Guid:{id} Project not found",
                         statusCode: StatusCodes.Status404NotFound);
                 }
 
-                var result = new ProjectUpsertResponseDTO
+                var user = _httpContextAccessor.HttpContext?.User;
+
+                if (user == null || user.Identity?.IsAuthenticated != true)
+                {
+                    return ResultService<ProjectResponse>.BadResult(
+                        message: "User is not authenticated",
+                        statusCode: StatusCodes.Status401Unauthorized
+                        );
+                }
+                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (!user.IsInRole("Admin") && Guid.Parse(userId) != project.CreatorUserId)
+                {
+                    return ResultService<ProjectResponse>.BadResult(
+                        message: "You don't have permissions to edit this project.",
+                        statusCode: StatusCodes.Status403Forbidden);
+                }
+
+                var result = new ProjectResponse
                 {
                     Id = project.Id,
                     Title = project.Title,
@@ -202,7 +224,7 @@ namespace SdWP.Service.Services
                     LastModified = project.LastModified
                 };
 
-                return ResultService<ProjectUpsertResponseDTO>.GoodResult(
+                return ResultService<ProjectResponse>.GoodResult(
                     message: "Project fetched successfully",
                     statusCode: StatusCodes.Status200OK,
                     data: result
@@ -210,7 +232,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception ex)
             {
-                return ResultService<ProjectUpsertResponseDTO>.BadResult(
+                return ResultService<ProjectResponse>.BadResult(
                     $"An error occurred during fetching project project: {ex.Message}",
                     StatusCodes.Status500InternalServerError
                 );
@@ -218,22 +240,23 @@ namespace SdWP.Service.Services
 
         }
 
-        public async Task<ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>> GetProjects(DataTableRequest request)
+        public async Task<ResultService<ProjectListResponse<ProjectResponse>>> GetProjects(DataTableRequest request)
         {
             try
             {
                 var user = _httpContextAccessor.HttpContext?.User;
-                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (user == null || !user.Identity.IsAuthenticated)
+                if (user == null || user.Identity?.IsAuthenticated != true)
                 {
-                    return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.BadResult(
-                    message: "You are not authorized.",
-                    statusCode: StatusCodes.Status401Unauthorized
-                    );
+                    return ResultService<ProjectListResponse<ProjectResponse>>.BadResult(
+                        message: "User is not authenticated",
+                        statusCode: StatusCodes.Status401Unauthorized
+                        );
                 }
 
-                ProjectListResponse<ProjectUpsertResponseDTO> projects;
+                var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                ProjectListResponse<ProjectResponse> projects;
                 UserRole role = UserRole.Unknown;
                 if (user.IsInRole("Admin"))
                 {
@@ -246,7 +269,7 @@ namespace SdWP.Service.Services
 
                 if(role == UserRole.Unknown)
                 {
-                    return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.BadResult(
+                    return ResultService<ProjectListResponse<ProjectResponse>>.BadResult(
                         message: "You don't have permissions to view projects.",
                         statusCode: StatusCodes.Status403Forbidden
                     );
@@ -254,7 +277,7 @@ namespace SdWP.Service.Services
 
                 projects = await _projectRepository.FilterAsync(request, role, Guid.Parse(userId));
 
-                return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.GoodResult(
+                return ResultService<ProjectListResponse<ProjectResponse>>.GoodResult(
                     message: "Projects retrieved successfully",
                     statusCode: StatusCodes.Status200OK,
                     data: projects
@@ -262,7 +285,7 @@ namespace SdWP.Service.Services
             }
             catch (Exception ex)
             {
-                return ResultService<ProjectListResponse<ProjectUpsertResponseDTO>>.BadResult(
+                return ResultService<ProjectListResponse<ProjectResponse>>.BadResult(
                     $"An error occurred during fetching projects: {ex.Message}",
                     StatusCodes.Status500InternalServerError
                 );

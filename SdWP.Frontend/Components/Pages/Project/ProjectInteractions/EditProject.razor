@@ -87,12 +87,12 @@
 
         if (response != null && response.Success)
         {
-            ToastService.Notify(new ToastMessage(ToastType.Success, response.Message));
+            ToastService.Notify(new ToastMessage(ToastType.Success, response?.Message ?? "Project created."));
             Navigation.NavigateTo("/projects");
         }
         else
         {
-            ToastService.Notify(new ToastMessage(ToastType.Danger, response.Message ?? "Editing the project failed. Try again."));
+            ToastService.Notify(new ToastMessage(ToastType.Danger, response?.Message ?? "Editing the project failed. Try again."));
         }
     }
 

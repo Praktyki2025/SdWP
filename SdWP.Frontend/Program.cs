@@ -1,14 +1,15 @@
+using BlazorBootstrap;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SdWP.Data.Context;
+using SdWP.Data.IData;
 using SdWP.Data.Models;
+using SdWP.Data.Repositories;
 using SdWP.Frontend.Components;
 using SdWP.Service.IServices;
 using SdWP.Service.Services;
-using SdWP.Data.IData;
-using SdWP.Data.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,8 @@ builder.Services.AddHttpClient("ApiClient", client =>
 {
     client.BaseAddress = new Uri("http://localhost:5267/");
 });
+
+builder.Services.AddBlazorBootstrap();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -56,6 +59,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ILoginService, LoginServices>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 builder.Services.AddHttpClient();
@@ -108,15 +112,16 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Wyst¹pi³ b³¹d podczas inicjalizacji bazy danych");
+        logger.LogError(ex, "Wyst?pi? b??d podczas inicjalizacji bazy danych");
     }
 }
 
 
 app.UseStaticFiles();
 
-app.UseAuthentication();
 app.UseRouting();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseAntiforgery();
